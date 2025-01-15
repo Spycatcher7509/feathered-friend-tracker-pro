@@ -4,6 +4,7 @@ import { Auth as SupabaseAuth } from "@supabase/auth-ui-react"
 import { ThemeSupa } from "@supabase/auth-ui-shared"
 import { AuthError } from "@supabase/supabase-js"
 import { FileText, AlertCircle } from "lucide-react"
+import { useToast } from "@/components/ui/use-toast"
 
 import { supabase } from "@/integrations/supabase/client"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -12,6 +13,7 @@ import { Button } from "@/components/ui/button"
 const Auth = () => {
   const navigate = useNavigate()
   const [errorMessage, setErrorMessage] = useState("")
+  const { toast } = useToast()
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -37,13 +39,38 @@ const Auth = () => {
   }
 
   const handleUserGuide = () => {
-    // Open user guide PDF in a new tab
     window.open("/user-guide.pdf", "_blank")
   }
 
-  const handleReportIssue = () => {
-    // Open email client with pre-filled subject
-    window.location.href = "mailto:accounts@thewrightsupport.com?subject=BirdWatch Issue Report"
+  const handleReportIssue = async () => {
+    try {
+      const { error } = await supabase.functions.invoke('send-email', {
+        body: {
+          to: 'accounts@thewrightsupport.com',
+          subject: 'BirdWatch Issue Report',
+          text: 'A user has reported an issue with BirdWatch.',
+          html: `
+            <h2>BirdWatch Issue Report</h2>
+            <p>A user has reported an issue with the BirdWatch application.</p>
+            <p>Please follow up with the user to gather more details about the issue.</p>
+          `
+        }
+      })
+
+      if (error) throw error
+
+      toast({
+        title: "Issue Report Sent",
+        description: "Thank you for reporting the issue. Our team will review it shortly.",
+      })
+    } catch (error) {
+      console.error('Error sending issue report:', error)
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to send issue report. Please try again later.",
+      })
+    }
   }
 
   return (
