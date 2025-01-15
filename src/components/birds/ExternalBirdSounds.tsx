@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Play, Pause } from "lucide-react"
 import { useExternalBirdSounds, type ExternalBirdSound } from "@/hooks/useExternalBirdSounds"
+import BirdSoundImporter from "./BirdSoundImporter"
 
 const ExternalBirdSounds = () => {
   const [playingId, setPlayingId] = useState<string | null>(null)
@@ -31,37 +32,40 @@ const ExternalBirdSounds = () => {
   }
 
   if (isLoading) {
-    return <div className="text-center">Loading bird sounds...</div>
+    return <div>Loading bird sounds...</div>
   }
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-      {birdSounds?.map((sound) => (
-        <Card key={sound.id} className="bg-white">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg font-semibold text-nature-800">
-              {sound.bird_name}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-nature-600">Source: {sound.source}</span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handlePlayPause(sound)}
-                className="bg-nature-50 hover:bg-nature-100"
-              >
-                {playingId === sound.id ? (
-                  <Pause className="h-4 w-4" />
-                ) : (
-                  <Play className="h-4 w-4" />
-                )}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-semibold text-nature-800">External Bird Sounds</h2>
+        <BirdSoundImporter />
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {birdSounds?.map((sound) => (
+          <Card key={sound.id}>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg">{sound.bird_name}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">{sound.source}</span>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => handlePlayPause(sound)}
+                >
+                  {playingId === sound.id ? (
+                    <Pause className="h-4 w-4" />
+                  ) : (
+                    <Play className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
     </div>
   )
 }
