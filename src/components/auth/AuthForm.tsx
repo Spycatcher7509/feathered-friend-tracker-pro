@@ -12,8 +12,8 @@ const AuthForm = () => {
           variables: {
             default: {
               colors: {
-                brand: 'rgb(var(--nature-600))',
-                brandAccent: 'rgb(var(--nature-700))'
+                brand: 'rgb(79, 127, 76)',
+                brandAccent: 'rgb(61, 102, 58)'
               }
             }
           }

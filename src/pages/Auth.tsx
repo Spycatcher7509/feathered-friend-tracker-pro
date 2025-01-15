@@ -4,6 +4,7 @@ import { AuthError } from "@supabase/supabase-js"
 import { supabase } from "@/integrations/supabase/client"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import PageLayout from "@/components/layout/PageLayout"
+import Header from "@/components/layout/Header"
 import AuthForm from "@/components/auth/AuthForm"
 import SupportButtons from "@/components/auth/SupportButtons"
 
@@ -35,15 +36,15 @@ const Auth = () => {
   }
 
   return (
-    <PageLayout>
-      <div className="w-full max-w-md mx-auto space-y-4">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-nature-800">Welcome to BirdWatch</h1>
-          <p className="text-nature-600">Sign in to start tracking your bird sightings</p>
+    <PageLayout header={<Header />}>
+      <div className="w-full max-w-md mx-auto space-y-6">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold text-nature-800">Welcome Back</h1>
+          <p className="mt-2 text-nature-600">Sign in to continue your bird watching journey</p>
         </div>
         
         {errorMessage && (
-          <Alert variant="destructive" className="mb-4">
+          <Alert variant="destructive">
             <AlertDescription>{errorMessage}</AlertDescription>
           </Alert>
         )}
