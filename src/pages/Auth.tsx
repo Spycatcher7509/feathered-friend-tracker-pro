@@ -7,6 +7,7 @@ import PageLayout from "@/components/layout/PageLayout"
 import Header from "@/components/layout/Header"
 import AuthForm from "@/components/auth/AuthForm"
 import SupportButtons from "@/components/auth/SupportButtons"
+import ExternalBirdSounds from "@/components/birds/ExternalBirdSounds"
 
 const Auth = () => {
   const navigate = useNavigate()
@@ -51,6 +52,13 @@ const Auth = () => {
 
         <AuthForm />
         <SupportButtons />
+      </div>
+
+      <div className="mt-12">
+        <h2 className="text-2xl font-semibold text-nature-800 text-center mb-6">
+          Listen to Bird Sounds
+        </h2>
+        <ExternalBirdSounds />
       </div>
     </PageLayout>
   )

@@ -9,6 +9,33 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      external_bird_sounds: {
+        Row: {
+          bird_name: string
+          created_at: string
+          id: string
+          sound_url: string
+          source: string
+          updated_at: string
+        }
+        Insert: {
+          bird_name: string
+          created_at?: string
+          id?: string
+          sound_url: string
+          source: string
+          updated_at?: string
+        }
+        Update: {
+          bird_name?: string
+          created_at?: string
+          id?: string
+          sound_url?: string
+          source?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
