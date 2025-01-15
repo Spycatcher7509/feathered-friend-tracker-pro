@@ -3,9 +3,11 @@ import { useNavigate } from "react-router-dom"
 import { Auth as SupabaseAuth } from "@supabase/auth-ui-react"
 import { ThemeSupa } from "@supabase/auth-ui-shared"
 import { AuthError } from "@supabase/supabase-js"
+import { FileText, AlertCircle } from "lucide-react"
 
 import { supabase } from "@/integrations/supabase/client"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
 
 const Auth = () => {
   const navigate = useNavigate()
@@ -32,6 +34,16 @@ const Auth = () => {
       default:
         return error.message
     }
+  }
+
+  const handleUserGuide = () => {
+    // Open user guide PDF in a new tab
+    window.open("/user-guide.pdf", "_blank")
+  }
+
+  const handleReportIssue = () => {
+    // Open email client with pre-filled subject
+    window.location.href = "mailto:accounts@thewrightsupport.com?subject=BirdWatch Issue Report"
   }
 
   return (
@@ -64,6 +76,25 @@ const Auth = () => {
             }}
             providers={[]}
           />
+        </div>
+
+        <div className="flex gap-4 justify-center mt-6">
+          <Button
+            variant="outline"
+            onClick={handleUserGuide}
+            className="bg-white hover:bg-nature-50"
+          >
+            <FileText className="mr-2" />
+            User Guide
+          </Button>
+          <Button
+            variant="outline"
+            onClick={handleReportIssue}
+            className="bg-white hover:bg-nature-50"
+          >
+            <AlertCircle className="mr-2" />
+            Report Issue
+          </Button>
         </div>
       </div>
     </div>
