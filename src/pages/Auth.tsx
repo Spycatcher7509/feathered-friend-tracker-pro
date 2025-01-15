@@ -9,6 +9,7 @@ import AuthForm from "@/components/auth/AuthForm"
 import SupportButtons from "@/components/auth/SupportButtons"
 import ExternalBirdSounds from "@/components/birds/ExternalBirdSounds"
 import ProfileImporter from "@/components/auth/ProfileImporter"
+import GoogleDriveBackup from "@/components/backup/GoogleDriveBackup"
 
 const Auth = () => {
   const navigate = useNavigate()
@@ -55,6 +56,9 @@ const Auth = () => {
         <SupportButtons />
         <div className="pt-4">
           <ProfileImporter />
+        </div>
+        <div className="pt-4">
+          <GoogleDriveBackup />
         </div>
       </div>
 
