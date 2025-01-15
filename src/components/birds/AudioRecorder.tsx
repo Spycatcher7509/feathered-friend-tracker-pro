@@ -1,38 +1,41 @@
-import { useState, useRef } from 'react'
+import { useState, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Mic, Square, Loader2 } from "lucide-react"
-import { useToast } from "@/components/ui/use-toast"
+import { useToast } from "@/hooks/use-toast"
+import { supabase } from "@/integrations/supabase/client"
 
-const AudioRecorder = ({ onRecordingComplete }: { onRecordingComplete: (blob: Blob) => void }) => {
+interface AudioRecorderProps {
+  onRecordingComplete?: (url: string) => void
+  className?: string
+}
+
+const AudioRecorder = ({ onRecordingComplete, className = "" }: AudioRecorderProps) => {
   const [isRecording, setIsRecording] = useState(false)
-  const [isPreparing, setIsPreparing] = useState(false)
+  const [isUploading, setIsUploading] = useState(false)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const chunksRef = useRef<Blob[]>([])
   const { toast } = useToast()
 
   const startRecording = async () => {
     try {
-      setIsPreparing(true)
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-      const mediaRecorder = new MediaRecorder(stream)
-      mediaRecorderRef.current = mediaRecorder
+      mediaRecorderRef.current = new MediaRecorder(stream)
       chunksRef.current = []
 
-      mediaRecorder.ondataavailable = (e) => {
+      mediaRecorderRef.current.ondataavailable = (e) => {
         if (e.data.size > 0) {
           chunksRef.current.push(e.data)
         }
       }
 
-      mediaRecorder.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type: 'audio/webm' })
-        onRecordingComplete(blob)
+      mediaRecorderRef.current.onstop = async () => {
+        const audioBlob = new Blob(chunksRef.current, { type: 'audio/webm' })
+        await uploadAudio(audioBlob)
         stream.getTracks().forEach(track => track.stop())
       }
 
-      mediaRecorder.start()
+      mediaRecorderRef.current.start()
       setIsRecording(true)
-      setIsPreparing(false)
     } catch (error) {
       console.error('Error accessing microphone:', error)
       toast({
@@ -40,7 +43,6 @@ const AudioRecorder = ({ onRecordingComplete }: { onRecordingComplete: (blob: Bl
         title: "Error",
         description: "Could not access microphone. Please check your permissions.",
       })
-      setIsPreparing(false)
     }
   }
 
@@ -51,30 +53,61 @@ const AudioRecorder = ({ onRecordingComplete }: { onRecordingComplete: (blob: Bl
     }
   }
 
+  const uploadAudio = async (blob: Blob) => {
+    setIsUploading(true)
+    try {
+      const filename = `recording-${Date.now()}.webm`
+      const { data, error } = await supabase.storage
+        .from('bird-sounds')
+        .upload(filename, blob)
+
+      if (error) throw error
+
+      if (data) {
+        const { data: { publicUrl } } = supabase.storage
+          .from('bird-sounds')
+          .getPublicUrl(filename)
+
+        onRecordingComplete?.(publicUrl)
+        toast({
+          title: "Success",
+          description: "Audio recording uploaded successfully",
+        })
+      }
+    } catch (error) {
+      console.error('Error uploading audio:', error)
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to upload audio recording. Please try again.",
+      })
+    } finally {
+      setIsUploading(false)
+    }
+  }
+
   return (
-    <div className="flex items-center gap-4">
+    <div className={`flex items-center gap-2 ${className}`}>
       {!isRecording ? (
         <Button
           onClick={startRecording}
-          disabled={isPreparing}
+          disabled={isUploading}
           variant="outline"
-          className="bg-white"
+          size="icon"
         >
-          {isPreparing ? (
-            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-          ) : (
-            <Mic className="w-4 h-4 mr-2" />
-          )}
-          {isPreparing ? "Preparing..." : "Start Recording"}
+          <Mic className="h-4 w-4" />
         </Button>
       ) : (
         <Button
           onClick={stopRecording}
           variant="destructive"
+          size="icon"
         >
-          <Square className="w-4 h-4 mr-2" />
-          Stop Recording
+          <Square className="h-4 w-4" />
         </Button>
+      )}
+      {isUploading && (
+        <Loader2 className="h-4 w-4 animate-spin text-nature-600" />
       )}
     </div>
   )
