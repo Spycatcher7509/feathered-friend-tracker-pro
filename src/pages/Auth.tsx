@@ -8,6 +8,7 @@ import Header from "@/components/layout/Header"
 import AuthForm from "@/components/auth/AuthForm"
 import SupportButtons from "@/components/auth/SupportButtons"
 import ExternalBirdSounds from "@/components/birds/ExternalBirdSounds"
+import ProfileImporter from "@/components/auth/ProfileImporter"
 
 const Auth = () => {
   const navigate = useNavigate()
@@ -52,6 +53,9 @@ const Auth = () => {
 
         <AuthForm />
         <SupportButtons />
+        <div className="pt-4">
+          <ProfileImporter />
+        </div>
       </div>
 
       <div className="mt-12">
