@@ -1,5 +1,5 @@
-import { FileText, AlertCircle } from "lucide-react"
-import { useToast } from "@/components/ui/use-toast"
+import { BookOpenText, AlertCircle } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
 import { Button } from "@/components/ui/button"
 import { supabase } from "@/integrations/supabase/client"
 
@@ -7,7 +7,13 @@ const SupportButtons = () => {
   const { toast } = useToast()
 
   const handleUserGuide = () => {
+    // Open user guide in new tab
     window.open("/user-guide.pdf", "_blank")
+    
+    toast({
+      title: "User Guide",
+      description: "Opening the user guide in a new tab",
+    })
   }
 
   const handleReportIssue = async () => {
@@ -48,7 +54,7 @@ const SupportButtons = () => {
         onClick={handleUserGuide}
         className="bg-white hover:bg-nature-50"
       >
-        <FileText className="mr-2" />
+        <BookOpenText className="mr-2" />
         User Guide
       </Button>
       <Button
