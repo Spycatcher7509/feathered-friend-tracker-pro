@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Upload } from "lucide-react"
+import { Upload, Download } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { useQueryClient } from "@tanstack/react-query"
 
@@ -55,6 +55,45 @@ const ProfileImporter = () => {
     }
   }
 
+  const handleDownloadTemplate = () => {
+    const headers = [
+      'username',
+      'bio',
+      'location',
+      'experience_level',
+      'preferred_birds',
+      'website',
+      'social_media.twitter',
+      'social_media.instagram',
+      'notification_preferences.email',
+      'notification_preferences.push',
+      'privacy_settings.profile',
+      'privacy_settings.observations'
+    ].join(',')
+
+    const sampleData = [
+      'JohnBirder,"Passionate bird watcher from Oregon",Portland,Expert,"[\'Eagle\',\'Hawk\',\'Owl\']",www.johnbirder.com,@johnbirder,@john_birds,true,true,public,public',
+      'AliceWatcher,"Nature photographer and bird enthusiast",Seattle,Intermediate,"[\'Sparrow\',\'Robin\']",www.alicephotos.com,@alicew,@alice_nature,true,false,private,public',
+      'BobNature,"Beginning bird watcher",Chicago,Beginner,"[\'Cardinal\',\'Blue Jay\']",,@bobnature,,false,true,public,private'
+    ].join('\n')
+
+    const csvContent = `${headers}\n${sampleData}`
+    const blob = new Blob([csvContent], { type: 'text/csv' })
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', 'profile_template.csv')
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(url)
+
+    toast({
+      title: "Template Downloaded",
+      description: "CSV template has been downloaded successfully",
+    })
+  }
+
   return (
     <div className="flex items-center gap-2">
       <input
@@ -77,6 +116,14 @@ const ProfileImporter = () => {
           </span>
         </Button>
       </label>
+      <Button
+        variant="outline"
+        onClick={handleDownloadTemplate}
+        className="cursor-pointer"
+      >
+        <Download className="h-4 w-4 mr-2" />
+        Download Template
+      </Button>
     </div>
   )
 }
