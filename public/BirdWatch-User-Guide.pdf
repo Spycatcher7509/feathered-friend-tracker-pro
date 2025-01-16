@@ -3,42 +3,168 @@
 # BirdWatch User Guide
 
 ## Getting Started
-- Creating an Account
-- Logging In
-- Setting Up Your Profile
-- Navigation Overview
+### Creating an Account
+- Navigate to the sign-up page
+- Enter your email and create a secure password
+- Verify your email address through the confirmation link
+- Complete your profile setup
+
+### Logging In
+- Use your registered email and password
+- Enable "Remember me" for convenience
+- Reset password if forgotten
+
+### Setting Up Your Profile
+- Add a profile picture
+- Write a brief bio
+- Set your location
+- Choose experience level
+- Select preferred birds
+- Configure privacy settings
+
+### Navigation Overview
+- Dashboard layout
+- Main menu options
+- Quick access features
+- Mobile navigation
 
 ## Core Features
-- Bird Observation Logging
-  - Adding New Sightings
-  - Uploading Photos
-  - Recording Bird Sounds
-  - Location Tagging
-- Bird Directory
-  - Searching for Birds
-  - Filtering Observations
-  - Viewing Details
+### Bird Observation Logging
+#### Adding New Sightings
+- Date and time recording
+- Location selection
+- Species identification
+- Behavior notes
+- Weather conditions
+
+#### Uploading Photos
+- Supported formats
+- Size limitations
+- Photo editing tips
+- Adding captions
+
+#### Recording Bird Sounds
+- Recording guidelines
+- Audio quality tips
+- Editing recordings
+- Tagging species
+
+#### Location Tagging
+- Using GPS coordinates
+- Manual location entry
+- Privacy considerations
+- Location accuracy
+
+### Bird Directory
+#### Searching for Birds
+- Search by species
+- Filter by location
+- Seasonal filters
+- Habitat filters
+
+#### Filtering Observations
+- Date range selection
+- Location radius
+- Observer filters
+- Verification status
+
+#### Viewing Details
+- Species information
+- Observation history
+- Population trends
+- Migration patterns
 
 ## Community Features
-- Sharing Observations
-- Interacting with Other Users
-- Privacy Settings
-- Following Other Birdwatchers
+### Sharing Observations
+- Creating public posts
+- Adding descriptions
+- Tagging locations
+- Mentioning other users
+
+### Interacting with Other Users
+- Following observers
+- Commenting on posts
+- Sharing observations
+- Direct messaging
+
+### Privacy Settings
+- Profile visibility
+- Location privacy
+- Observation sharing
+- Contact preferences
+
+### Following Other Birdwatchers
+- Finding observers
+- Activity feed
+- Notification settings
+- Unfollowing users
 
 ## Advanced Features
-- Sound Recording Tips
-- Using the Interactive Map
-- Data Backup and Export
-- Profile Import/Export
+### Sound Recording Tips
+- Equipment recommendations
+- Recording techniques
+- Background noise reduction
+- File management
+
+### Using the Interactive Map
+- Map navigation
+- Adding markers
+- Filtering sightings
+- Custom routes
+
+### Data Backup and Export
+- Manual backups
+- Automatic syncing
+- Export formats
+- Import options
+
+### Profile Import/Export
+- Data portability
+- Backup frequency
+- Recovery options
+- Privacy considerations
 
 ## Troubleshooting
-- Common Issues
-- Contact Support
-- Reporting Problems
-- FAQ
+### Common Issues
+- Login problems
+- Upload errors
+- GPS accuracy
+- App performance
+
+### Contact Support
+- Support channels
+- Response times
+- Priority issues
+- Bug reporting
+
+### Reporting Problems
+- Issue categories
+- Required information
+- Screenshot guide
+- Follow-up process
+
+### FAQ
+- Account management
+- Feature usage
+- Privacy concerns
+- Technical requirements
 
 ## Additional Resources
-- External Bird Sound Database
-- Recommended Bird Watching Spots
-- Community Guidelines
+### External Bird Sound Database
+- Accessing the database
+- Contributing recordings
+- Quality guidelines
+- Attribution rules
+
+### Recommended Bird Watching Spots
+- Popular locations
+- Seasonal spots
+- Accessibility info
+- Local guidelines
+
+### Community Guidelines
+- Posting etiquette
+- Photo guidelines
+- Comment policies
+- Reporting violations
 ]
