@@ -31,18 +31,14 @@ serve(async (req) => {
 
     console.log('Processing email request:', { to, subject })
 
-    const sendgridResponse = await fetch('https://api.sendgrid.com/v3/mail/send', {
+    const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${SENDGRID_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        personalizations: [
-          {
-            to: [{ email: to }],
-          },
-        ],
+        personalizations: [{ to: [{ email: to }] }],
         from: {
           email: 'noreply@thewrightsupport.com',
           name: 'BirdWatch Support',
@@ -61,16 +57,19 @@ serve(async (req) => {
       }),
     })
 
-    if (!sendgridResponse.ok) {
-      const error = await sendgridResponse.text()
-      console.error('SendGrid API error:', error)
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('SendGrid API error:', errorText)
       throw new Error('Failed to send email')
     }
 
     return new Response(
       JSON.stringify({ success: true }),
       { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { 
+          ...corsHeaders,
+          'Content-Type': 'application/json',
+        },
         status: 200,
       }
     )
@@ -79,7 +78,10 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ error: error.message }),
       { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { 
+          ...corsHeaders,
+          'Content-Type': 'application/json',
+        },
         status: 500,
       }
     )

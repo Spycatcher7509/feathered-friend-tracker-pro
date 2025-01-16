@@ -8,7 +8,6 @@ const SupportButtons = () => {
 
   const handleUserGuide = async () => {
     try {
-      // Create a link to download the local PDF file
       const link = document.createElement('a')
       link.href = '/BirdWatch-User-Guide.pdf'
       link.download = 'BirdWatch-User-Guide.pdf'
@@ -45,10 +44,7 @@ const SupportButtons = () => {
         }
       })
 
-      if (error) {
-        console.error('Error sending issue report:', error)
-        throw error
-      }
+      if (error) throw error
 
       toast({
         title: "Issue Report Sent",
