@@ -63,7 +63,7 @@ const SupportButtons = () => {
         className="bg-white hover:bg-nature-50"
       >
         <AlertCircle className="mr-2" />
-        Report Issue
+        Report an Issue
       </Button>
     </div>
   )
