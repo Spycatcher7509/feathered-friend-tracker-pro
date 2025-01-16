@@ -42,7 +42,7 @@ const Auth = () => {
     <PageLayout header={<Header />}>
       <div className="w-full max-w-md mx-auto space-y-6">
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-nature-800">Welcome Back</h1>
+          <h1 className="text-3xl font-bold text-nature-800">Feathered Friend Tracker</h1>
           <p className="mt-2 text-nature-600">Sign in to continue your bird watching journey</p>
         </div>
         
