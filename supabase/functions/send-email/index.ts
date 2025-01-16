@@ -21,13 +21,9 @@ serve(async (req) => {
   }
 
   try {
-    // Log the incoming request for debugging
-    console.log('Received request:', {
-      method: req.method,
-      headers: Object.fromEntries(req.headers.entries()),
-    })
-
-    const { to, subject, text, html } = await req.json() as EmailRequest
+    // Parse the request body
+    const requestData = await req.text()
+    const { to, subject, text, html } = JSON.parse(requestData) as EmailRequest
 
     console.log('Processing email request:', { to, subject })
 
