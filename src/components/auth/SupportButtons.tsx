@@ -8,26 +8,13 @@ const SupportButtons = () => {
 
   const handleUserGuide = async () => {
     try {
-      const { data, error } = await supabase.storage
-        .from('user-guides')
-        .download('birdwatch-guide.pdf')
-
-      if (error) throw error
-
-      // Create a blob URL from the downloaded data
-      const blob = new Blob([data], { type: 'application/pdf' })
-      const url = window.URL.createObjectURL(blob)
-      
-      // Create a temporary link and trigger download
+      // Create a link to download the local PDF file
       const link = document.createElement('a')
-      link.href = url
+      link.href = '/BirdWatch-User-Guide.pdf'
       link.download = 'BirdWatch-User-Guide.pdf'
       document.body.appendChild(link)
       link.click()
-      
-      // Cleanup
       document.body.removeChild(link)
-      window.URL.revokeObjectURL(url)
       
       toast({
         title: "Success",
