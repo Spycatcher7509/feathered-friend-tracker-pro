@@ -22,11 +22,28 @@ serve(async (req) => {
 
   try {
     if (!RESEND_API_KEY) {
+      console.error('RESEND_API_KEY is not configured')
       throw new Error('RESEND_API_KEY is not configured')
     }
 
     const { to, subject, text, html } = await req.json() as EmailRequest
+    
+    if (!to || !subject || !text) {
+      console.error('Missing required fields:', { to, subject, text })
+      throw new Error('Missing required fields')
+    }
+
     console.log('Processing email request:', { to, subject })
+
+    const emailData = {
+      from: 'BirdWatch Support <onboarding@resend.dev>',
+      to: [to],
+      subject,
+      text,
+      ...(html && { html })
+    }
+
+    console.log('Sending email with data:', emailData)
 
     const response = await fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -34,23 +51,17 @@ serve(async (req) => {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${RESEND_API_KEY}`,
       },
-      body: JSON.stringify({
-        from: 'BirdWatch Support <onboarding@resend.dev>',
-        to: [to],
-        subject,
-        text,
-        html,
-      }),
+      body: JSON.stringify(emailData),
     })
 
+    const responseData = await response.text()
+    console.log('Resend API response:', response.status, responseData)
+
     if (!response.ok) {
-      const errorText = await response.text()
-      console.error('Resend API error:', errorText)
-      throw new Error('Failed to send email')
+      throw new Error(`Resend API error: ${responseData}`)
     }
 
-    const data = await response.json()
-    return new Response(JSON.stringify(data), {
+    return new Response(responseData, {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
     })

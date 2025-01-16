@@ -31,7 +31,7 @@ const SupportButtons = () => {
 
   const handleReportIssue = async () => {
     try {
-      const { error } = await supabase.functions.invoke('send-email', {
+      const { data, error } = await supabase.functions.invoke('send-email', {
         body: {
           to: 'accounts@thewrightsupport.com',
           subject: 'BirdWatch Issue Report',
@@ -44,7 +44,12 @@ const SupportButtons = () => {
         }
       })
 
-      if (error) throw error
+      if (error) {
+        console.error('Error response from send-email function:', error)
+        throw error
+      }
+
+      console.log('Email sent successfully:', data)
 
       toast({
         title: "Issue Report Sent",
