@@ -25,8 +25,7 @@ serve(async (req) => {
       throw new Error('SENDGRID_API_KEY is not configured')
     }
 
-    const requestData = await req.text()
-    const { to, subject, text, html } = JSON.parse(requestData) as EmailRequest
+    const { to, subject, text, html } = await req.json() as EmailRequest
 
     console.log('Processing email request:', { to, subject })
 
@@ -62,16 +61,18 @@ serve(async (req) => {
       throw new Error('Failed to send email')
     }
 
-    const data = await response.json()
-    return new Response(JSON.stringify(data), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 200,
-    })
+    return new Response(
+      JSON.stringify({ success: true }),
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
+      }
+    )
   } catch (error) {
     console.error('Error in send-email function:', error)
     return new Response(
       JSON.stringify({ error: error.message }),
-      {
+      { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 500,
       }
