@@ -6,10 +6,28 @@ import { supabase } from "@/integrations/supabase/client"
 const GoogleDriveBackup = () => {
   const [isLoading, setIsLoading] = useState(false)
   const { toast } = useToast()
+  const BACKUP_FOLDER_ID = "1omb7OKYsogTGxZs6ygMHyxyJyecXwZvz"
+
+  const isAdmin = async () => {
+    const { data: { user } } = await supabase.auth.getUser()
+    return user?.email === 'accounts@thewrightsupport.com'
+  }
 
   const handleBackup = async () => {
     try {
       setIsLoading(true)
+
+      // Check if user is admin
+      const adminCheck = await isAdmin()
+      if (!adminCheck) {
+        toast({
+          title: "Access Denied",
+          description: "Only administrators can perform backup operations",
+          variant: "destructive",
+        })
+        return
+      }
+
       const { data: profiles } = await supabase
         .from('profiles')
         .select('*')
@@ -30,8 +48,8 @@ const GoogleDriveBackup = () => {
       const gapi = await loadGoogleAPI()
       await authenticateGoogleDrive()
       
-      // Upload to Google Drive
-      await uploadToGoogleDrive(file, `birdwatch_backup_${new Date().toISOString()}.json`)
+      // Upload to specific folder in Google Drive
+      await uploadToGoogleDrive(file, `birdwatch_backup_${new Date().toISOString()}.json`, BACKUP_FOLDER_ID)
       
       toast({
         title: "Backup Successful",
@@ -52,13 +70,24 @@ const GoogleDriveBackup = () => {
   const handleRestore = async () => {
     try {
       setIsLoading(true)
+
+      // Check if user is admin
+      const adminCheck = await isAdmin()
+      if (!adminCheck) {
+        toast({
+          title: "Access Denied",
+          description: "Only administrators can perform restore operations",
+          variant: "destructive",
+        })
+        return
+      }
       
       // Initialize Google Drive API
       const gapi = await loadGoogleAPI()
       await authenticateGoogleDrive()
       
-      // Pick the backup file
-      const file = await pickBackupFile()
+      // Pick the backup file from specific folder
+      const file = await pickBackupFile(BACKUP_FOLDER_ID)
       if (!file) return
       
       const backupData = JSON.parse(await file.text())
@@ -148,10 +177,11 @@ const authenticateGoogleDrive = async () => {
   }
 }
 
-const uploadToGoogleDrive = async (file: Blob, filename: string) => {
+const uploadToGoogleDrive = async (file: Blob, filename: string, folderId: string) => {
   const metadata = {
     name: filename,
     mimeType: 'application/json',
+    parents: [folderId]
   }
   
   const form = new FormData()
@@ -167,7 +197,7 @@ const uploadToGoogleDrive = async (file: Blob, filename: string) => {
   })
 }
 
-const pickBackupFile = async () => {
+const pickBackupFile = async (folderId: string) => {
   return new Promise<File | null>((resolve) => {
     const input = document.createElement('input')
     input.type = 'file'
