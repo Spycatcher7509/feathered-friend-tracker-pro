@@ -1,82 +1,109 @@
-[Binary PDF content with the following structure:
+%PDF-1.7
+1 0 obj
+<</Type /Catalog
+/Pages 2 0 R>>
+endobj
 
-# BirdWatch User Guide
+2 0 obj
+<</Type /Pages
+/Kids [3 0 R]
+/Count 1>>
+endobj
 
-## Quick Start
-1. Create an account or sign in
-2. Complete your profile
-3. Start logging bird sightings
-4. Explore the community features
+3 0 obj
+<</Type /Page
+/Parent 2 0 R
+/Resources <</Font <</F1 4 0 R>>>>
+/MediaBox [0 0 612 792]
+/Contents 5 0 R>>
+endobj
 
-## Core Features
+4 0 obj
+<</Type /Font
+/Subtype /Type1
+/BaseFont /Helvetica>>
+endobj
 
-### Profile Management
-- Update your profile information
-- Set privacy preferences
-- Configure notifications
-- Connect social media accounts
+5 0 obj
+<</Length 1000>>
+stream
+BT
+/F1 16 Tf
+50 700 Td
+(BirdWatch User Guide) Tj
+/F1 12 Tf
+0 -30 Td
+(Quick Start) Tj
+0 -20 Td
+(1. Create an account or sign in) Tj
+0 -15 Td
+(2. Complete your profile) Tj
+0 -15 Td
+(3. Start logging bird sightings) Tj
+0 -15 Td
+(4. Explore the community features) Tj
 
-### Bird Observations
-- Log new sightings with photos
-- Record bird sounds
-- Add location data
-- Track observation history
+0 -30 Td
+(Core Features) Tj
+0 -20 Td
+(Profile Management:) Tj
+0 -15 Td
+(- Update your profile information) Tj
+0 -15 Td
+(- Set privacy preferences) Tj
+0 -15 Td
+(- Configure notifications) Tj
+0 -15 Td
+(- Connect social media accounts) Tj
 
-### Community Features
-- Share observations
-- Follow other birdwatchers
-- Comment on sightings
-- Join discussions
+0 -30 Td
+(Bird Observations:) Tj
+0 -15 Td
+(- Log new sightings with photos) Tj
+0 -15 Td
+(- Record bird sounds) Tj
+0 -15 Td
+(- Add location data) Tj
+0 -15 Td
+(- Track observation history) Tj
 
-### Search & Discovery
-- Find birds by species
-- Filter by location
-- View seasonal patterns
-- Explore popular spots
+0 -30 Td
+(Community Features:) Tj
+0 -15 Td
+(- Share observations) Tj
+0 -15 Td
+(- Follow other birdwatchers) Tj
+0 -15 Td
+(- Comment on sightings) Tj
+0 -15 Td
+(- Join discussions) Tj
 
-## Tips & Best Practices
+0 -30 Td
+(Help & Support:) Tj
+0 -15 Td
+(- Report issues) Tj
+0 -15 Td
+(- Contact support) Tj
+0 -15 Td
+(- Access user guides) Tj
+0 -15 Td
+(- View FAQs) Tj
+ET
+endstream
+endobj
 
-### Photography Tips
-- Best times for bird photos
-- Camera settings
-- Lighting recommendations
-- Distance guidelines
+xref
+0 6
+0000000000 65535 f
+0000000010 00000 n
+0000000056 00000 n
+0000000111 00000 n
+0000000209 00000 n
+0000000274 00000 n
 
-### Sound Recording
-- Equipment suggestions
-- Noise reduction
-- File formats
-- Recording duration
-
-### Location Tracking
-- GPS accuracy
-- Privacy considerations
-- Favorite spots marking
-- Route planning
-
-## Help & Support
-
-### Troubleshooting
-- Common issues
-- Login problems
-- Upload errors
-- App performance
-
-### Contact Support
-- Report issues
-- Feature requests
-- Bug reports
-- Account help
-
-### Data Management
-- Backup options
-- Export features
-- Privacy settings
-- Data recovery
-
-## Additional Resources
-- Local bird guides
-- Community guidelines
-- Seasonal calendars
-- Equipment recommendations
-]
+trailer
+<</Size 6
+/Root 1 0 R>>
+startxref
+1324
+%%EOF
