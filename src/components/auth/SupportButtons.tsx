@@ -44,10 +44,7 @@ const SupportButtons = () => {
         }
       })
 
-      if (error) {
-        console.error('Error sending issue report:', error)
-        throw error
-      }
+      if (error) throw error
 
       toast({
         title: "Issue Report Sent",
