@@ -28,14 +28,12 @@ serve(async (req) => {
     const { to, subject, text, html } = await req.json() as EmailRequest
     console.log('Processing email request:', { to, subject })
 
-    const headers = new Headers({
-      'Authorization': `Bearer ${SENDGRID_API_KEY}`,
-      'Content-Type': 'application/json',
-    })
-
     const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
       method: 'POST',
-      headers,
+      headers: {
+        Authorization: `Bearer ${SENDGRID_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify({
         personalizations: [{ to: [{ email: to }] }],
         from: {
