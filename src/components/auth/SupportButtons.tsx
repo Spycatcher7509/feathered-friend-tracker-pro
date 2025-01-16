@@ -6,14 +6,41 @@ import { supabase } from "@/integrations/supabase/client"
 const SupportButtons = () => {
   const { toast } = useToast()
 
-  const handleUserGuide = () => {
-    // Open user guide in new tab
-    window.open("/user-guide.pdf", "_blank")
-    
-    toast({
-      title: "User Guide",
-      description: "Opening the user guide in a new tab",
-    })
+  const handleUserGuide = async () => {
+    try {
+      const { data, error } = await supabase.storage
+        .from('user-guides')
+        .download('birdwatch-guide.pdf')
+
+      if (error) throw error
+
+      // Create a blob URL from the downloaded data
+      const blob = new Blob([data], { type: 'application/pdf' })
+      const url = window.URL.createObjectURL(blob)
+      
+      // Create a temporary link and trigger download
+      const link = document.createElement('a')
+      link.href = url
+      link.download = 'BirdWatch-User-Guide.pdf'
+      document.body.appendChild(link)
+      link.click()
+      
+      // Cleanup
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+      
+      toast({
+        title: "Success",
+        description: "User guide downloaded successfully",
+      })
+    } catch (error) {
+      console.error('Error downloading user guide:', error)
+      toast({
+        variant: "destructive",
+        title: "Download Failed",
+        description: "Could not download the user guide. Please try again later.",
+      })
+    }
   }
 
   const handleReportIssue = async () => {
