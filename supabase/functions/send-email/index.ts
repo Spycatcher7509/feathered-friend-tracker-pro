@@ -21,7 +21,15 @@ serve(async (req) => {
   }
 
   try {
+    // Log the incoming request for debugging
+    console.log('Received request:', {
+      method: req.method,
+      headers: Object.fromEntries(req.headers.entries()),
+    })
+
     const { to, subject, text, html } = await req.json() as EmailRequest
+
+    console.log('Processing email request:', { to, subject })
 
     const sendgridResponse = await fetch('https://api.sendgrid.com/v3/mail/send', {
       method: 'POST',
