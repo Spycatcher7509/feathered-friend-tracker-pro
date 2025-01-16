@@ -21,6 +21,10 @@ serve(async (req) => {
   }
 
   try {
+    if (!SENDGRID_API_KEY) {
+      throw new Error('SENDGRID_API_KEY is not configured')
+    }
+
     // Parse the request body
     const requestData = await req.text()
     const { to, subject, text, html } = JSON.parse(requestData) as EmailRequest
