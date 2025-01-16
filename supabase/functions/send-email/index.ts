@@ -7,6 +7,13 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+interface EmailRequest {
+  to: string
+  subject: string
+  text: string
+  html?: string
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -14,7 +21,7 @@ serve(async (req) => {
   }
 
   try {
-    const { to, subject, text, html } = await req.json()
+    const { to, subject, text, html } = await req.json() as EmailRequest
 
     const sendgridResponse = await fetch('https://api.sendgrid.com/v3/mail/send', {
       method: 'POST',
@@ -23,8 +30,15 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        personalizations: [{ to: [{ email: to }] }],
-        from: { email: 'accounts@thewrightsupport.com' },
+        personalizations: [
+          {
+            to: [{ email: to }],
+          },
+        ],
+        from: {
+          email: 'noreply@thewrightsupport.com',
+          name: 'BirdWatch Support',
+        },
         subject,
         content: [
           {
