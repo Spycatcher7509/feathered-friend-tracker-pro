@@ -33,7 +33,7 @@ const SupportButtons = () => {
   const handleReportIssue = async () => {
     try {
       const { error } = await supabase.functions.invoke('send-email', {
-        body: {
+        body: JSON.stringify({
           to: 'accounts@thewrightsupport.com',
           subject: 'BirdWatch Issue Report',
           text: 'A user has reported an issue with BirdWatch.',
@@ -42,7 +42,7 @@ const SupportButtons = () => {
             <p>A user has reported an issue with the BirdWatch application.</p>
             <p>Please follow up with the user to gather more details about the issue.</p>
           `
-        }
+        })
       })
 
       if (error) {
