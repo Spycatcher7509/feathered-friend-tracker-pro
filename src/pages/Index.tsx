@@ -1,57 +1,33 @@
-import Navigation from "../components/Navigation";
-import BirdCard from "../components/BirdCard";
-
-const recentSightings = [
-  {
-    id: 1,
-    image: "https://source.unsplash.com/random/800x600/?bird",
-    name: "Northern Cardinal",
-    location: "Central Park, NY",
-    date: "2024-02-20",
-  },
-  {
-    id: 2,
-    image: "https://source.unsplash.com/random/800x600/?bird,flying",
-    name: "Blue Jay",
-    location: "Prospect Park, NY",
-    date: "2024-02-19",
-  },
-  {
-    id: 3,
-    image: "https://source.unsplash.com/random/800x600/?bird,nest",
-    name: "American Robin",
-    location: "Bryant Park, NY",
-    date: "2024-02-18",
-  },
-];
+import Navigation from "@/components/Navigation"
+import PageLayout from "@/components/layout/PageLayout"
+import ProfileImporter from "@/components/auth/ProfileImporter"
+import GoogleDriveBackup from "@/components/backup/GoogleDriveBackup"
+import ExternalBirdSounds from "@/components/birds/ExternalBirdSounds"
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-nature-50 to-nature-100">
-      <Navigation />
-      <main className="container mx-auto px-4 py-8">
-        <section className="mb-12 text-center">
-          <h1 className="mb-4 text-4xl font-bold text-nature-800">
-            Welcome to BirdWatch
-          </h1>
-          <p className="text-lg text-nature-600">
-            Document and share your bird sightings with fellow enthusiasts
-          </p>
-        </section>
-
-        <section className="mb-12">
-          <h2 className="mb-6 text-2xl font-semibold text-nature-700">
-            Recent Sightings
-          </h2>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {recentSightings.map((sighting) => (
-              <BirdCard key={sighting.id} {...sighting} />
-            ))}
+    <PageLayout header={<Navigation />}>
+      <div className="container mx-auto px-4 py-8 space-y-12">
+        <div className="space-y-6">
+          <div className="flex justify-between items-center">
+            <h1 className="text-3xl font-bold text-nature-800">Bird Watching Dashboard</h1>
+            <ProfileImporter />
           </div>
-        </section>
-      </main>
-    </div>
-  );
-};
+          
+          <div className="bg-white rounded-lg shadow p-6">
+            <GoogleDriveBackup />
+          </div>
+        </div>
 
-export default Index;
+        <div className="space-y-4">
+          <h2 className="text-2xl font-semibold text-nature-800">
+            Listen to Bird Sounds
+          </h2>
+          <ExternalBirdSounds />
+        </div>
+      </div>
+    </PageLayout>
+  )
+}
+
+export default Index
