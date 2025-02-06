@@ -9,6 +9,51 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      bird_sightings: {
+        Row: {
+          bird_name: string
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          latitude: number | null
+          location: string
+          longitude: number | null
+          sighting_date: string
+          sound_url: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bird_name: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          latitude?: number | null
+          location: string
+          longitude?: number | null
+          sighting_date?: string
+          sound_url?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bird_name?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          latitude?: number | null
+          location?: string
+          longitude?: number | null
+          sighting_date?: string
+          sound_url?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       external_bird_sounds: {
         Row: {
           bird_name: string

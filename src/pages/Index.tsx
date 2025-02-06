@@ -3,6 +3,7 @@ import PageLayout from "@/components/layout/PageLayout"
 import ProfileImporter from "@/components/auth/ProfileImporter"
 import GoogleDriveBackup from "@/components/backup/GoogleDriveBackup"
 import ExternalBirdSounds from "@/components/birds/ExternalBirdSounds"
+import AddBirdSighting from "@/components/birds/AddBirdSighting"
 
 const Index = () => {
   return (
@@ -14,8 +15,11 @@ const Index = () => {
             <ProfileImporter />
           </div>
           
-          <div className="bg-white rounded-lg shadow p-6">
-            <GoogleDriveBackup />
+          <div className="grid md:grid-cols-2 gap-6">
+            <AddBirdSighting />
+            <div className="bg-white rounded-lg shadow p-6">
+              <GoogleDriveBackup />
+            </div>
           </div>
         </div>
 
