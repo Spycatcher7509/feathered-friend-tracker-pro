@@ -1,11 +1,17 @@
+
+import { useState } from "react"
 import Navigation from "@/components/Navigation"
 import PageLayout from "@/components/layout/PageLayout"
 import ProfileImporter from "@/components/auth/ProfileImporter"
 import GoogleDriveBackup from "@/components/backup/GoogleDriveBackup"
 import ExternalBirdSounds from "@/components/birds/ExternalBirdSounds"
 import AddBirdSighting from "@/components/birds/AddBirdSighting"
+import { Button } from "@/components/ui/button"
+import { ChevronDown, ChevronUp } from "lucide-react"
 
 const Index = () => {
+  const [showBirdSounds, setShowBirdSounds] = useState(false)
+
   return (
     <PageLayout header={<Navigation />}>
       <div className="container mx-auto px-4 py-8 space-y-12">
@@ -24,10 +30,16 @@ const Index = () => {
         </div>
 
         <div className="space-y-4">
-          <h2 className="text-2xl font-semibold text-nature-800">
-            Listen to Bird Sounds
-          </h2>
-          <ExternalBirdSounds />
+          <Button
+            variant="outline"
+            onClick={() => setShowBirdSounds(!showBirdSounds)}
+            className="w-full flex justify-between items-center py-6"
+          >
+            <span className="text-xl font-semibold">Listen to Bird Sounds</span>
+            {showBirdSounds ? <ChevronUp className="h-6 w-6" /> : <ChevronDown className="h-6 w-6" />}
+          </Button>
+          
+          {showBirdSounds && <ExternalBirdSounds />}
         </div>
       </div>
     </PageLayout>
