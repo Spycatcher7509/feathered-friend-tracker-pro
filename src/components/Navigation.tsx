@@ -17,9 +17,10 @@ const Navigation = () => {
           .from('profiles')
           .select('is_admin')
           .eq('id', user.id)
-          .single()
+          .maybeSingle()
         
-        setIsAdmin(profile?.is_admin || false)
+        // If profile exists and is_admin is true, set admin status
+        setIsAdmin(profile?.is_admin ?? false)
       }
     }
 
