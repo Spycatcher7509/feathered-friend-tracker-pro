@@ -88,6 +88,7 @@ export type Database = {
           created_at: string
           experience_level: string | null
           id: string
+          is_admin: boolean | null
           location: string | null
           notification_preferences: Json | null
           preferred_birds: string[] | null
@@ -103,6 +104,7 @@ export type Database = {
           created_at?: string
           experience_level?: string | null
           id: string
+          is_admin?: boolean | null
           location?: string | null
           notification_preferences?: Json | null
           preferred_birds?: string[] | null
@@ -118,6 +120,7 @@ export type Database = {
           created_at?: string
           experience_level?: string | null
           id?: string
+          is_admin?: boolean | null
           location?: string | null
           notification_preferences?: Json | null
           preferred_birds?: string[] | null
