@@ -6,7 +6,7 @@ import { loadGoogleAPI, authenticateGoogleDrive, uploadToGoogleDrive, pickBackup
 export const useBackupOperations = () => {
   const [isLoading, setIsLoading] = useState(false)
   const { toast } = useToast()
-  const BACKUP_FOLDER_ID = "invalid_folder_id_for_testing"
+  const BACKUP_FOLDER_ID = "1omb7OKYsogTGxZs6ygMHyecXwZvz"
 
   const isAdmin = async () => {
     const { data: { user } } = await supabase.auth.getUser()
@@ -34,7 +34,18 @@ export const useBackupOperations = () => {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              content: message,
+              content: "❌ Test failure notification: This is what an error looks like",
+              username: "BirdWatch Backup Bot"
+            })
+          })
+
+          await new Promise(resolve => setTimeout(resolve, 2000))
+
+          await fetch(webhook.url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              content: "✅ Test success notification: This is what a success message looks like",
               username: "BirdWatch Backup Bot"
             })
           })
@@ -157,6 +168,7 @@ export const useBackupOperations = () => {
   return {
     isLoading,
     handleBackup,
-    handleRestore
+    handleRestore,
+    sendDiscordNotification
   }
 }
