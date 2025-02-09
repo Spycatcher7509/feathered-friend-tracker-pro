@@ -1,3 +1,4 @@
+
 import { useState } from "react"
 import { useToast } from "@/hooks/use-toast"
 import { supabase } from "@/integrations/supabase/client"
@@ -6,11 +7,19 @@ import { loadGoogleAPI, authenticateGoogleDrive, uploadToGoogleDrive, pickBackup
 export const useBackupOperations = () => {
   const [isLoading, setIsLoading] = useState(false)
   const { toast } = useToast()
-  const BACKUP_FOLDER_ID = "1omb7OKYsogTGxZs6ygMHyxyJyecXwZvz"
+  const BACKUP_FOLDER_ID = "1omb7OKYsogTGxZs6ygMHyecXwZvz"
 
   const isAdmin = async () => {
     const { data: { user } } = await supabase.auth.getUser()
-    return user?.email === 'accounts@thewrightsupport.com'
+    if (!user) return false
+    
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('is_admin')
+      .eq('id', user.id)
+      .maybeSingle()
+    
+    return profile?.is_admin ?? false
   }
 
   const handleBackup = async () => {
