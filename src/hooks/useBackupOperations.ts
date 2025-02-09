@@ -23,36 +23,85 @@ export const useBackupOperations = () => {
 
   const sendDiscordNotification = async (message: string) => {
     try {
-      const { data: webhooks } = await supabase
+      setIsLoading(true)
+      
+      const adminCheck = await isAdmin()
+      if (!adminCheck) {
+        toast({
+          title: "Access Denied",
+          description: "Only administrators can send Discord notifications",
+          variant: "destructive",
+        })
+        return
+      }
+
+      const { data: webhooks, error: webhooksError } = await supabase
         .from('discord_webhooks')
-        .select('url')
+        .select('url, description')
         .eq('is_active', true)
       
-      if (webhooks && webhooks.length > 0) {
-        for (const webhook of webhooks) {
-          await fetch(webhook.url, {
+      if (webhooksError) {
+        console.error('Error fetching webhooks:', webhooksError)
+        toast({
+          title: "Error",
+          description: "Failed to fetch Discord webhooks",
+          variant: "destructive",
+        })
+        return
+      }
+      
+      if (!webhooks || webhooks.length === 0) {
+        toast({
+          title: "No Webhooks Found",
+          description: "Please add active Discord webhooks in the database",
+          variant: "destructive",
+        })
+        return
+      }
+
+      console.log(`Found ${webhooks.length} active webhooks`)
+      
+      for (const webhook of webhooks) {
+        try {
+          console.log(`Sending notification to webhook: ${webhook.description || 'Unnamed webhook'}`)
+          
+          const response = await fetch(webhook.url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              content: "❌ Test failure notification: This is what an error looks like",
+              content: message,
               username: "BirdWatch Backup Bot"
             })
           })
 
-          await new Promise(resolve => setTimeout(resolve, 2000))
-
-          await fetch(webhook.url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              content: "✅ Test success notification: This is what a success message looks like",
-              username: "BirdWatch Backup Bot"
-            })
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`)
+          }
+          
+          console.log(`Successfully sent notification to webhook: ${webhook.description || 'Unnamed webhook'}`)
+        } catch (error) {
+          console.error(`Failed to send to webhook ${webhook.description || 'Unnamed webhook'}:`, error)
+          toast({
+            title: "Webhook Error",
+            description: `Failed to send to webhook: ${webhook.description || 'Unnamed webhook'}`,
+            variant: "destructive",
           })
         }
       }
+
+      toast({
+        title: "Notifications Sent",
+        description: `Successfully sent notifications to ${webhooks.length} webhook(s)`,
+      })
     } catch (error) {
       console.error('Discord notification error:', error)
+      toast({
+        title: "Notification Error",
+        description: "Failed to send Discord notifications",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
     }
   }
 
