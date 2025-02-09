@@ -84,6 +84,36 @@ export type Database = {
         }
         Relationships: []
       }
+      discord_webhooks: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          updated_at?: string
+          url?: string
+        }
+        Relationships: []
+      }
       external_bird_sounds: {
         Row: {
           bird_name: string
