@@ -22,6 +22,30 @@ export const useBackupOperations = () => {
     return profile?.is_admin ?? false
   }
 
+  const sendDiscordNotification = async (message: string) => {
+    try {
+      const { data: webhooks } = await supabase
+        .from('discord_webhooks')
+        .select('url')
+        .eq('is_active', true)
+      
+      if (webhooks && webhooks.length > 0) {
+        for (const webhook of webhooks) {
+          await fetch(webhook.url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              content: message,
+              username: "BirdWatch Backup Bot"
+            })
+          })
+        }
+      }
+    } catch (error) {
+      console.error('Discord notification error:', error)
+    }
+  }
+
   const handleBackup = async () => {
     try {
       setIsLoading(true)
@@ -49,7 +73,9 @@ export const useBackupOperations = () => {
       
       await loadGoogleAPI()
       await authenticateGoogleDrive()
-      await uploadToGoogleDrive(file, `birdwatch_backup_${new Date().toISOString()}.json`, BACKUP_FOLDER_ID)
+      const uploadResult = await uploadToGoogleDrive(file, `birdwatch_backup_${new Date().toISOString()}.json`, BACKUP_FOLDER_ID)
+      
+      await sendDiscordNotification(`✅ Backup completed successfully at ${new Date().toLocaleString()}`)
       
       toast({
         title: "Backup Successful",
@@ -57,6 +83,7 @@ export const useBackupOperations = () => {
       })
     } catch (error) {
       console.error('Backup error:', error)
+      await sendDiscordNotification(`❌ Backup failed at ${new Date().toLocaleString()}: ${error}`)
       toast({
         title: "Backup Failed",
         description: "There was an error backing up your data",
@@ -89,6 +116,8 @@ export const useBackupOperations = () => {
       
       const backupData = JSON.parse(await file.text())
       
+      await sendDiscordNotification(`🔄 Starting data restore from backup...`)
+
       if (backupData.profiles) {
         for (const profile of backupData.profiles) {
           await supabase
@@ -105,12 +134,15 @@ export const useBackupOperations = () => {
         }
       }
       
+      await sendDiscordNotification(`✅ Data restore completed successfully at ${new Date().toLocaleString()}`)
+      
       toast({
         title: "Restore Successful",
         description: "Your data has been restored from the backup",
       })
     } catch (error) {
       console.error('Restore error:', error)
+      await sendDiscordNotification(`❌ Restore failed at ${new Date().toLocaleString()}: ${error}`)
       toast({
         title: "Restore Failed",
         description: "There was an error restoring your data",
