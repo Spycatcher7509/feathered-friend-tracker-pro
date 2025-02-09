@@ -1,3 +1,4 @@
+
 import { useState } from "react"
 import { useToast } from "@/hooks/use-toast"
 import { supabase } from "@/integrations/supabase/client"
@@ -9,24 +10,36 @@ export const useBackupOperations = () => {
   const BACKUP_FOLDER_ID = "1omb7OKYsogTGxZs6ygMHyecXwZvz"
 
   const isAdmin = async () => {
+    console.log("Checking admin status...")
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return false
+    if (!user) {
+      console.log("No user found")
+      return false
+    }
     
-    const { data: profile } = await supabase
+    const { data: profile, error } = await supabase
       .from('profiles')
       .select('is_admin')
       .eq('id', user.id)
       .maybeSingle()
     
+    if (error) {
+      console.error("Error checking admin status:", error)
+      return false
+    }
+
+    console.log("Admin check result:", profile?.is_admin)
     return profile?.is_admin ?? false
   }
 
   const sendDiscordNotification = async (message: string) => {
     try {
+      console.log("Starting Discord notification process...")
       setIsLoading(true)
       
       const adminCheck = await isAdmin()
       if (!adminCheck) {
+        console.log("User is not an admin, aborting notification")
         toast({
           title: "Access Denied",
           description: "Only administrators can send Discord notifications",
@@ -51,6 +64,7 @@ export const useBackupOperations = () => {
       }
       
       if (!webhooks || webhooks.length === 0) {
+        console.log("No active webhooks found")
         toast({
           title: "No Webhooks Found",
           description: "Please add active Discord webhooks in the database",
@@ -59,11 +73,11 @@ export const useBackupOperations = () => {
         return
       }
 
-      console.log(`Found ${webhooks.length} active webhooks`)
+      console.log(`Found ${webhooks.length} active webhooks:`, webhooks)
       
       for (const webhook of webhooks) {
         try {
-          console.log(`Sending notification to webhook: ${webhook.description || 'Unnamed webhook'}`)
+          console.log(`Attempting to send to webhook: ${webhook.description || 'Unnamed webhook'}`)
           
           const response = await fetch(webhook.url, {
             method: 'POST',
@@ -73,6 +87,8 @@ export const useBackupOperations = () => {
               username: "BirdWatch Backup Bot"
             })
           })
+
+          console.log('Discord API response:', response.status, await response.text())
 
           if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`)
