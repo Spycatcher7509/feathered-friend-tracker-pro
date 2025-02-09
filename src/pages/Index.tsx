@@ -6,6 +6,7 @@ import ProfileImporter from "@/components/auth/ProfileImporter"
 import GoogleDriveBackup from "@/components/backup/GoogleDriveBackup"
 import ExternalBirdSounds from "@/components/birds/ExternalBirdSounds"
 import AddBirdSighting from "@/components/birds/AddBirdSighting"
+import SupportButtons from "@/components/auth/SupportButtons"
 import { Button } from "@/components/ui/button"
 import { ChevronDown, ChevronUp } from "lucide-react"
 
@@ -18,7 +19,10 @@ const Index = () => {
         <div className="space-y-6">
           <div className="flex justify-between items-center">
             <h1 className="text-3xl font-bold text-nature-800">Bird Watching Dashboard</h1>
-            <ProfileImporter />
+            <div className="flex gap-4 items-center">
+              <ProfileImporter />
+              <SupportButtons />
+            </div>
           </div>
           
           <div className="grid md:grid-cols-2 gap-6">
