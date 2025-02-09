@@ -1,4 +1,3 @@
-
 import { useState } from "react"
 import { useToast } from "@/hooks/use-toast"
 import { supabase } from "@/integrations/supabase/client"
@@ -7,7 +6,7 @@ import { loadGoogleAPI, authenticateGoogleDrive, uploadToGoogleDrive, pickBackup
 export const useBackupOperations = () => {
   const [isLoading, setIsLoading] = useState(false)
   const { toast } = useToast()
-  const BACKUP_FOLDER_ID = "1omb7OKYsogTGxZs6ygMHyecXwZvz"
+  const BACKUP_FOLDER_ID = "invalid_folder_id_for_testing"
 
   const isAdmin = async () => {
     const { data: { user } } = await supabase.auth.getUser()
@@ -73,7 +72,9 @@ export const useBackupOperations = () => {
       
       await loadGoogleAPI()
       await authenticateGoogleDrive()
-      const uploadResult = await uploadToGoogleDrive(file, `birdwatch_backup_${new Date().toISOString()}.json`, BACKUP_FOLDER_ID)
+      
+      // This will fail due to invalid folder ID
+      await uploadToGoogleDrive(file, `birdwatch_backup_${new Date().toISOString()}.json`, BACKUP_FOLDER_ID)
       
       await sendDiscordNotification(`✅ Backup completed successfully at ${new Date().toLocaleString()}`)
       
