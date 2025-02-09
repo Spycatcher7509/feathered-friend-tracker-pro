@@ -6,6 +6,7 @@ import ProfileImporter from "@/components/auth/ProfileImporter"
 import GoogleDriveBackup from "@/components/backup/GoogleDriveBackup"
 import ExternalBirdSounds from "@/components/birds/ExternalBirdSounds"
 import AddBirdSighting from "@/components/birds/AddBirdSighting"
+import BirdSightingsList from "@/components/birds/BirdSightingsList"
 import SupportButtons from "@/components/auth/SupportButtons"
 import { Button } from "@/components/ui/button"
 import { ChevronDown, ChevronUp } from "lucide-react"
@@ -31,6 +32,8 @@ const Index = () => {
               <GoogleDriveBackup />
             </div>
           </div>
+
+          <BirdSightingsList />
         </div>
 
         <div className="space-y-4">
