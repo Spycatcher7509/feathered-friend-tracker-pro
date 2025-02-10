@@ -2,6 +2,7 @@
 import { useState } from "react"
 import { useToast } from "@/hooks/use-toast"
 import { supabase } from "@/integrations/supabase/client"
+import { User } from '@supabase/supabase-js'
 
 export const useAdminGroups = () => {
   const [isLoading, setIsLoading] = useState(false)
@@ -30,7 +31,7 @@ export const useAdminGroups = () => {
         throw new Error('Failed to fetch user')
       }
 
-      const user = users.find(u => u.email === userEmail)
+      const user = (users as User[]).find(u => u.email === userEmail)
       if (!user) {
         throw new Error('User not found')
       }
