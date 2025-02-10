@@ -41,8 +41,6 @@ BT
 (2. You will be redirected to the dashboard after successful login) Tj
 0 -15 Td
 (3. Start logging bird sightings from the dashboard) Tj
-0 -15 Td
-(4. Use backup features to secure your data) Tj
 
 0 -30 Td
 (Core Features) Tj
@@ -56,17 +54,6 @@ BT
 (- Track locations and dates) Tj
 0 -15 Td
 (- Upload photos of birds) Tj
-
-0 -30 Td
-(Data Backup:) Tj
-0 -15 Td
-(- Google Drive integration) Tj
-0 -15 Td
-(- Automatic backup options) Tj
-0 -15 Td
-(- Secure data storage) Tj
-0 -15 Td
-(- Easy data restoration) Tj
 
 0 -30 Td
 (Bird Sounds:) Tj

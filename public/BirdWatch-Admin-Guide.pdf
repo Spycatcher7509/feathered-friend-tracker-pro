@@ -1,0 +1,103 @@
+
+%PDF-1.7
+1 0 obj
+<</Type /Catalog
+/Pages 2 0 R>>
+endobj
+
+2 0 obj
+<</Type /Pages
+/Kids [3 0 R]
+/Count 1>>
+endobj
+
+3 0 obj
+<</Type /Page
+/Parent 2 0 R
+/Resources <</Font <</F1 4 0 R>>>>
+/MediaBox [0 0 612 792]
+/Contents 5 0 R>>
+endobj
+
+4 0 obj
+<</Type /Font
+/Subtype /Type1
+/BaseFont /Helvetica>>
+endobj
+
+5 0 obj
+<</Length 1000>>
+stream
+BT
+/F1 16 Tf
+50 700 Td
+(Feathered Friend Tracker - Administrator Guide) Tj
+/F1 12 Tf
+0 -30 Td
+(Data Backup & Management) Tj
+0 -20 Td
+(Google Drive Integration:) Tj
+0 -15 Td
+(- Backup all application data to Google Drive) Tj
+0 -15 Td
+(- Restore data from previous backups) Tj
+0 -15 Td
+(- Automatic backup scheduling) Tj
+0 -15 Td
+(- Secure data storage and encryption) Tj
+
+0 -30 Td
+(Discord Integration) Tj
+0 -20 Td
+(Notifications & Alerts:) Tj
+0 -15 Td
+(- Configure Discord webhook URLs) Tj
+0 -15 Td
+(- Receive backup success/failure notifications) Tj
+0 -15 Td
+(- System status updates) Tj
+0 -15 Td
+(- Critical event notifications) Tj
+
+0 -30 Td
+(Administrator Access) Tj
+0 -20 Td
+(Permissions & Security:) Tj
+0 -15 Td
+(- Access restricted to authorized administrators) Tj
+0 -15 Td
+(- Email-based authentication required) Tj
+0 -15 Td
+(- Secure admin group membership) Tj
+0 -15 Td
+(- Activity logging and monitoring) Tj
+
+0 -30 Td
+(Important Notes:) Tj
+0 -20 Td
+(- Only authorized administrators can access these features) Tj
+0 -15 Td
+(- Regular backups are recommended for data safety) Tj
+0 -15 Td
+(- Keep Discord webhook URLs secure and private) Tj
+0 -15 Td
+(- Monitor backup notifications for system health) Tj
+ET
+endstream
+endobj
+
+xref
+0 6
+0000000000 65535 f
+0000000010 00000 n
+0000000056 00000 n
+0000000111 00000 n
+0000000209 00000 n
+0000000274 00000 n
+
+trailer
+<</Size 6
+/Root 1 0 R>>
+startxref
+1324
+%%EOF
