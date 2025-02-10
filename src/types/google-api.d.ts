@@ -1,9 +1,12 @@
+
 interface Window {
   gapi: {
     load: (api: string, callback: () => void) => void;
     client: {
       init: (config: {
+        apiKey?: string | null;
         clientId: string;
+        discoveryDocs?: string[];
         scope: string;
       }) => Promise<void>;
       drive: {
