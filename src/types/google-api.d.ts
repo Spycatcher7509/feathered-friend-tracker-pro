@@ -4,10 +4,9 @@ interface Window {
     load: (api: string, callback: () => void) => void;
     client: {
       init: (config: {
-        apiKey?: string | null;
         clientId: string;
-        discoveryDocs?: string[];
         scope: string;
+        discoveryDocs?: string[];
       }) => Promise<void>;
       drive: {
         files: {
@@ -27,7 +26,7 @@ interface Window {
           get: () => boolean;
         };
         signIn: () => Promise<void>;
-      };
+      } | null;
     };
   };
 }
