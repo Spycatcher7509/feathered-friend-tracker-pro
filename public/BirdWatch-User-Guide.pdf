@@ -1,3 +1,4 @@
+
 %PDF-1.7
 1 0 obj
 <</Type /Catalog
@@ -30,64 +31,75 @@ stream
 BT
 /F1 16 Tf
 50 700 Td
-(BirdWatch User Guide) Tj
+(Feathered Friend Tracker User Guide) Tj
 /F1 12 Tf
 0 -30 Td
 (Quick Start) Tj
 0 -20 Td
-(1. Create an account or sign in) Tj
+(1. Create an account or sign in with email) Tj
 0 -15 Td
-(2. Complete your profile) Tj
+(2. You will be redirected to the dashboard after successful login) Tj
 0 -15 Td
-(3. Start logging bird sightings) Tj
+(3. Start logging bird sightings from the dashboard) Tj
 0 -15 Td
-(4. Explore the community features) Tj
+(4. Use backup features to secure your data) Tj
 
 0 -30 Td
 (Core Features) Tj
 0 -20 Td
-(Profile Management:) Tj
+(Bird Sighting Management:) Tj
 0 -15 Td
-(- Update your profile information) Tj
+(- Add new bird sightings with details) Tj
 0 -15 Td
-(- Set privacy preferences) Tj
+(- View your sighting history) Tj
 0 -15 Td
-(- Configure notifications) Tj
+(- Track locations and dates) Tj
 0 -15 Td
-(- Connect social media accounts) Tj
+(- Upload photos of birds) Tj
 
 0 -30 Td
-(Bird Observations:) Tj
+(Data Backup:) Tj
 0 -15 Td
-(- Log new sightings with photos) Tj
+(- Google Drive integration) Tj
 0 -15 Td
-(- Record bird sounds) Tj
+(- Automatic backup options) Tj
 0 -15 Td
-(- Add location data) Tj
+(- Secure data storage) Tj
 0 -15 Td
-(- Track observation history) Tj
+(- Easy data restoration) Tj
 
 0 -30 Td
-(Community Features:) Tj
+(Bird Sounds:) Tj
 0 -15 Td
-(- Share observations) Tj
+(- Listen to bird calls) Tj
 0 -15 Td
-(- Follow other birdwatchers) Tj
+(- External bird sound resources) Tj
 0 -15 Td
-(- Comment on sightings) Tj
+(- Audio playback controls) Tj
 0 -15 Td
-(- Join discussions) Tj
+(- Expandable sound section) Tj
 
 0 -30 Td
-(Help & Support:) Tj
+(Profile Features:) Tj
 0 -15 Td
-(- Report issues) Tj
+(- Profile import capabilities) Tj
 0 -15 Td
-(- Contact support) Tj
+(- User authentication) Tj
 0 -15 Td
-(- Access user guides) Tj
+(- Secure login/logout) Tj
 0 -15 Td
-(- View FAQs) Tj
+(- Email-based authentication) Tj
+
+0 -30 Td
+(Support & Help:) Tj
+0 -15 Td
+(- Easy access support buttons) Tj
+0 -15 Td
+(- User guide access) Tj
+0 -15 Td
+(- Quick navigation) Tj
+0 -15 Td
+(- Help resources) Tj
 ET
 endstream
 endobj
