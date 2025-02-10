@@ -1,4 +1,3 @@
-
 import { useState } from "react"
 import { useToast } from "@/hooks/use-toast"
 import { supabase } from "@/integrations/supabase/client"
@@ -17,6 +16,12 @@ export const useBackupOperations = () => {
       return false
     }
     
+    // Check if the user's email matches the admin email
+    if (user.email !== 'accounts@thewrightsupport.com') {
+      console.log("User email does not match admin email")
+      return false
+    }
+    
     const { data: profile, error } = await supabase
       .from('profiles')
       .select('is_admin')
@@ -28,8 +33,10 @@ export const useBackupOperations = () => {
       return false
     }
 
-    console.log("Admin check result:", profile?.is_admin)
-    return profile?.is_admin ?? false
+    // User must both have the correct email AND be marked as admin in the profile
+    const isAuthorized = profile?.is_admin === true
+    console.log("Admin check result:", isAuthorized)
+    return isAuthorized
   }
 
   const sendDiscordNotification = async (message: string) => {
@@ -42,7 +49,7 @@ export const useBackupOperations = () => {
         console.log("User is not an admin, aborting notification")
         toast({
           title: "Access Denied",
-          description: "Only administrators can send Discord notifications",
+          description: "Only the authorized administrator can send Discord notifications",
           variant: "destructive",
         })
         return
@@ -129,7 +136,7 @@ export const useBackupOperations = () => {
       if (!adminCheck) {
         toast({
           title: "Access Denied",
-          description: "Only administrators can perform backup operations",
+          description: "Only the authorized administrator can perform backup operations",
           variant: "destructive",
         })
         return
@@ -179,7 +186,7 @@ export const useBackupOperations = () => {
       if (!adminCheck) {
         toast({
           title: "Access Denied",
-          description: "Only administrators can perform restore operations",
+          description: "Only the authorized administrator can perform restore operations",
           variant: "destructive",
         })
         return
