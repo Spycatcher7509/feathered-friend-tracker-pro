@@ -1,6 +1,5 @@
 
 import { supabase } from "@/integrations/supabase/client"
-import { useToast } from "@/hooks/use-toast"
 
 export const sendDiscordWebhookMessage = async (message: string, webhookDescription?: string) => {
   const { data: webhooks, error: webhooksError } = await supabase
@@ -47,4 +46,3 @@ export const sendDiscordWebhookMessage = async (message: string, webhookDescript
   
   console.log(`Successfully sent notification to webhook: ${webhook.description || 'Unnamed webhook'}`)
 }
-
