@@ -2,41 +2,21 @@ import { useState } from "react"
 import { useToast } from "@/hooks/use-toast"
 import { supabase } from "@/integrations/supabase/client"
 import { loadGoogleAPI, authenticateGoogleDrive, uploadToGoogleDrive, pickBackupFile } from "@/utils/googleDrive"
+import { useAdminGroups } from "@/hooks/useAdminGroups"
 
 export const useBackupOperations = () => {
   const [isLoading, setIsLoading] = useState(false)
   const { toast } = useToast()
+  const { checkAdminStatus } = useAdminGroups()
   const BACKUP_FOLDER_ID = "1omb7OKYsogTGxZs6ygMHyecXwZvz"
 
   const isAdmin = async () => {
-    console.log("Checking admin status...")
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-      console.log("No user found")
+    const adminStatus = await checkAdminStatus()
+    if (!adminStatus) {
+      console.log("User is not an admin")
       return false
     }
-    
-    // Check if the user's email matches the admin email
-    if (user.email !== 'accounts@thewrightsupport.com') {
-      console.log("User email does not match admin email")
-      return false
-    }
-    
-    const { data: profile, error } = await supabase
-      .from('profiles')
-      .select('is_admin')
-      .eq('id', user.id)
-      .maybeSingle()
-    
-    if (error) {
-      console.error("Error checking admin status:", error)
-      return false
-    }
-
-    // User must both have the correct email AND be marked as admin in the profile
-    const isAuthorized = profile?.is_admin === true
-    console.log("Admin check result:", isAuthorized)
-    return isAuthorized
+    return true
   }
 
   const sendDiscordNotification = async (message: string) => {

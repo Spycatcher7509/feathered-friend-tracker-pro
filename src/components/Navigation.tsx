@@ -4,27 +4,20 @@ import { LogOut, Shield } from "lucide-react"
 import { supabase } from "@/integrations/supabase/client"
 import { Button } from "@/components/ui/button"
 import { useState, useEffect } from "react"
+import { useAdminGroups } from "@/hooks/useAdminGroups"
 
 const Navigation = () => {
   const navigate = useNavigate()
   const [isAdmin, setIsAdmin] = useState(false)
+  const { checkAdminStatus } = useAdminGroups()
 
   useEffect(() => {
-    const checkAdminStatus = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('is_admin')
-          .eq('id', user.id)
-          .maybeSingle()
-        
-        // If profile exists and is_admin is true, set admin status
-        setIsAdmin(profile?.is_admin ?? false)
-      }
+    const checkAdmin = async () => {
+      const adminStatus = await checkAdminStatus()
+      setIsAdmin(adminStatus)
     }
 
-    checkAdminStatus()
+    checkAdmin()
   }, [])
 
   const handleSignOut = async () => {
