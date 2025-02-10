@@ -77,7 +77,12 @@ export const useAdminGroups = () => {
   const checkAdminStatus = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return false
+      if (!user) {
+        console.log('No user found')
+        return false
+      }
+
+      console.log('Checking admin status for user:', user.id)
 
       // Check if user is in admin group
       const { data: isInGroup, error: groupError } = await supabase
@@ -89,6 +94,8 @@ export const useAdminGroups = () => {
         console.error('Error checking admin group status:', groupError)
         return false
       }
+
+      console.log('User in admin group:', isInGroup)
 
       // Also check profile is_admin flag and email
       const { data: profile, error: profileError } = await supabase
@@ -102,7 +109,15 @@ export const useAdminGroups = () => {
         return false
       }
 
-      return isInGroup && profile?.is_admin === true && user.email === 'accounts@thewrightsupport.com'
+      console.log('Profile admin status:', profile?.is_admin)
+      console.log('User email:', user.email)
+
+      const isAdmin = isInGroup && 
+                     profile?.is_admin === true && 
+                     user.email === 'accounts@thewrightsupport.com'
+
+      console.log('Final admin status:', isAdmin)
+      return isAdmin
     } catch (error) {
       console.error('Error checking admin status:', error)
       return false
