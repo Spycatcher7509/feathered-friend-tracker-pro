@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client"
-import { loadGoogleAPI, authenticateGoogleDrive, uploadToGoogleDrive } from "@/utils/googleDrive"
+import { uploadToGoogleDrive } from "@/utils/googleDrive"
 import { sendDiscordWebhookMessage } from "@/utils/discord"
 
 export const BACKUP_FOLDER_ID = "1omb7OKYsogTGxZs6ygMHyecXwZvz"
@@ -27,19 +27,30 @@ export const createBackup = async () => {
     console.log('Creating backup file...')
     const file = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' })
     
-    console.log('Loading Google API...')
-    await loadGoogleAPI()
-    
-    console.log('Authenticating with Google Drive...')
-    await authenticateGoogleDrive()
-    
     console.log('Uploading backup to Google Drive...')
-    await uploadToGoogleDrive(file, `birdwatch_backup_${new Date().toISOString()}.json`, BACKUP_FOLDER_ID)
+    const result = await uploadToGoogleDrive(
+      file, 
+      `birdwatch_backup_${new Date().toISOString()}.json`, 
+      BACKUP_FOLDER_ID
+    )
+    
+    // Record the backup in Supabase
+    const { error: backupError } = await supabase.from('backups').insert({
+      filename: result.name,
+      drive_file_id: result.id,
+      size_bytes: file.size
+    })
+    
+    if (backupError) {
+      console.error('Error recording backup:', backupError)
+      throw backupError
+    }
     
     console.log('Sending success notification to Discord...')
     await sendDiscordWebhookMessage(`✅ Backup completed successfully at ${new Date().toLocaleString()}`)
     
     console.log('Backup process completed successfully')
+    return result
   } catch (error) {
     console.error('Error during backup process:', error)
     throw error

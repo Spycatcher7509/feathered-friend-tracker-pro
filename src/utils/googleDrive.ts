@@ -1,122 +1,31 @@
 
 import { supabase } from "@/integrations/supabase/client"
+import { JWT } from 'google-auth-library'
 
-const getGoogleDriveClientId = async (): Promise<string> => {
-  const { data, error } = await supabase
-    .from('google_drive_config')
-    .select('client_id')
-    .single()
-
-  if (error) {
-    console.error('Error fetching Google Drive client ID:', error)
-    throw new Error('Failed to fetch Google Drive client ID')
-  }
-
-  if (!data?.client_id) {
-    throw new Error('Google Drive client ID not configured')
-  }
-
-  return data.client_id
-}
-
-export const loadGoogleAPI = async () => {
-  return new Promise<typeof window.gapi>((resolve, reject) => {
-    if (window.gapi) {
-      console.log('Google API already loaded, initializing client...')
-      initializeGapiClient(resolve, reject)
-      return
-    }
-
-    console.log('Loading Google API script...')
-    const script = document.createElement('script')
-    script.src = 'https://apis.google.com/js/api.js'
-    script.crossOrigin = "anonymous"
-    script.onload = () => {
-      console.log('Google API script loaded, initializing client...')
-      initializeGapiClient(resolve, reject)
-    }
-    script.onerror = (error) => {
-      console.error('Error loading Google API script:', error)
-      reject(new Error('Failed to load Google API script'))
-    }
-    document.body.appendChild(script)
-  })
-}
-
-const initializeGapiClient = async (resolve: (value: typeof window.gapi) => void, reject: (reason?: any) => void) => {
+export const initializeGoogleDrive = async () => {
   try {
-    const clientId = await getGoogleDriveClientId()
-    console.log('Initializing Google API client...')
-    
-    window.gapi.load('client:auth2', async () => {
-      try {
-        console.log('Initializing Google API client with client ID:', clientId)
-        
-        await window.gapi.client.init({
-          clientId: clientId,
-          scope: 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.profile',
-          discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
-        })
+    console.log('Fetching Google Drive service account credentials...')
+    const { data: credentials, error } = await supabase
+      .from('google_drive_service_account')
+      .select('*')
+      .single()
 
-        // Check if auth2 is already initialized
-        let authInstance = window.gapi.auth2.getAuthInstance()
-        if (!authInstance) {
-          console.log('Initializing auth2...')
-          await window.gapi.auth2.init({
-            client_id: clientId,
-            scope: 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.profile'
-          })
-          authInstance = window.gapi.auth2.getAuthInstance()
-        }
-        
-        console.log('Google API client and auth2 initialized successfully')
-        resolve(window.gapi)
-      } catch (error) {
-        const errorDetails = error instanceof Error ? error.message : JSON.stringify(error)
-        console.error('Error initializing Google API client:', errorDetails)
-        reject(new Error(`Failed to initialize Google API client: ${errorDetails}`))
-      }
+    if (error || !credentials) {
+      console.error('Error fetching Google Drive credentials:', error)
+      throw new Error('Failed to fetch Google Drive credentials')
+    }
+
+    const auth = new JWT({
+      email: credentials.client_email,
+      key: credentials.private_key,
+      scopes: ['https://www.googleapis.com/auth/drive.file'],
     })
+
+    await auth.authorize()
+    return auth
   } catch (error) {
-    console.error('Error getting Google Drive client ID:', error)
-    reject(error)
-  }
-}
-
-export const authenticateGoogleDrive = async () => {
-  try {
-    console.log('Starting Google Drive authentication...')
-    const gapi = await loadGoogleAPI()
-    
-    if (!gapi.auth2) {
-      console.error('Google Auth2 module not loaded')
-      throw new Error('Google Auth2 module not loaded')
-    }
-
-    const authInstance = gapi.auth2.getAuthInstance()
-    if (!authInstance) {
-      console.error('Failed to get Google Auth instance - make sure client ID is correct')
-      throw new Error('Failed to get Google Auth instance')
-    }
-
-    console.log('Auth instance retrieved, checking if user is signed in...')
-    if (!authInstance.isSignedIn.get()) {
-      console.log('User not signed in, initiating sign in...')
-      await authInstance.signIn()
-    }
-
-    // Get user info using the correct type definition
-    const googleUser = authInstance.currentUser?.get()
-    if (googleUser) {
-      const profile = googleUser.getBasicProfile()
-      console.log('User authenticated:', profile.getName())
-    }
-    
-    console.log('User is authenticated with Google Drive')
-  } catch (error) {
-    const errorDetails = error instanceof Error ? error.message : JSON.stringify(error)
-    console.error('Error authenticating with Google Drive:', errorDetails)
-    throw new Error(`Authentication failed: ${errorDetails}`)
+    console.error('Error initializing Google Drive:', error)
+    throw error
   }
 }
 
@@ -124,23 +33,33 @@ export const uploadToGoogleDrive = async (file: Blob, filename: string, folderId
   try {
     console.log(`Uploading file: ${filename} to folder: ${folderId}`)
     
+    const auth = await initializeGoogleDrive()
+    
     const metadata = {
       name: filename,
-      mimeType: 'application/json',
-      parents: [folderId]
+      parents: [folderId],
+      mimeType: 'application/json'
     }
 
-    console.log('Creating file in Google Drive...')
-    const response = await window.gapi.client.drive.files.create({
-      resource: metadata,
-      media: {
-        mimeType: 'application/json',
-        body: file,
+    const form = new FormData()
+    form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }))
+    form.append('file', file)
+
+    const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${(await auth.getAccessToken()).token}`,
       },
+      body: form
     })
 
-    console.log('File uploaded successfully:', response)
-    return response
+    if (!response.ok) {
+      throw new Error(`Upload failed: ${response.statusText}`)
+    }
+
+    const result = await response.json()
+    console.log('File uploaded successfully:', result)
+    return result
   } catch (error) {
     console.error('Error uploading to Google Drive:', error)
     throw error
