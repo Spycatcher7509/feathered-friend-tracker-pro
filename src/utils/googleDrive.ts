@@ -1,9 +1,8 @@
-
 import { supabase } from "@/integrations/supabase/client"
 
 const generateJWT = async (header: string, claims: any, key: string) => {
   // Create base64 encoded segments
-  const encodedHeader = btoa(JSON.stringify(header))
+  const encodedHeader = header
   const encodedClaims = btoa(JSON.stringify(claims))
   
   // Create the content to be signed
@@ -68,10 +67,10 @@ export const initializeGoogleDrive = async () => {
       iat: now
     }
 
-    const header = {
+    const header = btoa(JSON.stringify({
       alg: 'RS256',
       typ: 'JWT'
-    }
+    }))
 
     const jwt = await generateJWT(header, claims, credentials.private_key)
 
