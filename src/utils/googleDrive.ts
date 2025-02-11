@@ -25,11 +25,17 @@ export const loadGoogleAPI = async () => {
 const initializeGapiClient = (resolve: (value: typeof window.gapi) => void, reject: (reason?: any) => void) => {
   window.gapi.load('client:auth2', async () => {
     try {
+      console.log('Initializing Google API client with client ID:', import.meta.env.VITE_GOOGLE_DRIVE_CLIENT_ID)
+      
+      // First initialize the client
       await window.gapi.client.init({
         clientId: import.meta.env.VITE_GOOGLE_DRIVE_CLIENT_ID,
         scope: 'https://www.googleapis.com/auth/drive.file',
-        discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
       })
+      
+      // Then load the Drive API specifically
+      await window.gapi.client.load('drive', 'v3')
+      
       console.log('Google API client initialized successfully')
       resolve(window.gapi)
     } catch (error) {
@@ -45,11 +51,13 @@ export const authenticateGoogleDrive = async () => {
     const gapi = await loadGoogleAPI()
     
     if (!gapi.auth2) {
+      console.error('Google Auth2 module not loaded')
       throw new Error('Google Auth2 module not loaded')
     }
 
     const authInstance = gapi.auth2.getAuthInstance()
     if (!authInstance) {
+      console.error('Failed to get Google Auth instance - make sure client ID is correct')
       throw new Error('Failed to get Google Auth instance')
     }
 
@@ -73,10 +81,6 @@ export const uploadToGoogleDrive = async (file: Blob, filename: string, folderId
       mimeType: 'application/json',
       parents: [folderId]
     }
-
-    const form = new FormData()
-    form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }))
-    form.append('file', file)
 
     console.log('Creating file in Google Drive...')
     const response = await window.gapi.client.drive.files.create({

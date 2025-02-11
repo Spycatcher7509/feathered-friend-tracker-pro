@@ -8,6 +8,7 @@ interface Window {
         scope: string;
         discoveryDocs?: string[];
       }) => Promise<void>;
+      load: (api: string, version: string) => Promise<void>;
       drive: {
         files: {
           create: (params: {
@@ -30,4 +31,3 @@ interface Window {
     };
   };
 }
-
