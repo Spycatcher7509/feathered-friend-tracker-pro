@@ -1,6 +1,45 @@
 
 import { supabase } from "@/integrations/supabase/client"
-import { JWT } from 'google-auth-library'
+
+const generateJWT = async (header: string, claims: any, key: string) => {
+  // Create base64 encoded segments
+  const encodedHeader = btoa(JSON.stringify(header))
+  const encodedClaims = btoa(JSON.stringify(claims))
+  
+  // Create the content to be signed
+  const signContent = `${encodedHeader}.${encodedClaims}`
+  
+  // Convert private key from PEM format
+  const privateKey = key.replace(/\\n/g, '\n')
+                        .replace('-----BEGIN PRIVATE KEY-----\n', '')
+                        .replace('\n-----END PRIVATE KEY-----', '')
+  
+  // Import the private key
+  const binaryKey = Uint8Array.from(atob(privateKey), c => c.charCodeAt(0))
+  const cryptoKey = await crypto.subtle.importKey(
+    'pkcs8',
+    binaryKey,
+    {
+      name: 'RSASSA-PKCS1-v1_5',
+      hash: 'SHA-256',
+    },
+    false,
+    ['sign']
+  )
+  
+  // Sign the content
+  const signature = await crypto.subtle.sign(
+    'RSASSA-PKCS1-v1_5',
+    cryptoKey,
+    new TextEncoder().encode(signContent)
+  )
+  
+  // Convert signature to base64
+  const encodedSignature = btoa(String.fromCharCode(...new Uint8Array(signature)))
+  
+  // Return complete JWT
+  return `${signContent}.${encodedSignature}`
+}
 
 export const initializeGoogleDrive = async () => {
   try {
@@ -15,27 +54,40 @@ export const initializeGoogleDrive = async () => {
       throw new Error('Failed to fetch Google Drive credentials')
     }
 
-    const auth = new JWT({
-      email: credentials.client_email,
-      key: credentials.private_key,
-      scopes: ['https://www.googleapis.com/auth/drive.file'],
-      // Simplify configuration for browser environment
-      subject: null,
-      keyId: null,
-      // Set required properties for browser environment
-      projectId: credentials.project_id,
-      additionalClaims: {
-        target_audience: window.location.origin
-      }
+    const now = Math.floor(Date.now() / 1000)
+    const claims = {
+      iss: credentials.client_email,
+      scope: 'https://www.googleapis.com/auth/drive.file',
+      aud: 'https://oauth2.googleapis.com/token',
+      exp: now + 3600,
+      iat: now
+    }
+
+    const header = {
+      alg: 'RS256',
+      typ: 'JWT'
+    }
+
+    const jwt = await generateJWT(header, claims, credentials.private_key)
+
+    // Exchange JWT for access token
+    const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+        assertion: jwt,
+      }),
     })
 
-    // Force token refresh
-    const token = await auth.authorize()
-    if (!token) {
+    if (!tokenResponse.ok) {
       throw new Error('Failed to get access token')
     }
 
-    return auth
+    const tokenData = await tokenResponse.json()
+    return tokenData.access_token
   } catch (error) {
     console.error('Error initializing Google Drive:', error)
     throw error
@@ -46,10 +98,9 @@ export const uploadToGoogleDrive = async (file: Blob, filename: string, folderId
   try {
     console.log(`Uploading file: ${filename} to folder: ${folderId}`)
     
-    const auth = await initializeGoogleDrive()
-    const accessToken = await auth.getAccessToken()
+    const accessToken = await initializeGoogleDrive()
     
-    if (!accessToken || !accessToken.token) {
+    if (!accessToken) {
       throw new Error('No access token available')
     }
 
@@ -66,7 +117,7 @@ export const uploadToGoogleDrive = async (file: Blob, filename: string, folderId
     const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${accessToken.token}`,
+        Authorization: `Bearer ${accessToken}`,
       },
       body: form
     })
