@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client"
 
 const generateJWT = async (header: string, claims: any, key: string) => {
@@ -53,9 +54,9 @@ export const initializeGoogleDrive = async () => {
       throw new Error('Failed to fetch Google Drive credentials')
     }
 
-    if (!credentials) {
-      console.error('No Google Drive service account credentials found')
-      throw new Error('No Google Drive service account credentials configured')
+    if (!credentials || credentials.client_email === 'placeholder@project.iam.gserviceaccount.com') {
+      console.error('No valid Google Drive service account credentials found')
+      throw new Error('Please configure valid Google Drive service account credentials')
     }
 
     const now = Math.floor(Date.now() / 1000)
@@ -87,7 +88,9 @@ export const initializeGoogleDrive = async () => {
     })
 
     if (!tokenResponse.ok) {
-      throw new Error('Failed to get access token')
+      const error = await tokenResponse.text()
+      console.error('Token exchange failed:', error)
+      throw new Error('Failed to get access token: ' + error)
     }
 
     const tokenData = await tokenResponse.json()
