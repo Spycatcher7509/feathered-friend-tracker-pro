@@ -25,8 +25,9 @@ export const initializeGoogleDrive = async () => {
       }
     })
 
-    // Force client-side mode
+    // Force browser mode settings
     auth.useJWTAccessWithScope = true
+    auth.forceRefreshOnFailure = true
     
     await auth.authorize()
     return auth
