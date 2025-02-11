@@ -19,17 +19,18 @@ export const initializeGoogleDrive = async () => {
       email: credentials.client_email,
       key: credentials.private_key,
       scopes: ['https://www.googleapis.com/auth/drive.file'],
-      // Use simpler browser-compatible options
+      // Simplify configuration for browser environment
       subject: null,
       keyId: null,
+      // Set required properties for browser environment
+      projectId: credentials.project_id,
       additionalClaims: {
         target_audience: window.location.origin
       }
     })
 
-    await auth.authorize()
-    const token = await auth.getAccessToken()
-    
+    // Force token refresh
+    const token = await auth.authorize()
     if (!token) {
       throw new Error('Failed to get access token')
     }
@@ -46,9 +47,9 @@ export const uploadToGoogleDrive = async (file: Blob, filename: string, folderId
     console.log(`Uploading file: ${filename} to folder: ${folderId}`)
     
     const auth = await initializeGoogleDrive()
-    const token = await auth.getAccessToken()
+    const accessToken = await auth.getAccessToken()
     
-    if (!token) {
+    if (!accessToken || !accessToken.token) {
       throw new Error('No access token available')
     }
 
@@ -65,7 +66,7 @@ export const uploadToGoogleDrive = async (file: Blob, filename: string, folderId
     const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${token.token}`,
+        Authorization: `Bearer ${accessToken.token}`,
       },
       body: form
     })

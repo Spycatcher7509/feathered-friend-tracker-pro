@@ -34,6 +34,11 @@ export default defineConfig(({ mode }) => ({
       platform: '"browser"',
       stdout: { isTTY: false },
       stderr: { isTTY: false }
-    }
+    },
+    'Buffer': ['buffer', 'Buffer'],
+    '__filename': '"browser-only"',
+    '__dirname': '"browser-only"',
+    'setImmediate': 'setTimeout',
+    'clearImmediate': 'clearTimeout'
   }
 }));
