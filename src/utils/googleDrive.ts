@@ -1,37 +1,56 @@
+
 export const loadGoogleAPI = async () => {
   return new Promise((resolve, reject) => {
+    if (window.gapi) {
+      console.log('Google API already loaded, initializing client...')
+      initializeGapiClient(resolve, reject)
+      return
+    }
+
+    console.log('Loading Google API script...')
     const script = document.createElement('script')
     script.src = 'https://apis.google.com/js/api.js'
     script.onload = () => {
-      window.gapi.load('client:auth2', async () => {
-        try {
-          await window.gapi.client.init({
-            clientId: import.meta.env.VITE_GOOGLE_DRIVE_CLIENT_ID,
-            scope: 'https://www.googleapis.com/auth/drive.file',
-            discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
-          })
-          console.log('Google API client initialized successfully')
-          resolve(window.gapi)
-        } catch (error) {
-          console.error('Error initializing Google API client:', error)
-          reject(error)
-        }
-      })
+      console.log('Google API script loaded, initializing client...')
+      initializeGapiClient(resolve, reject)
     }
     script.onerror = (error) => {
       console.error('Error loading Google API script:', error)
-      reject(error)
+      reject(new Error('Failed to load Google API script'))
     }
     document.body.appendChild(script)
   })
 }
 
+const initializeGapiClient = (resolve: (value: any) => void, reject: (reason?: any) => void) => {
+  window.gapi.load('client:auth2', async () => {
+    try {
+      await window.gapi.client.init({
+        clientId: import.meta.env.VITE_GOOGLE_DRIVE_CLIENT_ID,
+        scope: 'https://www.googleapis.com/auth/drive.file',
+        discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
+      })
+      console.log('Google API client initialized successfully')
+      resolve(window.gapi)
+    } catch (error) {
+      console.error('Error initializing Google API client:', error)
+      reject(error)
+    }
+  })
+}
+
 export const authenticateGoogleDrive = async () => {
   try {
-    const authInstance = window.gapi.auth2?.getAuthInstance()
+    console.log('Starting Google Drive authentication...')
+    const gapi = await loadGoogleAPI()
+    
+    if (!gapi.auth2) {
+      throw new Error('Google Auth2 module not loaded')
+    }
+
+    const authInstance = gapi.auth2.getAuthInstance()
     if (!authInstance) {
-      console.error('Google Auth instance not found')
-      throw new Error('Google Auth instance not found. Please make sure you have initialized the Google API client.')
+      throw new Error('Failed to get Google Auth instance')
     }
 
     if (!authInstance.isSignedIn.get()) {
