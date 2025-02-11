@@ -58,15 +58,16 @@ const initializeGapiClient = async (resolve: (value: typeof window.gapi) => void
           discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
         })
 
-        const auth2Promise = new Promise<void>((resolve) => {
-          window.gapi.auth2.init({
+        // Check if auth2 is already initialized
+        let authInstance = window.gapi.auth2.getAuthInstance()
+        if (!authInstance) {
+          console.log('Initializing auth2...')
+          await window.gapi.auth2.init({
             client_id: clientId,
-            scope: 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.profile',
-            cookie_policy: 'single_host_origin'
-          }).then(() => resolve())
-        })
-
-        await auth2Promise
+            scope: 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.profile'
+          })
+          authInstance = window.gapi.auth2.getAuthInstance()
+        }
         
         console.log('Google API client and auth2 initialized successfully')
         resolve(window.gapi)
@@ -104,9 +105,13 @@ export const authenticateGoogleDrive = async () => {
       await authInstance.signIn()
     }
 
-    const currentUser = authInstance.currentUser.get()
-    const userProfile = currentUser.getBasicProfile()
-    console.log('User authenticated:', userProfile.getName())
+    // Get user info using the correct type definition
+    const googleUser = authInstance.currentUser?.get()
+    if (googleUser) {
+      const profile = googleUser.getBasicProfile()
+      console.log('User authenticated:', profile.getName())
+    }
+    
     console.log('User is authenticated with Google Drive')
   } catch (error) {
     const errorDetails = error instanceof Error ? error.message : JSON.stringify(error)

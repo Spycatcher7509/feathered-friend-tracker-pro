@@ -26,12 +26,25 @@ interface Window {
         client_id: string;
         scope: string;
       }) => Promise<any>;
-      getAuthInstance: () => {
-        isSignedIn: {
-          get: () => boolean;
-        };
-        signIn: () => Promise<void>;
-      } | null;
+      getAuthInstance: () => GoogleAuthInstance | null;
     };
+  };
+}
+
+interface GoogleAuthInstance {
+  isSignedIn: {
+    get: () => boolean;
+  };
+  signIn: () => Promise<void>;
+  currentUser: {
+    get: () => GoogleUser;
+  };
+}
+
+interface GoogleUser {
+  getBasicProfile: () => {
+    getName: () => string;
+    getEmail: () => string;
+    getId: () => string;
   };
 }
