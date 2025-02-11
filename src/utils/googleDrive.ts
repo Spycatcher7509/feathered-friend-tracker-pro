@@ -1,4 +1,24 @@
 
+import { supabase } from "@/integrations/supabase/client"
+
+const getGoogleDriveClientId = async (): Promise<string> => {
+  const { data, error } = await supabase
+    .from('google_drive_config')
+    .select('client_id')
+    .single()
+
+  if (error) {
+    console.error('Error fetching Google Drive client ID:', error)
+    throw new Error('Failed to fetch Google Drive client ID')
+  }
+
+  if (!data?.client_id) {
+    throw new Error('Google Drive client ID not configured')
+  }
+
+  return data.client_id
+}
+
 export const loadGoogleAPI = async () => {
   return new Promise<typeof window.gapi>((resolve, reject) => {
     if (window.gapi) {
@@ -22,33 +42,40 @@ export const loadGoogleAPI = async () => {
   })
 }
 
-const initializeGapiClient = (resolve: (value: typeof window.gapi) => void, reject: (reason?: any) => void) => {
-  window.gapi.load('client:auth2', async () => {
-    try {
-      const clientId = 'GOOGLE_DRIVE_CLIENT_ID'
-      console.log('Initializing Google API client with client ID:', clientId)
-      
-      await window.gapi.client.init({
-        clientId: clientId,
-        scope: 'https://www.googleapis.com/auth/drive.file',
-        discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
-      })
+const initializeGapiClient = async (resolve: (value: typeof window.gapi) => void, reject: (reason?: any) => void) => {
+  try {
+    const clientId = await getGoogleDriveClientId()
+    console.log('Initializing Google API client...')
+    
+    window.gapi.load('client:auth2', async () => {
+      try {
+        console.log('Initializing Google API client with client ID:', clientId)
+        
+        await window.gapi.client.init({
+          clientId: clientId,
+          scope: 'https://www.googleapis.com/auth/drive.file',
+          discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
+        })
 
-      // Explicitly wait for auth2 to be initialized
-      await new Promise<void>((resolve) => {
-        window.gapi.auth2.init({
-          client_id: clientId,
-          scope: 'https://www.googleapis.com/auth/drive.file'
-        }).then(() => resolve())
-      })
-      
-      console.log('Google API client and auth2 initialized successfully')
-      resolve(window.gapi)
-    } catch (error) {
-      console.error('Error initializing Google API client:', error)
-      reject(error)
-    }
-  })
+        // Explicitly wait for auth2 to be initialized
+        await new Promise<void>((resolve) => {
+          window.gapi.auth2.init({
+            client_id: clientId,
+            scope: 'https://www.googleapis.com/auth/drive.file'
+          }).then(() => resolve())
+        })
+        
+        console.log('Google API client and auth2 initialized successfully')
+        resolve(window.gapi)
+      } catch (error) {
+        console.error('Error initializing Google API client:', error)
+        reject(error)
+      }
+    })
+  } catch (error) {
+    console.error('Error getting Google Drive client ID:', error)
+    reject(error)
+  }
 }
 
 export const authenticateGoogleDrive = async () => {
