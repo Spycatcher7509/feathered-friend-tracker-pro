@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client"
 
 const getGoogleDriveClientId = async (): Promise<string> => {
@@ -54,22 +53,23 @@ const initializeGapiClient = async (resolve: (value: typeof window.gapi) => void
         
         await window.gapi.client.init({
           clientId: clientId,
-          scope: 'https://www.googleapis.com/auth/drive.file',
+          scope: 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.profile',
           discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
         })
 
         await new Promise<void>((resolve) => {
           window.gapi.auth2.init({
             client_id: clientId,
-            scope: 'https://www.googleapis.com/auth/drive.file'
+            scope: 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.profile'
           }).then(() => resolve())
         })
         
         console.log('Google API client and auth2 initialized successfully')
         resolve(window.gapi)
       } catch (error) {
-        console.error('Error initializing Google API client:', error)
-        reject(error)
+        const errorDetails = error instanceof Error ? error.message : JSON.stringify(error)
+        console.error('Error initializing Google API client:', errorDetails)
+        reject(new Error(`Failed to initialize Google API client: ${errorDetails}`))
       }
     })
   } catch (error) {
@@ -100,8 +100,9 @@ export const authenticateGoogleDrive = async () => {
     }
     console.log('User is authenticated with Google Drive')
   } catch (error) {
-    console.error('Error authenticating with Google Drive:', error)
-    throw error
+    const errorDetails = error instanceof Error ? error.message : JSON.stringify(error)
+    console.error('Error authenticating with Google Drive:', errorDetails)
+    throw new Error(`Authentication failed: ${errorDetails}`)
   }
 }
 
