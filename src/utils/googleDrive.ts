@@ -27,16 +27,21 @@ const initializeGapiClient = (resolve: (value: typeof window.gapi) => void, reje
     try {
       console.log('Initializing Google API client with client ID:', import.meta.env.VITE_GOOGLE_DRIVE_CLIENT_ID)
       
-      // First initialize the client
       await window.gapi.client.init({
         clientId: import.meta.env.VITE_GOOGLE_DRIVE_CLIENT_ID,
         scope: 'https://www.googleapis.com/auth/drive.file',
+        discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
+      })
+
+      // Explicitly wait for auth2 to be initialized
+      await new Promise<void>((resolve) => {
+        window.gapi.auth2.init({
+          client_id: import.meta.env.VITE_GOOGLE_DRIVE_CLIENT_ID,
+          scope: 'https://www.googleapis.com/auth/drive.file'
+        }).then(() => resolve())
       })
       
-      // Then load the Drive API specifically
-      await window.gapi.client.load('drive', 'v3')
-      
-      console.log('Google API client initialized successfully')
+      console.log('Google API client and auth2 initialized successfully')
       resolve(window.gapi)
     } catch (error) {
       console.error('Error initializing Google API client:', error)

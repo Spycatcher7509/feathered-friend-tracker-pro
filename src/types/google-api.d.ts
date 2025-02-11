@@ -22,6 +22,10 @@ interface Window {
       };
     };
     auth2: {
+      init: (params: {
+        client_id: string;
+        scope: string;
+      }) => Promise<any>;
       getAuthInstance: () => {
         isSignedIn: {
           get: () => boolean;
