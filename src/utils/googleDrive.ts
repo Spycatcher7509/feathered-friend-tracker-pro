@@ -47,11 +47,16 @@ export const initializeGoogleDrive = async () => {
     const { data: credentials, error } = await supabase
       .from('google_drive_service_account')
       .select('*')
-      .single()
+      .maybeSingle()
 
-    if (error || !credentials) {
+    if (error) {
       console.error('Error fetching Google Drive credentials:', error)
       throw new Error('Failed to fetch Google Drive credentials')
+    }
+
+    if (!credentials) {
+      console.error('No Google Drive service account credentials found')
+      throw new Error('No Google Drive service account credentials configured')
     }
 
     const now = Math.floor(Date.now() / 1000)
