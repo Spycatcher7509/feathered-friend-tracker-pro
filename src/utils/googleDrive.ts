@@ -15,12 +15,19 @@ export const initializeGoogleDrive = async () => {
       throw new Error('Failed to fetch Google Drive credentials')
     }
 
+    // Configure JWT with browser-safe options
     const auth = new JWT({
       email: credentials.client_email,
       key: credentials.private_key,
       scopes: ['https://www.googleapis.com/auth/drive.file'],
+      additionalClaims: {
+        target_audience: window.location.origin
+      }
     })
 
+    // Force client-side mode
+    auth.useJWTAccessWithScope = true
+    
     await auth.authorize()
     return auth
   } catch (error) {
