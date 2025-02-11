@@ -55,16 +55,13 @@ const initializeGapiClient = async (resolve: (value: typeof window.gapi) => void
         await window.gapi.client.init({
           clientId: clientId,
           scope: 'https://www.googleapis.com/auth/drive.file',
-          discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
-          fetch_basic_profile: true
+          discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
         })
 
         await new Promise<void>((resolve) => {
           window.gapi.auth2.init({
             client_id: clientId,
-            scope: 'https://www.googleapis.com/auth/drive.file',
-            fetch_basic_profile: true,
-            ux_mode: 'popup'
+            scope: 'https://www.googleapis.com/auth/drive.file'
           }).then(() => resolve())
         })
         
@@ -99,9 +96,7 @@ export const authenticateGoogleDrive = async () => {
 
     if (!authInstance.isSignedIn.get()) {
       console.log('User not signed in, initiating sign in...')
-      await authInstance.signIn({
-        ux_mode: 'popup'
-      })
+      await authInstance.signIn()
     }
     console.log('User is authenticated with Google Drive')
   } catch (error) {
