@@ -45,10 +45,16 @@ const GoogleDriveBackup = () => {
             <p>If you see an authentication error, follow these steps in Google Cloud Console:</p>
             <ol className="list-decimal pl-6 space-y-2">
               <li>Go to the Google Cloud Console OAuth 2.0 settings</li>
-              <li>Add this URL to "Authorized JavaScript origins":</li>
-              <Code className="my-2 block p-2">{currentDomain}</Code>
-              <li>Add this URL to "Authorized redirect URIs":</li>
-              <Code className="my-2 block p-2">{currentDomain}</Code>
+              <li>Add this URL to "Authorized JavaScript origins":
+                <div className="relative">
+                  <Code className="my-2 block p-2 w-full">{currentDomain}</Code>
+                </div>
+              </li>
+              <li>Add this URL to "Authorized redirect URIs":
+                <div className="relative">
+                  <Code className="my-2 block p-2 w-full">{currentDomain}</Code>
+                </div>
+              </li>
               <li>Save the changes and try the backup again</li>
             </ol>
           </AlertDescription>
