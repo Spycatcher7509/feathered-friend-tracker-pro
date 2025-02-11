@@ -1,6 +1,6 @@
 
 export const loadGoogleAPI = async () => {
-  return new Promise((resolve, reject) => {
+  return new Promise<typeof window.gapi>((resolve, reject) => {
     if (window.gapi) {
       console.log('Google API already loaded, initializing client...')
       initializeGapiClient(resolve, reject)
@@ -22,7 +22,7 @@ export const loadGoogleAPI = async () => {
   })
 }
 
-const initializeGapiClient = (resolve: (value: any) => void, reject: (reason?: any) => void) => {
+const initializeGapiClient = (resolve: (value: typeof window.gapi) => void, reject: (reason?: any) => void) => {
   window.gapi.load('client:auth2', async () => {
     try {
       await window.gapi.client.init({
