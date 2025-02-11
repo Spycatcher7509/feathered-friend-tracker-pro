@@ -15,21 +15,25 @@ export const initializeGoogleDrive = async () => {
       throw new Error('Failed to fetch Google Drive credentials')
     }
 
-    // Configure JWT with browser-safe options
     const auth = new JWT({
       email: credentials.client_email,
       key: credentials.private_key,
       scopes: ['https://www.googleapis.com/auth/drive.file'],
+      // Use simpler browser-compatible options
+      subject: null,
+      keyId: null,
       additionalClaims: {
         target_audience: window.location.origin
       }
     })
 
-    // Force browser mode settings
-    auth.useJWTAccessWithScope = true
-    auth.forceRefreshOnFailure = true
-    
     await auth.authorize()
+    const token = await auth.getAccessToken()
+    
+    if (!token) {
+      throw new Error('Failed to get access token')
+    }
+
     return auth
   } catch (error) {
     console.error('Error initializing Google Drive:', error)
@@ -42,7 +46,12 @@ export const uploadToGoogleDrive = async (file: Blob, filename: string, folderId
     console.log(`Uploading file: ${filename} to folder: ${folderId}`)
     
     const auth = await initializeGoogleDrive()
+    const token = await auth.getAccessToken()
     
+    if (!token) {
+      throw new Error('No access token available')
+    }
+
     const metadata = {
       name: filename,
       parents: [folderId],
@@ -56,7 +65,7 @@ export const uploadToGoogleDrive = async (file: Blob, filename: string, folderId
     const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${(await auth.getAccessToken()).token}`,
+        Authorization: `Bearer ${token.token}`,
       },
       body: form
     })

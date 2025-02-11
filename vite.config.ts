@@ -27,5 +27,13 @@ export default defineConfig(({ mode }) => ({
     'process.platform': '"browser"',
     'process.stdout': '{ isTTY: false }',
     'process.stderr': '{ isTTY: false }',
+    'global': 'globalThis',
+    'process': {
+      env: {},
+      version: '"v16.0.0"',
+      platform: '"browser"',
+      stdout: { isTTY: false },
+      stderr: { isTTY: false }
+    }
   }
 }));
