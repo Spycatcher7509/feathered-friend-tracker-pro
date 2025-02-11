@@ -30,6 +30,7 @@ export const loadGoogleAPI = async () => {
     console.log('Loading Google API script...')
     const script = document.createElement('script')
     script.src = 'https://apis.google.com/js/api.js'
+    script.crossOrigin = "anonymous"
     script.onload = () => {
       console.log('Google API script loaded, initializing client...')
       initializeGapiClient(resolve, reject)
@@ -54,14 +55,16 @@ const initializeGapiClient = async (resolve: (value: typeof window.gapi) => void
         await window.gapi.client.init({
           clientId: clientId,
           scope: 'https://www.googleapis.com/auth/drive.file',
-          discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
+          discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
+          fetch_basic_profile: true
         })
 
-        // Explicitly wait for auth2 to be initialized
         await new Promise<void>((resolve) => {
           window.gapi.auth2.init({
             client_id: clientId,
-            scope: 'https://www.googleapis.com/auth/drive.file'
+            scope: 'https://www.googleapis.com/auth/drive.file',
+            fetch_basic_profile: true,
+            ux_mode: 'popup'
           }).then(() => resolve())
         })
         
@@ -96,7 +99,9 @@ export const authenticateGoogleDrive = async () => {
 
     if (!authInstance.isSignedIn.get()) {
       console.log('User not signed in, initiating sign in...')
-      await authInstance.signIn()
+      await authInstance.signIn({
+        ux_mode: 'popup'
+      })
     }
     console.log('User is authenticated with Google Drive')
   } catch (error) {
