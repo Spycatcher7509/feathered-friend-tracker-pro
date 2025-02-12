@@ -21,20 +21,13 @@ export default defineConfig(({ mode }) => ({
     },
   },
   define: {
-    // Add Node.js global polyfills
-    'process.env': {},
+    'process.env': '{}',
     'process.version': '"v16.0.0"',
     'process.platform': '"browser"',
-    'process.stdout': '{ isTTY: false }',
-    'process.stderr': '{ isTTY: false }',
+    'process.stdout': '{}',
+    'process.stderr': '{}',
     'global': 'globalThis',
-    'process': {
-      env: {},
-      version: '"v16.0.0"',
-      platform: '"browser"',
-      stdout: { isTTY: false },
-      stderr: { isTTY: false }
-    },
+    'process': '{"env": {}, "version": "v16.0.0", "platform": "browser", "stdout": {}, "stderr": {}}',
     'Buffer': ['buffer', 'Buffer'],
     '__filename': '"browser-only"',
     '__dirname': '"browser-only"',
