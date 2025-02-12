@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Info, Play, Upload, Trash2, Volume2Off } from "lucide-react"
+import { Info, Play, Upload, Trash2, VolumeOff } from "lucide-react"
 import { useState, useRef } from "react"
 import { useToast } from "@/hooks/use-toast"
 
@@ -58,6 +58,7 @@ const BirdCard = ({
 
   const toggleAudio = () => {
     if (!soundUrl) {
+      console.log('No sound URL provided for:', name)
       toast({
         variant: "destructive",
         title: "Error",
@@ -66,6 +67,9 @@ const BirdCard = ({
       return
     }
 
+    console.log('Attempting to play sound for:', name)
+    console.log('Sound URL:', soundUrl)
+
     if (audioRef.current) {
       if (isPlaying) {
         audioRef.current.pause()
@@ -73,6 +77,11 @@ const BirdCard = ({
       } else {
         audioRef.current.play().catch(error => {
           console.error('Error playing audio:', error)
+          console.error('Audio element error details:', {
+            error: audioRef.current?.error,
+            networkState: audioRef.current?.networkState,
+            readyState: audioRef.current?.readyState
+          })
           setAudioError(true)
           toast({
             variant: "destructive",
@@ -85,10 +94,18 @@ const BirdCard = ({
   }
 
   const handleAudioLoad = () => {
+    console.log('Audio loaded successfully for:', name)
     setAudioError(false)
   }
 
   const handleAudioError = () => {
+    console.error('Audio load error for:', name)
+    console.error('Audio element details:', {
+      error: audioRef.current?.error,
+      networkState: audioRef.current?.networkState,
+      readyState: audioRef.current?.readyState,
+      currentSrc: audioRef.current?.currentSrc
+    })
     setAudioError(true)
     setIsPlaying(false)
     toast({
@@ -178,7 +195,7 @@ const BirdCard = ({
               >
                 {audioError ? (
                   <>
-                    <Volume2Off className="h-4 w-4 mr-1" />
+                    <VolumeOff className="h-4 w-4 mr-1" />
                     Audio Unavailable
                   </>
                 ) : (
