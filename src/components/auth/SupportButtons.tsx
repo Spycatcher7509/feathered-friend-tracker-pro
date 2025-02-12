@@ -12,6 +12,7 @@ const SupportButtons = () => {
   const { toast } = useToast()
   const [issueDescription, setIssueDescription] = useState("")
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [isSending, setIsSending] = useState(false)
 
   const handleUserGuide = async () => {
     try {
@@ -47,6 +48,12 @@ const SupportButtons = () => {
         return
       }
 
+      setIsSending(true)
+      toast({
+        title: "Sending...",
+        description: "Your issue report is being sent.",
+      })
+
       const { data, error } = await supabase.functions.invoke('send-email', {
         body: {
           to: 'accounts@thewrightsupport.com',
@@ -79,8 +86,10 @@ const SupportButtons = () => {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to send issue report. Please try again later.",
+        description: error.message || "Failed to send issue report. Please try again later.",
       })
+    } finally {
+      setIsSending(false)
     }
   }
 
@@ -120,8 +129,12 @@ const SupportButtons = () => {
                 className="min-h-[100px]"
               />
             </div>
-            <Button onClick={handleReportIssue} className="w-full">
-              Submit Report
+            <Button 
+              onClick={handleReportIssue} 
+              className="w-full"
+              disabled={isSending}
+            >
+              {isSending ? "Sending..." : "Submit Report"}
             </Button>
           </div>
         </DialogContent>
