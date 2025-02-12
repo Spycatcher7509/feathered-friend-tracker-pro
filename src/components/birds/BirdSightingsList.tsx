@@ -7,11 +7,13 @@ import { format } from "date-fns"
 import { Button } from "@/components/ui/button"
 import { Globe, User } from "lucide-react"
 import { useState } from "react"
+import { useToast } from "@/hooks/use-toast"
 
 const BirdSightingsList = () => {
   const [showGlobal, setShowGlobal] = useState(false)
+  const { toast } = useToast()
 
-  const { data: sightings, isLoading } = useQuery({
+  const { data: sightings, isLoading, refetch } = useQuery({
     queryKey: ["bird-sightings", showGlobal],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser()
@@ -34,6 +36,44 @@ const BirdSightingsList = () => {
       }))
     }
   })
+
+  const handleImageUpload = async (sightingId: string, file: File) => {
+    try {
+      const fileExt = file.name.split('.').pop()
+      const filePath = `${crypto.randomUUID()}.${fileExt}`
+
+      const { error: uploadError } = await supabase.storage
+        .from('bird-images')
+        .upload(filePath, file)
+
+      if (uploadError) throw uploadError
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('bird-images')
+        .getPublicUrl(filePath)
+
+      const { error: updateError } = await supabase
+        .from('bird_sightings')
+        .update({ image_url: publicUrl })
+        .eq('id', sightingId)
+
+      if (updateError) throw updateError
+
+      toast({
+        title: "Success",
+        description: "Image uploaded successfully",
+      })
+
+      refetch()
+    } catch (error) {
+      console.error('Error uploading image:', error)
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to upload image. Please try again.",
+      })
+    }
+  }
 
   if (isLoading) {
     return <div className="text-center">Loading sightings...</div>
@@ -80,7 +120,14 @@ const BirdSightingsList = () => {
                 location={sighting.location}
                 date={format(new Date(sighting.created_at), "PPP")}
                 image={sighting.image_url || "/placeholder.svg"}
+                description={sighting.description}
+                soundUrl={sighting.sound_url}
                 isPersonal={sighting.isPersonal}
+                onImageUpload={
+                  sighting.isPersonal 
+                    ? (file) => handleImageUpload(sighting.id, file)
+                    : undefined
+                }
               />
             ))}
           </div>
