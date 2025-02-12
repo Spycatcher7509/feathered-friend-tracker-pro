@@ -4,8 +4,9 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Info, Play, Upload, Trash2 } from "lucide-react"
+import { Info, Play, Upload, Trash2, Volume2Off } from "lucide-react"
 import { useState, useRef } from "react"
+import { useToast } from "@/hooks/use-toast"
 
 interface BirdCardProps {
   image: string
@@ -33,7 +34,9 @@ const BirdCard = ({
   const [isDetailsOpen, setIsDetailsOpen] = useState(false)
   const [isPlaying, setIsPlaying] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [audioError, setAudioError] = useState(false)
   const audioRef = useRef<HTMLAudioElement | null>(null)
+  const { toast } = useToast()
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -54,14 +57,45 @@ const BirdCard = ({
   }
 
   const toggleAudio = () => {
+    if (!soundUrl) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "No audio recording available for this bird sighting.",
+      })
+      return
+    }
+
     if (audioRef.current) {
       if (isPlaying) {
         audioRef.current.pause()
+        setIsPlaying(false)
       } else {
-        audioRef.current.play()
+        audioRef.current.play().catch(error => {
+          console.error('Error playing audio:', error)
+          setAudioError(true)
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Failed to play audio. The recording might be unavailable.",
+          })
+        })
       }
-      setIsPlaying(!isPlaying)
     }
+  }
+
+  const handleAudioLoad = () => {
+    setAudioError(false)
+  }
+
+  const handleAudioError = () => {
+    setAudioError(true)
+    setIsPlaying(false)
+    toast({
+      variant: "destructive",
+      title: "Error",
+      description: "Failed to load audio recording.",
+    })
   }
 
   return (
@@ -140,14 +174,27 @@ const BirdCard = ({
                 variant="outline"
                 size="sm"
                 onClick={toggleAudio}
+                className={audioError ? "text-destructive" : ""}
               >
-                <Play className="h-4 w-4 mr-1" />
-                {isPlaying ? 'Stop' : 'Play Sound'}
+                {audioError ? (
+                  <>
+                    <Volume2Off className="h-4 w-4 mr-1" />
+                    Audio Unavailable
+                  </>
+                ) : (
+                  <>
+                    <Play className="h-4 w-4 mr-1" />
+                    {isPlaying ? 'Stop' : 'Play Sound'}
+                  </>
+                )}
               </Button>
               <audio
                 ref={audioRef}
                 src={soundUrl}
                 onEnded={() => setIsPlaying(false)}
+                onPlay={() => setIsPlaying(true)}
+                onError={handleAudioError}
+                onLoadedData={handleAudioLoad}
                 className="hidden"
               />
             </>
