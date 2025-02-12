@@ -113,27 +113,31 @@ export const uploadToGoogleDrive = async (file: Blob, filename: string, folderId
 
     const metadata = {
       name: filename,
-      parents: [folderId],
-      mimeType: 'application/json'
+      parents: [folderId]
     }
 
     const form = new FormData()
     form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }))
     form.append('file', file)
 
-    const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-      body: form
-    })
+    const uploadResponse = await fetch(
+      'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&supportsAllDrives=true', 
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: form
+      }
+    )
 
-    if (!response.ok) {
-      throw new Error(`Upload failed: ${response.statusText}`)
+    if (!uploadResponse.ok) {
+      const errorText = await uploadResponse.text()
+      console.error('Upload response error:', errorText)
+      throw new Error(`Upload failed: ${uploadResponse.statusText}`)
     }
 
-    const result = await response.json()
+    const result = await uploadResponse.json()
     console.log('File uploaded successfully:', result)
     return result
   } catch (error) {
