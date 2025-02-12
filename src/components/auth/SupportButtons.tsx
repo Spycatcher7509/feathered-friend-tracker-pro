@@ -1,3 +1,4 @@
+
 import { BookOpenText, AlertCircle } from "lucide-react"
 import { useState, useEffect } from "react"
 import { useToast } from "@/hooks/use-toast"
@@ -10,19 +11,18 @@ import { supabase } from "@/integrations/supabase/client"
 const SupportButtons = () => {
   const { toast } = useToast()
   const [issueDescription, setIssueDescription] = useState("")
-  const [userEmail, setUserEmail] = useState<string | null>(null)
+  const [userEmail, setUserEmail] = useState<string | null>("gary.tombling@gmail.com") // Setting default email for testing
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isSending, setIsSending] = useState(false)
 
-  useEffect(() => {
-    const getUserEmail = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user?.email) {
-        setUserEmail(user.email)
-      }
-    }
-    getUserEmail()
-  }, [])
+  const generateCaseNumber = () => {
+    const date = new Date()
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0')
+    return `BW-${year}${month}${day}-${random}`
+  }
 
   const handleUserGuide = async () => {
     try {
@@ -68,19 +68,22 @@ const SupportButtons = () => {
       }
 
       setIsSending(true)
+      const caseNumber = generateCaseNumber()
+
       toast({
         title: "Sending...",
         description: "Your issue report is being sent.",
       })
 
+      // Send issue report to support team
       const { data, error } = await supabase.functions.invoke('send-email', {
         body: {
           to: 'accounts@thewrightsupport.com',
-          subject: 'BirdWatch Issue Report',
-          text: `Issue Report from ${userEmail}:\n\n${issueDescription}`,
+          subject: `BirdWatch Issue Report - Case ${caseNumber}`,
+          text: `Issue Report from ${userEmail}:\nCase Number: ${caseNumber}\n\n${issueDescription}`,
           html: `
-            <h2>BirdWatch Issue Report</h2>
-            <p>A user has reported the following issue:</p>
+            <h2>BirdWatch Issue Report - Case ${caseNumber}</h2>
+            <p><strong>Case Number:</strong> ${caseNumber}</p>
             <p><strong>Reporter Email:</strong> ${userEmail}</p>
             <p><strong>Issue Description:</strong></p>
             <p>${issueDescription}</p>
@@ -93,20 +96,39 @@ const SupportButtons = () => {
         throw error
       }
 
-      console.log('Email sent successfully:', data)
+      console.log('Support email sent successfully:', data)
 
-      // Send an acknowledgment email to the user
+      // Send auto-response to user
       const { error: ackError } = await supabase.functions.invoke('send-email', {
         body: {
           to: userEmail,
-          subject: 'BirdWatch Issue Report Received',
-          text: `Thank you for reporting the issue. Our team will review it and get back to you shortly.\n\nYour reported issue:\n${issueDescription}`,
+          subject: `BirdWatch Support - Case ${caseNumber} Received`,
+          text: `
+Dear BirdWatch User,
+
+Thank you for contacting BirdWatch Support. This email confirms that we have received your issue report.
+
+Case Number: ${caseNumber}
+
+Your reported issue:
+${issueDescription}
+
+We will review your case and respond as soon as possible. Please keep this case number for future reference.
+
+Best regards,
+The BirdWatch Support Team
+          `,
           html: `
-            <h2>Thank You for Your Issue Report</h2>
-            <p>We have received your issue report and our team will review it shortly.</p>
+            <h2>BirdWatch Support Confirmation</h2>
+            <p>Dear BirdWatch User,</p>
+            <p>Thank you for contacting BirdWatch Support. This email confirms that we have received your issue report.</p>
+            <p><strong>Case Number:</strong> ${caseNumber}</p>
             <p><strong>Your reported issue:</strong></p>
-            <p>${issueDescription}</p>
-            <p>We will get back to you at this email address: ${userEmail}</p>
+            <blockquote style="background: #f9f9f9; padding: 15px; border-left: 5px solid #ccc;">
+              ${issueDescription}
+            </blockquote>
+            <p>We will review your case and respond as soon as possible. Please keep this case number for future reference.</p>
+            <p>Best regards,<br>The BirdWatch Support Team</p>
           `
         }
       })
@@ -117,7 +139,7 @@ const SupportButtons = () => {
 
       toast({
         title: "Issue Report Sent",
-        description: "Thank you for reporting the issue. Our team will review it shortly.",
+        description: `Your case number is ${caseNumber}. We'll respond shortly.`,
       })
 
       setIsDialogOpen(false)
