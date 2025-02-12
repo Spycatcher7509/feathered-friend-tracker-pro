@@ -1,9 +1,9 @@
-
 import { supabase } from "@/integrations/supabase/client"
 import { uploadToGoogleDrive } from "@/utils/googleDrive"
 import { sendDiscordWebhookMessage } from "@/utils/discord"
 
-export const BACKUP_FOLDER_ID = "1omb7OKYsogTGxZs6ygMHyecXwZvz"
+// NOTE: You'll need to replace this with your actual Google Drive folder ID
+export const BACKUP_FOLDER_ID = "YOUR_FOLDER_ID"
 
 export const createBackup = async () => {
   console.log('Starting backup process...')
