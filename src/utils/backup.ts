@@ -6,6 +6,39 @@ import { format } from "date-fns"
 
 export const BACKUP_FOLDER_ID = "1PoIrj3akOA05QZcRP2rjjImTp0WonGdT"
 
+const downloadAndUploadToStorage = async (url: string, filename: string): Promise<string> => {
+  try {
+    // Only process URLs that aren't already in our storage
+    if (url.includes('supabase.co')) {
+      return url // Already in our storage
+    }
+
+    // Download the external file
+    const response = await fetch(url)
+    const blob = await response.blob()
+    
+    // Upload to Supabase storage
+    const { data, error } = await supabase.storage
+      .from('bird-sounds')
+      .upload(filename, blob, {
+        contentType: blob.type,
+        upsert: true
+      })
+
+    if (error) throw error
+
+    // Get the public URL
+    const { data: { publicUrl } } = supabase.storage
+      .from('bird-sounds')
+      .getPublicUrl(filename)
+
+    return publicUrl
+  } catch (error) {
+    console.error('Error processing sound file:', error)
+    return url // Return original URL if processing fails
+  }
+}
+
 export const createBackup = async () => {
   console.log('Starting backup process...')
   
@@ -19,11 +52,24 @@ export const createBackup = async () => {
     const { data: birdSounds, error: birdSoundsError } = await supabase.from('external_bird_sounds').select('*')
     if (birdSoundsError) throw birdSoundsError
 
+    // Process bird sounds to ensure they're in our storage
+    console.log('Processing bird sounds...')
+    const processedBirdSounds = await Promise.all(
+      birdSounds.map(async (sound) => {
+        const filename = `${sound.id}-${sound.bird_name.toLowerCase().replace(/\s+/g, '-')}.webm`
+        const newUrl = await downloadAndUploadToStorage(sound.sound_url, filename)
+        return {
+          ...sound,
+          sound_url: newUrl
+        }
+      })
+    )
+
     const now = new Date()
     const backupData = {
       timestamp: format(now, 'dd/MM/yyyy HH:mm:ss'),
       profiles,
-      birdSounds,
+      birdSounds: processedBirdSounds,
     }
 
     console.log('Creating backup file...')
@@ -75,9 +121,16 @@ export const restoreBackup = async (backupData: any) => {
     if (backupData.birdSounds) {
       console.log(`Restoring ${backupData.birdSounds.length} bird sounds...`)
       for (const sound of backupData.birdSounds) {
+        // Ensure the sound file is in our storage
+        const filename = `${sound.id}-${sound.bird_name.toLowerCase().replace(/\s+/g, '-')}.webm`
+        const newUrl = await downloadAndUploadToStorage(sound.sound_url, filename)
+        
         const { error } = await supabase
           .from('external_bird_sounds')
-          .upsert(sound, { onConflict: 'id' })
+          .upsert({
+            ...sound,
+            sound_url: newUrl
+          }, { onConflict: 'id' })
         if (error) throw error
       }
     }
