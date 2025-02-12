@@ -1,20 +1,28 @@
-
 import { BookOpenText, AlertCircle } from "lucide-react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useToast } from "@/hooks/use-toast"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Input } from "@/components/ui/input"
 import { supabase } from "@/integrations/supabase/client"
 
 const SupportButtons = () => {
   const { toast } = useToast()
   const [issueDescription, setIssueDescription] = useState("")
-  const [userEmail, setUserEmail] = useState("")
+  const [userEmail, setUserEmail] = useState<string | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isSending, setIsSending] = useState(false)
+
+  useEffect(() => {
+    const getUserEmail = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user?.email) {
+        setUserEmail(user.email)
+      }
+    }
+    getUserEmail()
+  }, [])
 
   const handleUserGuide = async () => {
     try {
@@ -50,11 +58,11 @@ const SupportButtons = () => {
         return
       }
 
-      if (!userEmail.trim() || !userEmail.includes('@')) {
+      if (!userEmail) {
         toast({
           variant: "destructive",
           title: "Error",
-          description: "Please provide a valid email address.",
+          description: "Could not determine your email address. Please try logging in again.",
         })
         return
       }
@@ -114,7 +122,6 @@ const SupportButtons = () => {
 
       setIsDialogOpen(false)
       setIssueDescription("")
-      setUserEmail("")
     } catch (error) {
       console.error('Error sending issue report:', error)
       toast({
@@ -153,17 +160,6 @@ const SupportButtons = () => {
             <DialogTitle>Report an Issue</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 mt-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Your Email Address</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="Enter your email address..."
-                value={userEmail}
-                onChange={(e) => setUserEmail(e.target.value)}
-                required
-              />
-            </div>
             <div className="space-y-2">
               <Label htmlFor="issue">Issue Description</Label>
               <Textarea
