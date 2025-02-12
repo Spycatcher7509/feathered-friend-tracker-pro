@@ -14,18 +14,16 @@ serve(async (req) => {
   }
 
   try {
-    const formData = await req.formData()
-    const file = formData.get('file') as File
+    const { csvContent } = await req.json()
 
-    if (!file) {
+    if (!csvContent) {
       return new Response(
-        JSON.stringify({ error: 'No file uploaded' }),
+        JSON.stringify({ error: 'No CSV content provided' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
       )
     }
 
-    const text = await file.text()
-    const records = parse(text, { skipFirstRow: true }) as string[][]
+    const records = parse(csvContent, { skipFirstRow: true }) as string[][]
 
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',

@@ -25,13 +25,14 @@ const BirdSpeciesImporter = () => {
     }
 
     setIsUploading(true)
-    const formData = new FormData()
-    formData.append('file', file)
 
     try {
+      // Read the file content
+      const csvContent = await file.text()
+      
       const { data, error } = await supabase.functions.invoke('import-bird-species', {
         method: 'POST',
-        body: formData,
+        body: { csvContent },
       })
 
       if (error) throw error
