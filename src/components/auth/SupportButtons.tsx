@@ -11,9 +11,19 @@ import { supabase } from "@/integrations/supabase/client"
 const SupportButtons = () => {
   const { toast } = useToast()
   const [issueDescription, setIssueDescription] = useState("")
-  const [userEmail, setUserEmail] = useState<string | null>("gary.tombling@gmail.com") // Setting default email for testing
+  const [userEmail, setUserEmail] = useState<string | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isSending, setIsSending] = useState(false)
+
+  useEffect(() => {
+    const getUserEmail = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user?.email) {
+        setUserEmail(user.email)
+      }
+    }
+    getUserEmail()
+  }, [])
 
   const generateCaseNumber = () => {
     const date = new Date()
