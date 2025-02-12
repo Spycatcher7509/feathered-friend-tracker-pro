@@ -1,6 +1,7 @@
 
 import "https://deno.land/x/xhr@0.1.0/mod.ts"
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -45,6 +46,25 @@ serve(async (req) => {
     }
 
     const result = await response.json()
+    
+    // Create Supabase client to log API usage
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    )
+
+    // Calculate approximate cost (based on Whisper API pricing)
+    const minutes = Math.ceil(binaryAudio.length / (16000 * 60)) // Assuming 16kHz sample rate
+    const cost = minutes * 0.006 // $0.006 per minute
+
+    // Log API usage
+    await supabase
+      .from('api_usage')
+      .insert({
+        endpoint: 'whisper-1',
+        tokens_used: result.text.split(' ').length * 4, // Rough estimate of tokens
+        cost: cost
+      })
 
     return new Response(
       JSON.stringify({ text: result.text }),

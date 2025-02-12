@@ -65,6 +65,33 @@ export type Database = {
         }
         Relationships: []
       }
+      api_usage: {
+        Row: {
+          cost: number
+          created_at: string
+          endpoint: string
+          id: string
+          tokens_used: number
+          updated_at: string
+        }
+        Insert: {
+          cost: number
+          created_at?: string
+          endpoint: string
+          id?: string
+          tokens_used: number
+          updated_at?: string
+        }
+        Update: {
+          cost?: number
+          created_at?: string
+          endpoint?: string
+          id?: string
+          tokens_used?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       backups: {
         Row: {
           created_at: string

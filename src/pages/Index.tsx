@@ -8,11 +8,23 @@ import ExternalBirdSounds from "@/components/birds/ExternalBirdSounds"
 import AddBirdSighting from "@/components/birds/AddBirdSighting"
 import BirdSightingsList from "@/components/birds/BirdSightingsList"
 import SupportButtons from "@/components/auth/SupportButtons"
+import ApiUsageMonitor from "@/components/admin/ApiUsageMonitor"
 import { Button } from "@/components/ui/button"
 import { ChevronDown, ChevronUp } from "lucide-react"
+import { useAdminGroups } from "@/hooks/useAdminGroups"
 
 const Index = () => {
   const [showBirdSounds, setShowBirdSounds] = useState(false)
+  const { checkAdminStatus } = useAdminGroups()
+  const [isAdmin, setIsAdmin] = useState(false)
+
+  useState(() => {
+    const checkAdmin = async () => {
+      const adminStatus = await checkAdminStatus()
+      setIsAdmin(adminStatus)
+    }
+    checkAdmin()
+  }, [])
 
   return (
     <PageLayout header={<Navigation />}>
@@ -32,6 +44,12 @@ const Index = () => {
               <GoogleDriveBackup />
             </div>
           </div>
+
+          {isAdmin && (
+            <div className="bg-white rounded-lg shadow p-6">
+              <ApiUsageMonitor />
+            </div>
+          )}
 
           <BirdSightingsList />
         </div>
