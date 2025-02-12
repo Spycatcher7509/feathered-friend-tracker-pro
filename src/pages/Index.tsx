@@ -9,12 +9,14 @@ import AddBirdSighting from "@/components/birds/AddBirdSighting"
 import BirdSightingsList from "@/components/birds/BirdSightingsList"
 import BirdSpeciesImporter from "@/components/birds/BirdSpeciesImporter"
 import ApiUsageMonitor from "@/components/admin/ApiUsageMonitor"
+import BirdTrends from "@/components/birds/BirdTrends"
 import { Button } from "@/components/ui/button"
 import { ChevronDown, ChevronUp } from "lucide-react"
 import { useAdminGroups } from "@/hooks/useAdminGroups"
 
 const Index = () => {
   const [showBirdSounds, setShowBirdSounds] = useState(false)
+  const [showTrends, setShowTrends] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
   const { checkAdminStatus } = useAdminGroups()
 
@@ -64,6 +66,21 @@ const Index = () => {
         </div>
 
         <div className="space-y-4">
+          <Button
+            variant="outline"
+            onClick={() => setShowTrends(!showTrends)}
+            className="w-full flex justify-between items-center py-6"
+          >
+            <span className="text-xl font-semibold">View Bird Population Trends</span>
+            {showTrends ? <ChevronUp className="h-6 w-6" /> : <ChevronDown className="h-6 w-6" />}
+          </Button>
+          
+          {showTrends && (
+            <div className="bg-white rounded-lg shadow p-6">
+              <BirdTrends />
+            </div>
+          )}
+
           <Button
             variant="outline"
             onClick={() => setShowBirdSounds(!showBirdSounds)}
