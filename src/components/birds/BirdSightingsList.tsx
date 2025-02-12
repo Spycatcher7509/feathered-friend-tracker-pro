@@ -1,5 +1,5 @@
 
-import { useQuery } from "@tanstack/react-query"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { supabase } from "@/integrations/supabase/client"
 import BirdCard from "@/components/BirdCard"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast"
 const BirdSightingsList = () => {
   const [showGlobal, setShowGlobal] = useState(false)
   const { toast } = useToast()
+  const queryClient = useQueryClient()
 
   const { data: sightings, isLoading, refetch } = useQuery({
     queryKey: ["bird-sightings", showGlobal],
@@ -75,6 +76,32 @@ const BirdSightingsList = () => {
     }
   }
 
+  const handleDelete = async (sightingId: string) => {
+    try {
+      const { error } = await supabase
+        .from('bird_sightings')
+        .delete()
+        .eq('id', sightingId)
+
+      if (error) throw error
+
+      toast({
+        title: "Success",
+        description: "Bird sighting deleted successfully",
+      })
+
+      // Refresh the list
+      refetch()
+    } catch (error) {
+      console.error('Error deleting sighting:', error)
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to delete sighting. Please try again.",
+      })
+    }
+  }
+
   if (isLoading) {
     return <div className="text-center">Loading sightings...</div>
   }
@@ -126,6 +153,11 @@ const BirdSightingsList = () => {
                 onImageUpload={
                   sighting.isPersonal 
                     ? (file) => handleImageUpload(sighting.id, file)
+                    : undefined
+                }
+                onDelete={
+                  sighting.isPersonal || isAdmin
+                    ? () => handleDelete(sighting.id)
                     : undefined
                 }
               />

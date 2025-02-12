@@ -1,9 +1,10 @@
+
 import { motion } from "framer-motion"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Info, Play, Upload } from "lucide-react"
+import { Info, Play, Upload, Trash2 } from "lucide-react"
 import { useState, useRef } from "react"
 
 interface BirdCardProps {
@@ -15,6 +16,7 @@ interface BirdCardProps {
   soundUrl?: string
   isPersonal?: boolean
   onImageUpload?: (file: File) => Promise<void>
+  onDelete?: () => Promise<void>
 }
 
 const BirdCard = ({ 
@@ -25,16 +27,29 @@ const BirdCard = ({
   description, 
   soundUrl, 
   isPersonal,
-  onImageUpload 
+  onImageUpload,
+  onDelete
 }: BirdCardProps) => {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false)
   const [isPlaying, setIsPlaying] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
   const audioRef = useRef<HTMLAudioElement | null>(null)
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file && onImageUpload) {
       await onImageUpload(file)
+    }
+  }
+
+  const handleDelete = async () => {
+    if (onDelete) {
+      setIsDeleting(true)
+      try {
+        await onDelete()
+      } finally {
+        setIsDeleting(false)
+      }
     }
   }
 
@@ -136,6 +151,18 @@ const BirdCard = ({
                 className="hidden"
               />
             </>
+          )}
+
+          {onDelete && (
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={handleDelete}
+              disabled={isDeleting}
+            >
+              <Trash2 className="h-4 w-4 mr-1" />
+              {isDeleting ? 'Deleting...' : 'Delete'}
+            </Button>
           )}
         </div>
       </div>
