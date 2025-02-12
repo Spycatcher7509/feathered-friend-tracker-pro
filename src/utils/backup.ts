@@ -2,6 +2,7 @@
 import { supabase } from "@/integrations/supabase/client"
 import { uploadToGoogleDrive } from "@/utils/googleDrive"
 import { sendDiscordWebhookMessage } from "@/utils/discord"
+import { format } from "date-fns"
 
 export const BACKUP_FOLDER_ID = "1PoIrj3akOA05QZcRP2rjjImTp0WonGdT"
 
@@ -18,8 +19,9 @@ export const createBackup = async () => {
     const { data: birdSounds, error: birdSoundsError } = await supabase.from('external_bird_sounds').select('*')
     if (birdSoundsError) throw birdSoundsError
 
+    const now = new Date()
     const backupData = {
-      timestamp: new Date().toISOString(),
+      timestamp: format(now, 'dd/MM/yyyy HH:mm:ss'),
       profiles,
       birdSounds,
     }
@@ -28,11 +30,8 @@ export const createBackup = async () => {
     const file = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' })
     
     console.log('Uploading backup to Google Drive...')
-    const result = await uploadToGoogleDrive(
-      file, 
-      `birdwatch_backup_${new Date().toISOString()}.json`, 
-      BACKUP_FOLDER_ID
-    )
+    const filename = `birdwatch_backup_${format(now, 'dd-MM-yyyy_HH-mm-ss')}.json`
+    const result = await uploadToGoogleDrive(file, filename, BACKUP_FOLDER_ID)
     
     // Record the backup in Supabase
     const { error: backupError } = await supabase.from('backups').insert({
@@ -47,7 +46,7 @@ export const createBackup = async () => {
     }
     
     console.log('Sending success notification to Discord...')
-    await sendDiscordWebhookMessage(`✅ Backup completed successfully at ${new Date().toLocaleString()}`)
+    await sendDiscordWebhookMessage(`✅ Backup completed successfully at ${format(now, 'dd/MM/yyyy, HH:mm:ss')}`)
     
     console.log('Backup process completed successfully')
     return result
@@ -84,7 +83,7 @@ export const restoreBackup = async (backupData: any) => {
     }
     
     console.log('Sending success notification to Discord...')
-    await sendDiscordWebhookMessage(`✅ Data restore completed successfully at ${new Date().toLocaleString()}`)
+    await sendDiscordWebhookMessage(`✅ Data restore completed successfully at ${format(new Date(), 'dd/MM/yyyy, HH:mm:ss')}`)
     
     console.log('Restore process completed successfully')
   } catch (error) {
