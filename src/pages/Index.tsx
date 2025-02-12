@@ -31,19 +31,48 @@ const Index = () => {
     <PageLayout header={<Navigation />}>
       <div className="container mx-auto px-4 py-8 space-y-12">
         <div className="space-y-6">
-          <div className="flex justify-between items-center">
-            <h1 className="text-3xl font-bold text-nature-800">Bird Watching Dashboard</h1>
-            <div className="flex gap-4 items-center">
+          <div>
+            <div className="flex justify-between items-center mb-6">
+              <h1 className="text-3xl font-bold text-nature-800">Bird Watching Dashboard</h1>
+              <div className="flex gap-4 items-center">
+                {isAdmin && (
+                  <>
+                    <Button variant="outline" size="sm" onClick={() => {}} className="flex items-center gap-2">
+                      <span>Admin</span>
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => {}} className="flex items-center gap-2">
+                      <span>Admin Guide</span>
+                    </Button>
+                  </>
+                )}
+                <Button variant="outline" size="sm" onClick={() => {}} className="flex items-center gap-2">
+                  <span>Sign Out</span>
+                </Button>
+              </div>
+            </div>
+            
+            <div className="flex flex-wrap gap-4 items-center">
               <BirdSpeciesImporter />
               <ProfileImporter />
-              <SupportButtons />
+              <Button variant="outline" size="sm">
+                Download Template
+              </Button>
+              <Button variant="outline" size="sm">
+                User Guide
+              </Button>
+              <Button variant="outline" size="sm">
+                Report an Issue
+              </Button>
             </div>
           </div>
           
           <div className="grid md:grid-cols-2 gap-6">
             <AddBirdSighting />
             <div className="bg-white rounded-lg shadow p-6">
-              <GoogleDriveBackup />
+              <div className="space-y-4">
+                <h2 className="text-xl font-semibold mb-4">Backup & Restore</h2>
+                <GoogleDriveBackup />
+              </div>
             </div>
           </div>
 

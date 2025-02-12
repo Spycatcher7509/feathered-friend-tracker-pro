@@ -68,6 +68,7 @@ const BirdSpeciesImporter = () => {
       <label htmlFor="csv-upload">
         <Button
           variant="outline"
+          size="sm"
           disabled={isUploading}
           className="cursor-pointer"
           asChild
