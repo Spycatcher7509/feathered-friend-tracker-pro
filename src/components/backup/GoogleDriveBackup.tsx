@@ -1,15 +1,29 @@
 
 import { Button } from "@/components/ui/button"
 import { useBackupOperations } from "@/hooks/useBackupOperations"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Code } from "@/components/ui/code"
+import { useAdminGroups } from "@/hooks/useAdminGroups"
 
 const GoogleDriveBackup = () => {
   const { isLoading, handleBackup, handleRestore, sendDiscordNotification } = useBackupOperations()
   const [showInstructions, setShowInstructions] = useState(false)
-
+  const [isAdmin, setIsAdmin] = useState(false)
+  const { checkAdminStatus } = useAdminGroups()
   const currentDomain = window.location.origin
+
+  useEffect(() => {
+    const checkAdmin = async () => {
+      const adminStatus = await checkAdminStatus()
+      setIsAdmin(adminStatus)
+    }
+    checkAdmin()
+  }, [])
+
+  if (!isAdmin) {
+    return null
+  }
 
   return (
     <div className="space-y-4">
