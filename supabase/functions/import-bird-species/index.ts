@@ -8,6 +8,28 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+function cleanCSVContent(csvContent: string): string {
+  // Remove any BOM characters that might be present
+  const cleanContent = csvContent.replace(/^\uFEFF/, '')
+  
+  // Split into lines, remove empty lines, and trim whitespace
+  const lines = cleanContent
+    .split('\n')
+    .map(line => line.trim())
+    .filter(line => line.length > 0)
+  
+  // Rejoin the lines
+  return lines.join('\n')
+}
+
+function validateCSVStructure(records: string[][]): boolean {
+  // Check if we have any records
+  if (records.length === 0) return false
+  
+  // Each record should have exactly 3 columns: species_name, trend, count
+  return records.every(record => record.length === 3)
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
@@ -23,7 +45,27 @@ serve(async (req) => {
       )
     }
 
-    const records = parse(csvContent, { skipFirstRow: true }) as string[][]
+    // Clean the CSV content
+    const cleanedContent = cleanCSVContent(csvContent)
+    
+    // Parse the cleaned content
+    const records = parse(cleanedContent, { 
+      skipFirstRow: true,
+      separator: ',',
+      trimLeadingSpace: true,
+      trimTrailingSpace: true
+    }) as string[][]
+
+    // Validate the CSV structure
+    if (!validateCSVStructure(records)) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Invalid CSV format', 
+          details: 'CSV must have exactly 3 columns: species name, trend, and count' 
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+      )
+    }
 
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -31,9 +73,9 @@ serve(async (req) => {
     )
 
     const birdSpecies = records.map(([species_name, trend, count]) => ({
-      species_name,
-      trend_1970_2014: parseFloat(trend) || null,
-      observation_count: parseInt(count) || null
+      species_name: species_name.trim(),
+      trend_1970_2014: parseFloat(trend.replace(/[^\d.-]/g, '')) || null,
+      observation_count: parseInt(count.replace(/[^\d]/g, '')) || null
     }))
 
     const { error } = await supabase
