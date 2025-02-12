@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client"
 import { uploadToGoogleDrive } from "@/utils/googleDrive"
 import { sendDiscordWebhookMessage } from "@/utils/discord"
@@ -13,26 +12,21 @@ const downloadAndUploadToStorage = async (url: string, filename: string): Promis
       return url // Already in our storage
     }
 
-    // Download the external file
-    const response = await fetch(url)
-    const blob = await response.blob()
-    
-    // Upload to Supabase storage
-    const { data, error } = await supabase.storage
-      .from('bird-sounds')
-      .upload(filename, blob, {
-        contentType: blob.type,
-        upsert: true
-      })
+    // Use the Edge Function to download and store the audio
+    const response = await fetch('/functions/v1/download-audio', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ audioUrl: url })
+    })
 
-    if (error) throw error
+    if (!response.ok) {
+      throw new Error('Failed to download audio file')
+    }
 
-    // Get the public URL
-    const { data: { publicUrl } } = supabase.storage
-      .from('bird-sounds')
-      .getPublicUrl(filename)
-
-    return publicUrl
+    const { url: newUrl } = await response.json()
+    return newUrl
   } catch (error) {
     console.error('Error processing sound file:', error)
     return url // Return original URL if processing fails
