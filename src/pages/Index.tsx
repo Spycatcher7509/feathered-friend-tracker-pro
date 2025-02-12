@@ -39,9 +39,6 @@ const Index = () => {
               <BirdSpeciesImporter />
               <ProfileImporter />
               <Button variant="outline" size="sm">
-                Download Template
-              </Button>
-              <Button variant="outline" size="sm">
                 User Guide
               </Button>
               <Button variant="outline" size="sm">
