@@ -12,22 +12,48 @@ function cleanCSVContent(csvContent: string): string {
   // Remove any BOM characters that might be present
   const cleanContent = csvContent.replace(/^\uFEFF/, '')
   
-  // Split into lines, remove empty lines, and trim whitespace
+  // Split into lines, remove empty lines, headers, and category rows
   const lines = cleanContent
     .split('\n')
     .map(line => line.trim())
-    .filter(line => line.length > 0)
+    .filter(line => {
+      // Skip empty lines, header rows, and category rows
+      return line.length > 0 && 
+             !line.includes('Long term change') &&
+             !line.includes('Short term change') &&
+             !line.includes('Specialists') &&
+             !line.includes('Generalists') &&
+             !line.includes('Seabirds') &&
+             !line.includes('water and wetland birds') &&
+             !line.startsWith('Species\t')
+    })
   
   // Rejoin the lines
   return lines.join('\n')
+}
+
+function extractSpeciesName(fullName: string): string {
+  // Extract the species name before the parentheses if it exists
+  const match = fullName.match(/^([^(]+)/)
+  return match ? match[1].trim() : fullName.trim()
+}
+
+function parseTrendValue(value: string): number | null {
+  // Handle the N/A case
+  if (value === 'N/A') return null
+  
+  // Remove any text in parentheses and other non-numeric characters except - and .
+  const cleanValue = value.replace(/\([^)]+\)/g, '').replace(/[^\d.-]/g, '')
+  const parsed = parseFloat(cleanValue)
+  return isNaN(parsed) ? null : parsed
 }
 
 function validateCSVStructure(records: string[][]): boolean {
   // Check if we have any records
   if (records.length === 0) return false
   
-  // Each record should have exactly 7 columns for the bird trends data
-  return records.every(record => record.length === 7)
+  // Each record should have exactly 7 columns
+  return records.every(record => record.length >= 7)
 }
 
 serve(async (req) => {
@@ -50,8 +76,8 @@ serve(async (req) => {
     
     // Parse the cleaned content
     const records = parse(cleanedContent, { 
-      skipFirstRow: true,
-      separator: '\t', // Using tab as separator since the data is tab-separated
+      skipFirstRow: false, // We've already cleaned the headers
+      separator: '\t',
       trimLeadingSpace: true,
       trimTrailingSpace: true
     }) as string[][]
@@ -61,7 +87,7 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ 
           error: 'Invalid CSV format', 
-          details: 'CSV must have 7 columns: species name, long-term change, long-term annual change, long-term trend, short-term change, short-term annual change, and short-term trend' 
+          details: 'Each row must have at least 7 columns with the required trend data' 
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
       )
@@ -72,23 +98,25 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const birdTrends = records.map(([
-      species_name,
-      long_term_percentage_change,
-      long_term_annual_change,
-      long_term_trend,
-      short_term_percentage_change,
-      short_term_annual_change,
-      short_term_trend
-    ]) => ({
-      species_name: species_name.trim(),
-      long_term_percentage_change: parseFloat(long_term_percentage_change.replace(/[^\d.-]/g, '')) || null,
-      long_term_annual_change: parseFloat(long_term_annual_change.replace(/[^\d.-]/g, '')) || null,
-      long_term_trend: long_term_trend.toLowerCase().trim(),
-      short_term_percentage_change: parseFloat(short_term_percentage_change.replace(/[^\d.-]/g, '')) || null,
-      short_term_annual_change: parseFloat(short_term_annual_change.replace(/[^\d.-]/g, '')) || null,
-      short_term_trend: short_term_trend.toLowerCase().trim()
-    }))
+    const birdTrends = records
+      .filter(record => record[0] && !record[0].includes('term change'))
+      .map(([
+        species_name,
+        long_term_percentage_change,
+        long_term_annual_change,
+        long_term_trend,
+        short_term_percentage_change,
+        short_term_annual_change,
+        short_term_trend
+      ]) => ({
+        species_name: extractSpeciesName(species_name),
+        long_term_percentage_change: parseTrendValue(long_term_percentage_change),
+        long_term_annual_change: parseTrendValue(long_term_annual_change),
+        long_term_trend: long_term_trend.toLowerCase().trim(),
+        short_term_percentage_change: parseTrendValue(short_term_percentage_change),
+        short_term_annual_change: parseTrendValue(short_term_annual_change),
+        short_term_trend: short_term_trend.toLowerCase().trim()
+      }))
 
     const { error } = await supabase
       .from('bird_trends')
