@@ -8,7 +8,6 @@ import ExternalBirdSounds from "@/components/birds/ExternalBirdSounds"
 import AddBirdSighting from "@/components/birds/AddBirdSighting"
 import BirdSightingsList from "@/components/birds/BirdSightingsList"
 import BirdSpeciesImporter from "@/components/birds/BirdSpeciesImporter"
-import SupportButtons from "@/components/auth/SupportButtons"
 import ApiUsageMonitor from "@/components/admin/ApiUsageMonitor"
 import { Button } from "@/components/ui/button"
 import { ChevronDown, ChevronUp } from "lucide-react"
@@ -32,23 +31,8 @@ const Index = () => {
       <div className="container mx-auto px-4 py-8 space-y-12">
         <div className="space-y-6">
           <div>
-            <div className="flex justify-between items-center mb-6">
+            <div className="mb-6">
               <h1 className="text-3xl font-bold text-nature-800">Bird Watching Dashboard</h1>
-              <div className="flex gap-4 items-center">
-                {isAdmin && (
-                  <>
-                    <Button variant="outline" size="sm" onClick={() => {}} className="flex items-center gap-2">
-                      <span>Admin</span>
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={() => {}} className="flex items-center gap-2">
-                      <span>Admin Guide</span>
-                    </Button>
-                  </>
-                )}
-                <Button variant="outline" size="sm" onClick={() => {}} className="flex items-center gap-2">
-                  <span>Sign Out</span>
-                </Button>
-              </div>
             </div>
             
             <div className="flex flex-wrap gap-4 items-center">
@@ -70,7 +54,7 @@ const Index = () => {
             <AddBirdSighting />
             <div className="bg-white rounded-lg shadow p-6">
               <div className="space-y-4">
-                <h2 className="text-xl font-semibold mb-4">Backup & Restore</h2>
+                <h2 className="text-xl font-semibold">Backup & Restore</h2>
                 <GoogleDriveBackup />
               </div>
             </div>
