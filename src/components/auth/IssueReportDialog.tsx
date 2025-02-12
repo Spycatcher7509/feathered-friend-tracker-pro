@@ -47,6 +47,25 @@ export const IssueReportDialog = ({ userEmail }: IssueReportDialogProps) => {
         description: "Your issue report is being sent.",
       })
 
+      // Get the current user's ID
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        throw new Error("User not authenticated")
+      }
+
+      // Store issue in database
+      const { error: dbError } = await supabase
+        .from('issues')
+        .insert({
+          user_id: user.id,
+          description: issueDescription
+        })
+
+      if (dbError) {
+        console.error('Error storing issue in database:', dbError)
+        throw dbError
+      }
+
       const emailContent = generateSupportEmailContent(caseNumber, userEmail, issueDescription)
 
       // Send issue report to support team
