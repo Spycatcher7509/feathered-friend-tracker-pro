@@ -1,5 +1,5 @@
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Navigation from "@/components/Navigation"
 import PageLayout from "@/components/layout/PageLayout"
 import ProfileImporter from "@/components/auth/ProfileImporter"
@@ -15,10 +15,10 @@ import { useAdminGroups } from "@/hooks/useAdminGroups"
 
 const Index = () => {
   const [showBirdSounds, setShowBirdSounds] = useState(false)
-  const { checkAdminStatus } = useAdminGroups()
   const [isAdmin, setIsAdmin] = useState(false)
+  const { checkAdminStatus } = useAdminGroups()
 
-  useState(() => {
+  useEffect(() => {
     const checkAdmin = async () => {
       const adminStatus = await checkAdminStatus()
       setIsAdmin(adminStatus)

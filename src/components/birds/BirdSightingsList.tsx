@@ -1,18 +1,28 @@
 
-import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { useQuery } from "@tanstack/react-query"
 import { supabase } from "@/integrations/supabase/client"
 import BirdCard from "@/components/BirdCard"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { format } from "date-fns"
 import { Button } from "@/components/ui/button"
 import { Globe, User } from "lucide-react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useToast } from "@/hooks/use-toast"
+import { useAdminGroups } from "@/hooks/useAdminGroups"
 
 const BirdSightingsList = () => {
   const [showGlobal, setShowGlobal] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
   const { toast } = useToast()
-  const queryClient = useQueryClient()
+  const { checkAdminStatus } = useAdminGroups()
+
+  useEffect(() => {
+    const checkAdmin = async () => {
+      const adminStatus = await checkAdminStatus()
+      setIsAdmin(adminStatus)
+    }
+    checkAdmin()
+  }, [])
 
   const { data: sightings, isLoading, refetch } = useQuery({
     queryKey: ["bird-sightings", showGlobal],
