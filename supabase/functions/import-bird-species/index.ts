@@ -26,8 +26,8 @@ function validateCSVStructure(records: string[][]): boolean {
   // Check if we have any records
   if (records.length === 0) return false
   
-  // Each record should have exactly 3 columns: species_name, trend, count
-  return records.every(record => record.length === 3)
+  // Each record should have exactly 7 columns for the bird trends data
+  return records.every(record => record.length === 7)
 }
 
 serve(async (req) => {
@@ -51,7 +51,7 @@ serve(async (req) => {
     // Parse the cleaned content
     const records = parse(cleanedContent, { 
       skipFirstRow: true,
-      separator: ',',
+      separator: '\t', // Using tab as separator since the data is tab-separated
       trimLeadingSpace: true,
       trimTrailingSpace: true
     }) as string[][]
@@ -61,7 +61,7 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ 
           error: 'Invalid CSV format', 
-          details: 'CSV must have exactly 3 columns: species name, trend, and count' 
+          details: 'CSV must have 7 columns: species name, long-term change, long-term annual change, long-term trend, short-term change, short-term annual change, and short-term trend' 
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
       )
@@ -72,28 +72,40 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const birdSpecies = records.map(([species_name, trend, count]) => ({
+    const birdTrends = records.map(([
+      species_name,
+      long_term_percentage_change,
+      long_term_annual_change,
+      long_term_trend,
+      short_term_percentage_change,
+      short_term_annual_change,
+      short_term_trend
+    ]) => ({
       species_name: species_name.trim(),
-      trend_1970_2014: parseFloat(trend.replace(/[^\d.-]/g, '')) || null,
-      observation_count: parseInt(count.replace(/[^\d]/g, '')) || null
+      long_term_percentage_change: parseFloat(long_term_percentage_change.replace(/[^\d.-]/g, '')) || null,
+      long_term_annual_change: parseFloat(long_term_annual_change.replace(/[^\d.-]/g, '')) || null,
+      long_term_trend: long_term_trend.toLowerCase().trim(),
+      short_term_percentage_change: parseFloat(short_term_percentage_change.replace(/[^\d.-]/g, '')) || null,
+      short_term_annual_change: parseFloat(short_term_annual_change.replace(/[^\d.-]/g, '')) || null,
+      short_term_trend: short_term_trend.toLowerCase().trim()
     }))
 
     const { error } = await supabase
-      .from('bird_species')
-      .insert(birdSpecies)
+      .from('bird_trends')
+      .insert(birdTrends)
 
     if (error) {
       console.error('Error inserting data:', error)
       return new Response(
-        JSON.stringify({ error: 'Failed to import bird species', details: error }),
+        JSON.stringify({ error: 'Failed to import bird trends', details: error }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
       )
     }
 
     return new Response(
       JSON.stringify({ 
-        message: 'Bird species imported successfully', 
-        count: birdSpecies.length 
+        message: 'Bird trends imported successfully', 
+        count: birdTrends.length 
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
     )

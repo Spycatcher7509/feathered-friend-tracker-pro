@@ -167,6 +167,52 @@ export type Database = {
         }
         Relationships: []
       }
+      bird_trends: {
+        Row: {
+          bird_category: string | null
+          created_at: string
+          id: string
+          long_term_annual_change: number | null
+          long_term_percentage_change: number | null
+          long_term_trend: Database["public"]["Enums"]["trend_category"] | null
+          short_term_annual_change: number | null
+          short_term_percentage_change: number | null
+          short_term_trend: Database["public"]["Enums"]["trend_category"] | null
+          species_name: string
+          updated_at: string
+        }
+        Insert: {
+          bird_category?: string | null
+          created_at?: string
+          id?: string
+          long_term_annual_change?: number | null
+          long_term_percentage_change?: number | null
+          long_term_trend?: Database["public"]["Enums"]["trend_category"] | null
+          short_term_annual_change?: number | null
+          short_term_percentage_change?: number | null
+          short_term_trend?:
+            | Database["public"]["Enums"]["trend_category"]
+            | null
+          species_name: string
+          updated_at?: string
+        }
+        Update: {
+          bird_category?: string | null
+          created_at?: string
+          id?: string
+          long_term_annual_change?: number | null
+          long_term_percentage_change?: number | null
+          long_term_trend?: Database["public"]["Enums"]["trend_category"] | null
+          short_term_annual_change?: number | null
+          short_term_percentage_change?: number | null
+          short_term_trend?:
+            | Database["public"]["Enums"]["trend_category"]
+            | null
+          species_name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       discord_webhooks: {
         Row: {
           created_at: string
@@ -357,7 +403,12 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      trend_category:
+        | "strong decline"
+        | "weak decline"
+        | "no change"
+        | "weak increase"
+        | "strong increase"
     }
     CompositeTypes: {
       [_ in never]: never
