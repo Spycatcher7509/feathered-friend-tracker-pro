@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Upload } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { useQueryClient } from "@tanstack/react-query"
+import { supabase } from "@/integrations/supabase/client"
 
 const BirdSpeciesImporter = () => {
   const [isUploading, setIsUploading] = useState(false)
@@ -28,14 +29,12 @@ const BirdSpeciesImporter = () => {
     formData.append('file', file)
 
     try {
-      const response = await fetch('/functions/v1/import-bird-species', {
+      const { data, error } = await supabase.functions.invoke('import-bird-species', {
         method: 'POST',
         body: formData,
       })
 
-      const data = await response.json()
-
-      if (!response.ok) throw new Error(data.error)
+      if (error) throw error
 
       toast({
         title: "Success",
