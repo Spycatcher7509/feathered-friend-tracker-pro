@@ -1,11 +1,10 @@
-
 import { motion } from "framer-motion"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Info, Play, Upload } from "lucide-react"
-import { useState } from "react"
+import { useState, useRef } from "react"
 
 interface BirdCardProps {
   image: string
