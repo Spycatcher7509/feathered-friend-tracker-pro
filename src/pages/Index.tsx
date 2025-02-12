@@ -7,6 +7,7 @@ import GoogleDriveBackup from "@/components/backup/GoogleDriveBackup"
 import ExternalBirdSounds from "@/components/birds/ExternalBirdSounds"
 import AddBirdSighting from "@/components/birds/AddBirdSighting"
 import BirdSightingsList from "@/components/birds/BirdSightingsList"
+import BirdSpeciesImporter from "@/components/birds/BirdSpeciesImporter"
 import SupportButtons from "@/components/auth/SupportButtons"
 import ApiUsageMonitor from "@/components/admin/ApiUsageMonitor"
 import { Button } from "@/components/ui/button"
@@ -33,6 +34,7 @@ const Index = () => {
           <div className="flex justify-between items-center">
             <h1 className="text-3xl font-bold text-nature-800">Bird Watching Dashboard</h1>
             <div className="flex gap-4 items-center">
+              <BirdSpeciesImporter />
               <ProfileImporter />
               <SupportButtons />
             </div>
