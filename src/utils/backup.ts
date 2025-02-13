@@ -43,13 +43,9 @@ export const createBackup = async () => {
     const { data: profiles, error: profilesError } = await supabase.from('profiles').select('*')
     if (profilesError) throw profilesError
 
-    await sendDiscordWebhookMessage(`📊 Found ${profiles.length} user profiles`)
-
     console.log('Fetching bird sounds from Supabase...')
     const { data: birdSounds, error: birdSoundsError } = await supabase.from('external_bird_sounds').select('*')
     if (birdSoundsError) throw birdSoundsError
-
-    await sendDiscordWebhookMessage(`🎵 Found ${birdSounds.length} bird sound recordings`)
 
     // Process bird sounds to ensure they're in our storage
     console.log('Processing bird sounds...')
@@ -73,8 +69,6 @@ export const createBackup = async () => {
 
     console.log('Creating backup file...')
     const file = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' })
-    
-    await sendDiscordWebhookMessage("💾 Creating backup file and uploading to Google Drive...")
     
     console.log('Uploading backup to Google Drive...')
     const filename = `birdwatch_backup_${format(now, 'dd-MM-yyyy_HH-mm-ss')}.json`
