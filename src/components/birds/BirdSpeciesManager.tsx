@@ -27,7 +27,7 @@ export function BirdSpeciesManager() {
       const { data, error } = await supabase
         .from("bird_species")
         .select("*")
-        .ilike("name", `%${searchQuery}%`)
+        .or(`name.ilike.%${searchQuery}%,scientific_name.ilike.%${searchQuery}%`)
         .order("name")
 
       if (error) {
