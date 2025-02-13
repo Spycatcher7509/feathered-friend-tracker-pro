@@ -46,7 +46,7 @@ serve(async (req) => {
     console.log('Processing email request:', { to, subject })
 
     const emailData = {
-      from: 'BirdWatch Support <onboarding@resend.dev>',
+      from: 'BirdWatch Support <support@resend.dev>', // Update the from address
       to: [to],
       subject,
       text,
@@ -64,14 +64,16 @@ serve(async (req) => {
       body: JSON.stringify(emailData),
     })
 
-    const responseData = await response.text()
-    console.log('Resend API response:', response.status, responseData)
-
     if (!response.ok) {
-      throw new Error(`Resend API error: ${responseData}`)
+      const errorText = await response.text()
+      console.error('Resend API error response:', response.status, errorText)
+      throw new Error(`Resend API error: ${errorText}`)
     }
 
-    return new Response(responseData, {
+    const responseData = await response.json()
+    console.log('Resend API success response:', responseData)
+
+    return new Response(JSON.stringify(responseData), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
     })
