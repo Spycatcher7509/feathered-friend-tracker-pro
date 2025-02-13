@@ -3,3 +3,6 @@ project_id = "bibaxlvbkxhrkurbhxcb"
 
 [functions.import-bird-species]
 verify_jwt = false
+
+[functions.download-audio]
+verify_jwt = false
