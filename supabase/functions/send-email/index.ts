@@ -48,7 +48,7 @@ serve(async (req) => {
     // Create email content in base64 format
     const email = {
       raw: btoa(`
-From: BirdWatch Support <support@mysecureapp.co.uk>
+From: BirdWatch Support <support@thewrightsupport.com>
 To: ${to}
 Subject: ${subject}
 Content-Type: ${html ? 'text/html' : 'text/plain'}
