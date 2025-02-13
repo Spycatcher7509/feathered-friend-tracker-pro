@@ -26,62 +26,123 @@ endobj
 endobj
 
 5 0 obj
-<</Length 1000>>
+<</Length 2000>>
 stream
 BT
-/F1 16 Tf
-50 700 Td
+/F1 24 Tf
+50 750 Td
 (Feathered Friend Tracker - Administrator Guide) Tj
-/F1 12 Tf
-0 -30 Td
-(Data Backup & Management) Tj
-0 -20 Td
-(Google Drive Integration:) Tj
-0 -15 Td
-(- Backup all application data to Google Drive) Tj
-0 -15 Td
-(- Restore data from previous backups) Tj
-0 -15 Td
-(- Automatic backup scheduling) Tj
-0 -15 Td
-(- Secure data storage and encryption) Tj
 
-0 -30 Td
+/F1 16 Tf
+0 -40 Td
+(System Administration) Tj
+/F1 12 Tf
+0 -20 Td
+(1. Administrative Access) Tj
+0 -15 Td
+(   - Only available to authorized administrators) Tj
+0 -15 Td
+(   - Email must be accounts@thewrightsupport.com) Tj
+0 -15 Td
+(   - Requires membership in System Administrators group) Tj
+0 -15 Td
+(   - Profile must have is_admin flag set to true) Tj
+
+0 -25 Td
+(Data Management & Backup) Tj
+0 -20 Td
+(1. Google Drive Integration) Tj
+0 -15 Td
+(   - Configure Google Drive API credentials) Tj
+0 -15 Td
+(   - Set up service account authentication) Tj
+0 -15 Td
+(   - Manage backup folder permissions) Tj
+0 -15 Td
+(   - Monitor backup storage usage) Tj
+
+0 -25 Td
+(2. Backup Operations) Tj
+0 -15 Td
+(   - Schedule automated backups) Tj
+0 -15 Td
+(   - Configure backup frequency (daily/weekly/monthly)) Tj
+0 -15 Td
+(   - Set retention policies for backups) Tj
+0 -15 Td
+(   - Monitor backup success/failure) Tj
+
+0 -25 Td
+(3. Data Restoration) Tj
+0 -15 Td
+(   - Verify backup integrity before restore) Tj
+0 -15 Td
+(   - Select appropriate backup point) Tj
+0 -15 Td
+(   - Perform test restores regularly) Tj
+0 -15 Td
+(   - Document restoration procedures) Tj
+
+0 -25 Td
 (Discord Integration) Tj
 0 -20 Td
-(Notifications & Alerts:) Tj
+(1. Webhook Configuration) Tj
 0 -15 Td
-(- Configure Discord webhook URLs) Tj
+(   - Set up Discord server and channels) Tj
 0 -15 Td
-(- Receive backup success/failure notifications) Tj
+(   - Generate and manage webhook URLs) Tj
 0 -15 Td
-(- System status updates) Tj
+(   - Configure notification templates) Tj
 0 -15 Td
-(- Critical event notifications) Tj
+(   - Test webhook connectivity) Tj
 
-0 -30 Td
-(Administrator Access) Tj
-0 -20 Td
-(Permissions & Security:) Tj
+0 -25 Td
+(2. Notification Management) Tj
 0 -15 Td
-(- Access restricted to authorized administrators) Tj
+(   - System status alerts) Tj
 0 -15 Td
-(- Email-based authentication required) Tj
+(   - Backup operation notifications) Tj
 0 -15 Td
-(- Secure admin group membership) Tj
+(   - Error and warning alerts) Tj
 0 -15 Td
-(- Activity logging and monitoring) Tj
+(   - User support ticket notifications) Tj
 
-0 -30 Td
-(Important Notes:) Tj
+0 -25 Td
+(Security & Monitoring) Tj
 0 -20 Td
-(- Only authorized administrators can access these features) Tj
+(1. Access Control) Tj
 0 -15 Td
-(- Regular backups are recommended for data safety) Tj
+(   - Manage admin group memberships) Tj
 0 -15 Td
-(- Keep Discord webhook URLs secure and private) Tj
+(   - Review access logs regularly) Tj
 0 -15 Td
-(- Monitor backup notifications for system health) Tj
+(   - Monitor failed login attempts) Tj
+0 -15 Td
+(   - Implement security best practices) Tj
+
+0 -25 Td
+(2. System Health) Tj
+0 -15 Td
+(   - Monitor API usage and limits) Tj
+0 -15 Td
+(   - Track system performance) Tj
+0 -15 Td
+(   - Review error logs) Tj
+0 -15 Td
+(   - Manage storage quotas) Tj
+
+0 -25 Td
+(Important Notes) Tj
+0 -20 Td
+(1. Security Protocols) Tj
+0 -15 Td
+(   - Keep all credentials secure) Tj
+0 -15 Td
+(   - Regularly rotate access tokens) Tj
+0 -15 Td
+(   - Monitor for unauthorized access) Tj
+0 -15 Td
+(   - Document all system changes) Tj
 ET
 endstream
 endobj
@@ -99,5 +160,5 @@ trailer
 <</Size 6
 /Root 1 0 R>>
 startxref
-1324
+2324
 %%EOF

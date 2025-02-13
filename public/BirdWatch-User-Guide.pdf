@@ -26,67 +26,116 @@ endobj
 endobj
 
 5 0 obj
-<</Length 1000>>
+<</Length 2000>>
 stream
 BT
+/F1 24 Tf
+50 750 Td
+(Feathered Friend Tracker - Comprehensive User Guide) Tj
+
 /F1 16 Tf
-50 700 Td
-(Feathered Friend Tracker User Guide) Tj
+0 -40 Td
+(Getting Started) Tj
 /F1 12 Tf
-0 -30 Td
-(Quick Start) Tj
 0 -20 Td
-(1. Create an account or sign in with email) Tj
+(1. Account Creation & Authentication) Tj
 0 -15 Td
-(2. You will be redirected to the dashboard after successful login) Tj
+(   - Sign up with your email address) Tj
 0 -15 Td
-(3. Start logging bird sightings from the dashboard) Tj
+(   - Verify your email through the confirmation link) Tj
+0 -15 Td
+(   - Set a secure password for your account) Tj
+0 -15 Td
+(   - Log in using your credentials) Tj
 
-0 -30 Td
-(Core Features) Tj
+0 -25 Td
+(2. Dashboard Navigation) Tj
+0 -15 Td
+(   - Access your personalized dashboard) Tj
+0 -15 Td
+(   - View recent bird sightings) Tj
+0 -15 Td
+(   - Access quick actions and tools) Tj
+0 -15 Td
+(   - Navigate between different sections) Tj
+
+0 -25 Td
+(Bird Sighting Management) Tj
 0 -20 Td
-(Bird Sighting Management:) Tj
+(1. Adding New Sightings) Tj
 0 -15 Td
-(- Add new bird sightings with details) Tj
+(   - Click the "Add Bird Sighting" button) Tj
 0 -15 Td
-(- View your sighting history) Tj
+(   - Upload photos of the bird) Tj
 0 -15 Td
-(- Track locations and dates) Tj
+(   - Enter location details (GPS or manual)) Tj
 0 -15 Td
-(- Upload photos of birds) Tj
+(   - Add date and time information) Tj
+0 -15 Td
+(   - Include additional notes or observations) Tj
 
-0 -30 Td
-(Bird Sounds:) Tj
+0 -25 Td
+(2. Bird Identification Tools) Tj
 0 -15 Td
-(- Listen to bird calls) Tj
+(   - Use AI-powered bird identification) Tj
 0 -15 Td
-(- External bird sound resources) Tj
+(   - Upload images for automatic recognition) Tj
 0 -15 Td
-(- Audio playback controls) Tj
+(   - Record and analyze bird calls) Tj
 0 -15 Td
-(- Expandable sound section) Tj
+(   - View species information and details) Tj
 
-0 -30 Td
-(Profile Features:) Tj
+0 -25 Td
+(Bird Sound Features) Tj
+0 -20 Td
+(1. Recording Bird Calls) Tj
 0 -15 Td
-(- Profile import capabilities) Tj
+(   - Use the built-in audio recorder) Tj
 0 -15 Td
-(- User authentication) Tj
+(   - Save recordings to your sightings) Tj
 0 -15 Td
-(- Secure login/logout) Tj
+(   - Access a library of bird sounds) Tj
 0 -15 Td
-(- Email-based authentication) Tj
+(   - Compare recordings with known species) Tj
 
-0 -30 Td
-(Support & Help:) Tj
+0 -25 Td
+(Managing Your Data) Tj
+0 -20 Td
+(1. Profile Management) Tj
 0 -15 Td
-(- Easy access support buttons) Tj
+(   - Update personal information) Tj
 0 -15 Td
-(- User guide access) Tj
+(   - Manage notification preferences) Tj
 0 -15 Td
-(- Quick navigation) Tj
+(   - Import/export your sighting data) Tj
 0 -15 Td
-(- Help resources) Tj
+(   - Connect with other bird watchers) Tj
+
+0 -25 Td
+(Support & Help) Tj
+0 -20 Td
+(1. Getting Assistance) Tj
+0 -15 Td
+(   - Access the help center) Tj
+0 -15 Td
+(   - Report technical issues) Tj
+0 -15 Td
+(   - Contact support team) Tj
+0 -15 Td
+(   - View FAQ and troubleshooting guides) Tj
+
+0 -25 Td
+(Privacy & Security) Tj
+0 -20 Td
+(1. Data Protection) Tj
+0 -15 Td
+(   - Understanding data collection) Tj
+0 -15 Td
+(   - Managing sharing preferences) Tj
+0 -15 Td
+(   - Controlling location services) Tj
+0 -15 Td
+(   - Securing your account) Tj
 ET
 endstream
 endobj
@@ -104,5 +153,5 @@ trailer
 <</Size 6
 /Root 1 0 R>>
 startxref
-1324
+2324
 %%EOF
