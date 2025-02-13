@@ -1,39 +1,33 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Camera, Upload, Loader2, Save, X } from "lucide-react"
+import { Loader2, Save, X } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { supabase } from "@/integrations/supabase/client"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { BirdImageCapture } from "./BirdImageCapture"
+import { BirdPredictions } from "./BirdPredictions"
+import { BirdMetadataForm } from "./BirdMetadataForm"
+import { BirdMetadata, BirdPrediction } from "./types"
 
-interface BirdMetadata {
-  name: string
-  scientific_name: string
-  description: string
-  habitat: string
-  size_range: string
-  conservation_status: string
-  seasonal_patterns: string
+const initialMetadata: BirdMetadata = {
+  name: '',
+  scientific_name: '',
+  description: '',
+  habitat: '',
+  size_range: '',
+  conservation_status: '',
+  seasonal_patterns: ''
 }
 
 export function BirdIdentifier() {
   const [isProcessing, setIsProcessing] = useState(false)
-  const [predictions, setPredictions] = useState<any[] | null>(null)
+  const [predictions, setPredictions] = useState<BirdPrediction[] | null>(null)
   const { toast } = useToast()
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [isOpen, setIsOpen] = useState(false)
-  const [metadata, setMetadata] = useState<BirdMetadata>({
-    name: '',
-    scientific_name: '',
-    description: '',
-    habitat: '',
-    size_range: '',
-    conservation_status: '',
-    seasonal_patterns: ''
-  })
+  const [metadata, setMetadata] = useState<BirdMetadata>(initialMetadata)
 
   const handleImageUpload = async (file: File) => {
     try {
@@ -187,15 +181,7 @@ export function BirdIdentifier() {
     setIsOpen(false)
     setPredictions(null)
     setPreviewUrl(null)
-    setMetadata({
-      name: '',
-      scientific_name: '',
-      description: '',
-      habitat: '',
-      size_range: '',
-      conservation_status: '',
-      seasonal_patterns: ''
-    })
+    setMetadata(initialMetadata)
   }
 
   return (
@@ -212,37 +198,11 @@ export function BirdIdentifier() {
         </DialogHeader>
         <ScrollArea className="max-h-[calc(90vh-80px)] px-6 pb-6">
           <div className="space-y-4">
-            <div className="flex gap-2">
-              <Button
-                onClick={handleCameraCapture}
-                disabled={isProcessing}
-                variant="outline"
-                className="flex-1"
-              >
-                <Camera className="h-4 w-4 mr-2" />
-                Use Camera
-              </Button>
-              
-              <label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileInput}
-                  className="hidden"
-                  disabled={isProcessing}
-                />
-                <Button
-                  variant="outline"
-                  className="flex-1"
-                  asChild
-                >
-                  <span>
-                    <Upload className="h-4 w-4 mr-2" />
-                    Upload Image
-                  </span>
-                </Button>
-              </label>
-            </div>
+            <BirdImageCapture
+              onCameraCapture={handleCameraCapture}
+              onFileInput={handleFileInput}
+              isProcessing={isProcessing}
+            />
 
             {previewUrl && (
               <div className="relative aspect-video w-full overflow-hidden rounded-lg border">
@@ -261,78 +221,14 @@ export function BirdIdentifier() {
               </div>
             )}
 
-            {predictions && (
-              <div className="space-y-2">
-                <h3 className="font-semibold">Possible Matches:</h3>
-                <div className="rounded-lg border p-4 space-y-2">
-                  {predictions.map((prediction: any, index: number) => (
-                    <div key={index} className="flex justify-between">
-                      <span>{prediction.label}</span>
-                      <span className="text-gray-500">
-                        {(prediction.score * 100).toFixed(1)}%
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+            {predictions && <BirdPredictions predictions={predictions} />}
 
             {predictions && (
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm font-medium">Name</label>
-                    <Input
-                      placeholder={predictions[0].label}
-                      value={metadata.name}
-                      onChange={(e) => handleMetadataChange('name', e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium">Scientific Name</label>
-                    <Input
-                      value={metadata.scientific_name}
-                      onChange={(e) => handleMetadataChange('scientific_name', e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium">Habitat</label>
-                    <Input
-                      value={metadata.habitat}
-                      onChange={(e) => handleMetadataChange('habitat', e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium">Size Range</label>
-                    <Input
-                      value={metadata.size_range}
-                      onChange={(e) => handleMetadataChange('size_range', e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium">Conservation Status</label>
-                    <Input
-                      value={metadata.conservation_status}
-                      onChange={(e) => handleMetadataChange('conservation_status', e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium">Seasonal Patterns</label>
-                    <Input
-                      value={metadata.seasonal_patterns}
-                      onChange={(e) => handleMetadataChange('seasonal_patterns', e.target.value)}
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Description</label>
-                  <Textarea
-                    value={metadata.description}
-                    onChange={(e) => handleMetadataChange('description', e.target.value)}
-                    className="h-20"
-                  />
-                </div>
-              </div>
+              <BirdMetadataForm
+                metadata={metadata}
+                defaultName={predictions[0].label}
+                onChange={handleMetadataChange}
+              />
             )}
 
             {predictions && (
