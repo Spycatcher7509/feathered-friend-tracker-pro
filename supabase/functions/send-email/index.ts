@@ -1,7 +1,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 
-const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
+const GMAIL_API_KEY = Deno.env.get('GMAIL_API_KEY')
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -22,9 +22,9 @@ serve(async (req) => {
   }
 
   try {
-    if (!RESEND_API_KEY) {
-      console.error('RESEND_API_KEY is not configured')
-      throw new Error('RESEND_API_KEY is not configured')
+    if (!GMAIL_API_KEY) {
+      console.error('GMAIL_API_KEY is not configured')
+      throw new Error('GMAIL_API_KEY is not configured')
     }
 
     const requestData = await req.json()
@@ -45,33 +45,37 @@ serve(async (req) => {
 
     console.log('Processing email request:', { to, subject })
 
-    const emailData = {
-      from: 'BirdWatch Support <support@mysecureapp.co.uk>',
-      to: [to],
-      subject,
-      text,
-      ...(html && { html })
+    // Create email content in base64 format
+    const email = {
+      raw: btoa(`
+From: BirdWatch Support <support@mysecureapp.co.uk>
+To: ${to}
+Subject: ${subject}
+Content-Type: ${html ? 'text/html' : 'text/plain'}
+
+${html || text}
+      `).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
     }
 
-    console.log('Sending email with data:', emailData)
+    console.log('Sending email with data:', { to, subject })
 
-    const response = await fetch('https://api.resend.com/emails', {
+    const response = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
       method: 'POST',
       headers: {
+        'Authorization': `Bearer ${GMAIL_API_KEY}`,
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${RESEND_API_KEY}`,
       },
-      body: JSON.stringify(emailData),
+      body: JSON.stringify(email),
     })
 
     if (!response.ok) {
       const errorText = await response.text()
-      console.error('Resend API error response:', response.status, errorText)
-      throw new Error(`Resend API error: ${errorText}`)
+      console.error('Gmail API error response:', response.status, errorText)
+      throw new Error(`Gmail API error: ${errorText}`)
     }
 
     const responseData = await response.json()
-    console.log('Resend API success response:', responseData)
+    console.log('Gmail API success response:', responseData)
 
     return new Response(JSON.stringify(responseData), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -91,3 +95,4 @@ serve(async (req) => {
     )
   }
 })
+
