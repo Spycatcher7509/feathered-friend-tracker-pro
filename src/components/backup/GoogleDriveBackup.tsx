@@ -9,9 +9,11 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { supabase } from "@/integrations/supabase/client"
 import { useToast } from "@/hooks/use-toast"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Label } from "@/components/ui/label"
 
 const GoogleDriveBackup = () => {
-  const { isLoading, handleBackup, handleRestore, sendDiscordNotification } = useBackupOperations()
+  const { isLoading, handleBackup, handleRestore, sendDiscordNotification, pickBackupFile } = useBackupOperations()
   const [showInstructions, setShowInstructions] = useState(false)
   const [showScheduler, setShowScheduler] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
@@ -25,6 +27,8 @@ const GoogleDriveBackup = () => {
   const [scheduleDayOfWeek, setScheduleDayOfWeek] = useState("0")
   const [scheduleDayOfMonth, setScheduleDayOfMonth] = useState("1")
   const [schedules, setSchedules] = useState([])
+  const [operationType, setOperationType] = useState("backup")
+  const [selectedBackupId, setSelectedBackupId] = useState("")
 
   useEffect(() => {
     const checkAdmin = async () => {
@@ -56,8 +60,16 @@ const GoogleDriveBackup = () => {
     }
   }
 
-  const handleScheduleBackup = async () => {
+  const handleScheduleOperation = async () => {
     try {
+      let sourceFileId = null
+      
+      if (operationType === 'restore') {
+        const file = await pickBackupFile()
+        if (!file) return
+        sourceFileId = file.id
+      }
+
       const { data, error } = await supabase
         .from('custom_backup_schedules')
         .insert({
@@ -65,14 +77,23 @@ const GoogleDriveBackup = () => {
           time_of_day: scheduleTime,
           day_of_week: scheduleFrequency === 'weekly' ? parseInt(scheduleDayOfWeek) : null,
           day_of_month: scheduleFrequency === 'monthly' ? parseInt(scheduleDayOfMonth) : null,
+          operation_type: operationType,
+          source_file_id: sourceFileId
         })
         .select()
 
       if (error) throw error
 
+      await sendDiscordNotification(`🔄 New ${operationType} schedule created:
+• Frequency: ${scheduleFrequency}
+• Time: ${scheduleTime}
+${scheduleFrequency === 'weekly' ? `• Day: ${['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][parseInt(scheduleDayOfWeek)]}` : ''}
+${scheduleFrequency === 'monthly' ? `• Day of Month: ${scheduleDayOfMonth}` : ''}
+${sourceFileId ? `• Source File ID: ${sourceFileId}` : ''}`)
+
       toast({
         title: "Success",
-        description: "Backup schedule created successfully",
+        description: `${operationType} schedule created successfully`,
       })
 
       fetchSchedules()
@@ -81,7 +102,7 @@ const GoogleDriveBackup = () => {
       console.error('Error creating schedule:', error)
       toast({
         title: "Error",
-        description: "Failed to create backup schedule",
+        description: `Failed to create ${operationType} schedule`,
         variant: "destructive",
       })
     }
@@ -89,12 +110,19 @@ const GoogleDriveBackup = () => {
 
   const deleteSchedule = async (id: string) => {
     try {
+      const scheduleToDelete = schedules.find(s => s.id === id)
       const { error } = await supabase
         .from('custom_backup_schedules')
         .delete()
         .eq('id', id)
 
       if (error) throw error
+
+      await sendDiscordNotification(`❌ ${scheduleToDelete.operation_type} schedule deleted:
+• Frequency: ${scheduleToDelete.frequency}
+• Time: ${scheduleToDelete.time_of_day}
+${scheduleToDelete.day_of_week !== null ? `• Day: ${['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][scheduleToDelete.day_of_week]}` : ''}
+${scheduleToDelete.day_of_month !== null ? `• Day of Month: ${scheduleToDelete.day_of_month}` : ''}`)
 
       toast({
         title: "Success",
@@ -142,7 +170,7 @@ const GoogleDriveBackup = () => {
           onClick={() => setShowScheduler(!showScheduler)}
           variant="secondary"
         >
-          Schedule Backup
+          Schedule Operation
         </Button>
         <Button
           onClick={() => sendDiscordNotification("Test notification")}
@@ -155,8 +183,26 @@ const GoogleDriveBackup = () => {
 
       {showScheduler && (
         <div className="p-4 border rounded-lg space-y-4 bg-white">
-          <h3 className="text-lg font-semibold">Schedule New Backup</h3>
+          <h3 className="text-lg font-semibold">Schedule New Operation</h3>
           <div className="grid gap-4">
+            <div className="space-y-2">
+              <label className="block text-sm font-medium">Operation Type</label>
+              <RadioGroup
+                value={operationType}
+                onValueChange={setOperationType}
+                className="flex gap-4"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="backup" id="backup" />
+                  <Label htmlFor="backup">Backup</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="restore" id="restore" />
+                  <Label htmlFor="restore">Restore</Label>
+                </div>
+              </RadioGroup>
+            </div>
+
             <div>
               <label className="block text-sm font-medium mb-1">Frequency</label>
               <Select value={scheduleFrequency} onValueChange={setScheduleFrequency}>
@@ -213,7 +259,9 @@ const GoogleDriveBackup = () => {
               </div>
             )}
 
-            <Button onClick={handleScheduleBackup}>Create Schedule</Button>
+            <Button onClick={handleScheduleOperation}>
+              Create Schedule
+            </Button>
           </div>
         </div>
       )}
@@ -225,6 +273,8 @@ const GoogleDriveBackup = () => {
             {schedules.map((schedule: any) => (
               <div key={schedule.id} className="flex justify-between items-center p-3 border rounded-lg">
                 <div>
+                  <span className="font-medium capitalize">{schedule.operation_type}</span>
+                  <span className="mx-2">•</span>
                   <span className="font-medium capitalize">{schedule.frequency}</span>
                   <span className="mx-2">at</span>
                   <span>{schedule.time_of_day}</span>
@@ -233,6 +283,11 @@ const GoogleDriveBackup = () => {
                   )}
                   {schedule.frequency === 'monthly' && (
                     <span className="ml-2">on day {schedule.day_of_month}</span>
+                  )}
+                  {schedule.source_file_id && (
+                    <span className="ml-2 text-sm text-gray-500">
+                      (File ID: {schedule.source_file_id})
+                    </span>
                   )}
                 </div>
                 <Button
