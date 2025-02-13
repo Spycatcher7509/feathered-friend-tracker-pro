@@ -1,5 +1,5 @@
 
-import { BookOpenText } from "lucide-react"
+import { BookOpenText, AlertCircle } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { Button } from "@/components/ui/button"
 import { useUserEmail } from "@/hooks/useUserEmail"
@@ -37,7 +37,7 @@ const SupportButtons = () => {
       <Button
         variant="outline"
         onClick={handleUserGuide}
-        className="bg-white hover:bg-nature-50"
+        className="bg-[#223534] text-white hover:bg-[#2a4241]"
       >
         <BookOpenText className="mr-2" />
         User Guide

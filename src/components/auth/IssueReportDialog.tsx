@@ -144,7 +144,7 @@ Our support team will get back to you within 48 hours.`,
       <DialogTrigger asChild>
         <Button
           variant="outline"
-          className="bg-white hover:bg-nature-50 text-gray-900"
+          className="bg-[#223534] text-white hover:bg-[#2a4241]"
         >
           <AlertCircle className="mr-2" />
           Report an Issue
