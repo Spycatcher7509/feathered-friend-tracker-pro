@@ -1,4 +1,3 @@
-
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Camera, Loader2, Save, X } from "lucide-react"
@@ -193,7 +192,7 @@ export function BirdIdentifier() {
       <DialogTrigger asChild>
         <Button variant="outline" className="gap-2">
           <Camera className="h-4 w-4" />
-          Identify Bird
+          Identify Birds
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] p-0">
@@ -207,13 +206,6 @@ export function BirdIdentifier() {
               onFileInput={handleFileInput}
               isProcessing={isProcessing}
             />
-
-            <div className="flex justify-center">
-              <AudioRecorder 
-                onRecordingComplete={setSoundUrl}
-                className="w-full"
-              />
-            </div>
 
             {soundUrl && (
               <div className="bg-gray-50 rounded-lg p-4">
