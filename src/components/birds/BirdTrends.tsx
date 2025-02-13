@@ -7,17 +7,23 @@ import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Search, Download } from "lucide-react"
 
-const BirdTrends = () => {
+interface BirdTrendsProps {
+  isAdmin?: boolean
+}
+
+const BirdTrends = ({ isAdmin = false }: BirdTrendsProps) => {
   const [searchTerm, setSearchTerm] = useState("")
+  const [showAllData, setShowAllData] = useState(false)
 
   const { data: birdTrends, isLoading } = useQuery({
-    queryKey: ['birdTrends', searchTerm],
+    queryKey: ['birdTrends', searchTerm, showAllData],
     queryFn: async () => {
       const query = supabase
         .from('bird_trends')
         .select('*')
       
-      if (searchTerm) {
+      if (!isAdmin || !showAllData) {
+        if (!searchTerm) return []
         query.ilike('species_name', `%${searchTerm}%`)
       }
       
@@ -55,20 +61,34 @@ const BirdTrends = () => {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search birds..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-8"
-          />
+      <div className="flex flex-col gap-4">
+        {isAdmin && (
+          <Button 
+            variant="outline" 
+            onClick={() => setShowAllData(!showAllData)}
+            className="w-full"
+          >
+            {showAllData ? "Hide Complete Trend Data" : "Show Complete Trend Data"}
+          </Button>
+        )}
+        
+        <div className="flex items-center gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search birds..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-8"
+            />
+          </div>
+          {(birdTrends?.length > 0) && (
+            <Button variant="outline" size="sm" onClick={downloadCsv}>
+              <Download className="h-4 w-4 mr-2" />
+              Download CSV
+            </Button>
+          )}
         </div>
-        <Button variant="outline" size="sm" onClick={downloadCsv}>
-          <Download className="h-4 w-4 mr-2" />
-          Download CSV
-        </Button>
       </div>
 
       <div className="rounded-md border">
@@ -89,7 +109,11 @@ const BirdTrends = () => {
               </TableRow>
             ) : birdTrends?.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center">No birds found</TableCell>
+                <TableCell colSpan={5} className="text-center">
+                  {!isAdmin || !showAllData 
+                    ? "Enter a bird name to see trend data" 
+                    : "No birds found"}
+                </TableCell>
               </TableRow>
             ) : (
               birdTrends?.map((bird) => (

@@ -77,7 +77,7 @@ const Index = () => {
           
           {showTrends && (
             <div className="bg-white rounded-lg shadow p-6">
-              <BirdTrends />
+              <BirdTrends isAdmin={isAdmin} />
             </div>
           )}
 
