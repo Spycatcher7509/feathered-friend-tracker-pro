@@ -21,6 +21,7 @@ const GoogleDriveBackup = () => {
     checkAdmin()
   }, [])
 
+  // If not admin, don't render anything
   if (!isAdmin) {
     return null
   }
@@ -35,6 +36,7 @@ const GoogleDriveBackup = () => {
             handleBackup()
           }} 
           disabled={isLoading}
+          className="bg-nature-600 hover:bg-nature-700"
         >
           Backup to Google Drive
         </Button>
@@ -48,6 +50,7 @@ const GoogleDriveBackup = () => {
         <Button
           onClick={() => sendDiscordNotification("Test notification")}
           variant="secondary"
+          className="bg-gray-100 hover:bg-gray-200"
         >
           Test Discord Notifications
         </Button>
