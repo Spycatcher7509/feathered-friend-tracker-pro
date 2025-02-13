@@ -138,19 +138,19 @@ Our support team will get back to you within 48 hours.`,
           Report an Issue
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="bg-white">
         <DialogHeader>
           <DialogTitle>Report an Issue</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 mt-4">
           <div className="space-y-2">
-            <Label htmlFor="issue">Issue Description</Label>
+            <Label htmlFor="issue" className="text-gray-700">Issue Description</Label>
             <Textarea
               id="issue"
               placeholder="Please describe the issue you're experiencing..."
               value={issueDescription}
               onChange={(e) => setIssueDescription(e.target.value)}
-              className="min-h-[100px]"
+              className="min-h-[100px] w-full bg-white border-gray-300 text-gray-900 placeholder:text-gray-500 resize-none"
             />
           </div>
           <Button 
