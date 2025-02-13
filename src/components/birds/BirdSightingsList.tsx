@@ -1,21 +1,18 @@
 
-import { useQuery } from "@tanstack/react-query"
-import { supabase } from "@/integrations/supabase/client"
-import BirdCard from "@/components/BirdCard"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { format } from "date-fns"
-import { Button } from "@/components/ui/button"
-import { Globe, Search, User } from "lucide-react"
 import { useState, useEffect } from "react"
-import { useToast } from "@/hooks/use-toast"
+import { format } from "date-fns"
 import { useAdminGroups } from "@/hooks/useAdminGroups"
-import { Input } from "@/components/ui/input"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import BirdCard from "@/components/BirdCard"
+import BirdSearchHeader from "./BirdSearchHeader"
+import { useBirdSearch } from "@/hooks/useBirdSearch"
+import { useBirdSightings } from "@/hooks/useBirdSightings"
+import { useBirdSightingActions } from "./BirdSightingActions"
 
 const BirdSightingsList = () => {
   const [showGlobal, setShowGlobal] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const [isAdmin, setIsAdmin] = useState(false)
-  const { toast } = useToast()
   const { checkAdminStatus } = useAdminGroups()
 
   useEffect(() => {
@@ -26,125 +23,9 @@ const BirdSightingsList = () => {
     checkAdmin()
   }, [])
 
-  const { data: trendSpecies } = useQuery({
-    queryKey: ["bird-trends", searchQuery],
-    queryFn: async () => {
-      if (!searchQuery) return []
-      
-      const { data, error } = await supabase
-        .from("bird_trends")
-        .select("species_name")
-        .ilike('species_name', `%${searchQuery}%`)
-        .order('species_name')
-      
-      if (error) throw error
-      return data.map(trend => trend.species_name)
-    }
-  })
-
-  const { data: sightings, isLoading, refetch } = useQuery({
-    queryKey: ["bird-sightings", showGlobal, searchQuery],
-    queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      let query = supabase
-        .from("bird_sightings")
-        .select(`
-          *,
-          bird_species (
-            name,
-            scientific_name
-          )
-        `)
-        .order("created_at", { ascending: false })
-
-      if (!showGlobal) {
-        query = query.eq("user_id", user?.id)
-      }
-
-      if (searchQuery) {
-        // Include birds from trends data in the search
-        if (trendSpecies?.length) {
-          query = query.or(`bird_name.ilike.%${searchQuery}%,bird_name.in.(${trendSpecies.map(name => `'${name}'`).join(',')})`)
-        } else {
-          query = query.ilike('bird_name', `%${searchQuery}%`)
-        }
-      }
-      
-      const { data, error } = await query
-      
-      if (error) throw error
-      
-      return data.map(sighting => ({
-        ...sighting,
-        isPersonal: sighting.user_id === user?.id,
-        scientificName: sighting.bird_species?.scientific_name
-      }))
-    },
-    enabled: !!trendSpecies // Only run this query after we have trend species data
-  })
-
-  const handleImageUpload = async (sightingId: string, file: File) => {
-    try {
-      const fileExt = file.name.split('.').pop()
-      const filePath = `${crypto.randomUUID()}.${fileExt}`
-
-      const { error: uploadError } = await supabase.storage
-        .from('bird-images')
-        .upload(filePath, file)
-
-      if (uploadError) throw uploadError
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('bird-images')
-        .getPublicUrl(filePath)
-
-      const { error: updateError } = await supabase
-        .from('bird_sightings')
-        .update({ image_url: publicUrl })
-        .eq('id', sightingId)
-
-      if (updateError) throw updateError
-
-      toast({
-        title: "Success",
-        description: "Image uploaded successfully",
-      })
-
-      refetch()
-    } catch (error) {
-      console.error('Error uploading image:', error)
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to upload image. Please try again.",
-      })
-    }
-  }
-
-  const handleDelete = async (sightingId: string) => {
-    try {
-      const { error } = await supabase
-        .from('bird_sightings')
-        .delete()
-        .eq('id', sightingId)
-
-      if (error) throw error
-
-      toast({
-        title: "Success",
-        description: "Bird sighting deleted successfully",
-      })
-
-      refetch()
-    } catch (error) {
-      console.error('Error deleting sighting:', error)
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to delete sighting. Please try again.",
-      })
-    }
-  }
+  const { data: trendSpecies } = useBirdSearch(searchQuery)
+  const { data: sightings, isLoading, refetch } = useBirdSightings(showGlobal, searchQuery, trendSpecies)
+  const { handleImageUpload, handleDelete } = useBirdSightingActions(refetch)
 
   if (isLoading) {
     return <div className="text-center">Loading sightings...</div>
@@ -152,40 +33,12 @@ const BirdSightingsList = () => {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <h2 className="text-2xl font-semibold text-nature-800">
-          {showGlobal ? "All Bird Sightings" : "My Bird Sightings"}
-        </h2>
-        <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
-          <div className="relative flex-1 md:flex-initial">
-            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
-            <Input
-              type="text"
-              placeholder="Search birds..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-8"
-            />
-          </div>
-          <Button
-            variant="outline"
-            onClick={() => setShowGlobal(!showGlobal)}
-            className="gap-2"
-          >
-            {showGlobal ? (
-              <>
-                <User className="h-4 w-4" />
-                Show My Sightings
-              </>
-            ) : (
-              <>
-                <Globe className="h-4 w-4" />
-                Show All Sightings
-              </>
-            )}
-          </Button>
-        </div>
-      </div>
+      <BirdSearchHeader
+        showGlobal={showGlobal}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        onToggleGlobal={() => setShowGlobal(!showGlobal)}
+      />
       
       <ScrollArea className="h-[400px] rounded-md border p-4">
         {!sightings?.length ? (
