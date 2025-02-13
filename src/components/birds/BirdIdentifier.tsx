@@ -1,6 +1,7 @@
-import { useState, useRef } from "react"
+
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Camera, Loader2, Save, X, Mic, Square } from "lucide-react"
+import { Camera, Loader2, Save, X } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { supabase } from "@/integrations/supabase/client"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
@@ -9,7 +10,7 @@ import { BirdImageCapture } from "./BirdImageCapture"
 import { BirdPredictions } from "./BirdPredictions"
 import { BirdMetadataForm } from "./BirdMetadataForm"
 import { BirdMetadata, BirdPrediction } from "./types"
-import { uploadAudio } from "@/utils/audio"
+import AudioRecorder from "./AudioRecorder"
 
 const initialMetadata: BirdMetadata = {
   name: '',
@@ -24,65 +25,11 @@ const initialMetadata: BirdMetadata = {
 export function BirdIdentifier() {
   const [isProcessing, setIsProcessing] = useState(false)
   const [predictions, setPredictions] = useState<BirdPrediction[] | null>(null)
-  const [isRecording, setIsRecording] = useState(false)
   const [soundUrl, setSoundUrl] = useState<string | null>(null)
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null)
-  const chunksRef = useRef<Blob[]>([])
   const { toast } = useToast()
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [isOpen, setIsOpen] = useState(false)
   const [metadata, setMetadata] = useState<BirdMetadata>(initialMetadata)
-
-  const startRecording = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-      mediaRecorderRef.current = new MediaRecorder(stream)
-      chunksRef.current = []
-
-      mediaRecorderRef.current.ondataavailable = (e) => {
-        if (e.data.size > 0) {
-          chunksRef.current.push(e.data)
-        }
-      }
-
-      mediaRecorderRef.current.onstop = async () => {
-        const audioBlob = new Blob(chunksRef.current, { type: 'audio/webm' })
-        try {
-          const path = await uploadAudio(audioBlob)
-          setSoundUrl(path)
-          toast({
-            title: "Success",
-            description: "Audio recording saved successfully",
-          })
-        } catch (error) {
-          console.error('Error uploading audio:', error)
-          toast({
-            variant: "destructive",
-            title: "Error",
-            description: "Failed to save audio recording",
-          })
-        }
-        stream.getTracks().forEach(track => track.stop())
-      }
-
-      mediaRecorderRef.current.start()
-      setIsRecording(true)
-    } catch (error) {
-      console.error('Error accessing microphone:', error)
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Could not access microphone. Please check your permissions.",
-      })
-    }
-  }
-
-  const stopRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop()
-      setIsRecording(false)
-    }
-  }
 
   const handleImageUpload = async (file: File) => {
     try {
@@ -239,9 +186,6 @@ export function BirdIdentifier() {
     setPreviewUrl(null)
     setSoundUrl(null)
     setMetadata(initialMetadata)
-    if (isRecording) {
-      stopRecording()
-    }
   }
 
   return (
@@ -265,30 +209,17 @@ export function BirdIdentifier() {
             />
 
             <div className="flex justify-center">
-              <Button
-                variant={isRecording ? "destructive" : "outline"}
-                onClick={isRecording ? stopRecording : startRecording}
+              <AudioRecorder 
+                onRecordingComplete={setSoundUrl}
                 className="w-full"
-              >
-                {isRecording ? (
-                  <>
-                    <Square className="h-4 w-4 mr-2" />
-                    Stop Recording
-                  </>
-                ) : (
-                  <>
-                    <Mic className="h-4 w-4 mr-2" />
-                    Record Bird Call
-                  </>
-                )}
-              </Button>
+              />
             </div>
 
             {soundUrl && (
               <div className="bg-gray-50 rounded-lg p-4">
                 <p className="text-sm text-gray-600 mb-2">Recorded bird call:</p>
                 <audio controls className="w-full">
-                  <source src={`${supabase.storageUrl}/object/public/bird-sounds/${soundUrl}`} type="audio/webm" />
+                  <source src={soundUrl} type="audio/webm" />
                   Your browser does not support the audio element.
                 </audio>
               </div>
