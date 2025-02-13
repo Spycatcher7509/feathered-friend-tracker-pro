@@ -1,3 +1,4 @@
+
 import { useState, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Mic, Square, Loader2 } from "lucide-react"
@@ -90,6 +91,7 @@ const AudioRecorder = ({ onRecordingComplete, className = "" }: AudioRecorderPro
     <div className={`flex items-center gap-2 ${className}`}>
       {!isRecording ? (
         <Button
+          type="button" // Added to prevent form submission
           onClick={startRecording}
           disabled={isUploading}
           variant="outline"
@@ -99,6 +101,7 @@ const AudioRecorder = ({ onRecordingComplete, className = "" }: AudioRecorderPro
         </Button>
       ) : (
         <Button
+          type="button" // Added to prevent form submission
           onClick={stopRecording}
           variant="destructive"
           size="icon"
