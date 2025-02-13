@@ -132,7 +132,7 @@ Our support team will get back to you within 48 hours.`,
       <DialogTrigger asChild>
         <Button
           variant="outline"
-          className="bg-white hover:bg-nature-50"
+          className="bg-white hover:bg-nature-50 text-gray-900"
         >
           <AlertCircle className="mr-2" />
           Report an Issue
@@ -140,7 +140,7 @@ Our support team will get back to you within 48 hours.`,
       </DialogTrigger>
       <DialogContent className="bg-white">
         <DialogHeader>
-          <DialogTitle>Report an Issue</DialogTitle>
+          <DialogTitle className="text-gray-900">Report an Issue</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 mt-4">
           <div className="space-y-2">
