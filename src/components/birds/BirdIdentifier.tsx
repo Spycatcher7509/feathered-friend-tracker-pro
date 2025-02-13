@@ -1,15 +1,16 @@
+
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Camera, Loader2, Save, X } from "lucide-react"
+import { Camera } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { supabase } from "@/integrations/supabase/client"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { BirdImageCapture } from "./BirdImageCapture"
 import { BirdPredictions } from "./BirdPredictions"
 import { BirdMetadataForm } from "./BirdMetadataForm"
 import { BirdMetadata, BirdPrediction } from "./types"
-import AudioRecorder from "./AudioRecorder"
+import { BirdCaptureSection } from "./BirdCaptureSection"
+import { BirdActionButtons } from "./BirdActionButtons"
 
 const initialMetadata: BirdMetadata = {
   name: '',
@@ -35,15 +36,12 @@ export function BirdIdentifier() {
       setIsProcessing(true)
       setPredictions(null)
 
-      // Create preview
       const objectUrl = URL.createObjectURL(file)
       setPreviewUrl(objectUrl)
 
-      // Prepare form data
       const formData = new FormData()
       formData.append('image', file)
 
-      // Call our edge function
       const { data, error } = await supabase.functions.invoke('identify-bird', {
         body: formData,
       })
@@ -52,7 +50,6 @@ export function BirdIdentifier() {
 
       setPredictions(data.result)
       
-      // Clean up preview URL
       return () => URL.revokeObjectURL(objectUrl)
     } catch (error) {
       console.error('Error:', error)
@@ -80,17 +77,14 @@ export function BirdIdentifier() {
       video.srcObject = stream
       await video.play()
 
-      // Create a canvas to capture the image
       const canvas = document.createElement('canvas')
       canvas.width = video.videoWidth
       canvas.height = video.videoHeight
       const ctx = canvas.getContext('2d')
       if (!ctx) throw new Error('Could not get canvas context')
 
-      // Draw the video frame to the canvas
       ctx.drawImage(video, 0, 0)
       
-      // Convert the canvas to a file
       canvas.toBlob(async (blob) => {
         if (blob) {
           const file = new File([blob], 'camera-capture.jpg', { type: 'image/jpeg' })
@@ -98,7 +92,6 @@ export function BirdIdentifier() {
         }
       }, 'image/jpeg')
 
-      // Stop the video stream
       stream.getTracks().forEach(track => track.stop())
     } catch (error) {
       console.error('Error accessing camera:', error)
@@ -124,7 +117,6 @@ export function BirdIdentifier() {
       const topPrediction = predictions[0]
       const birdName = metadata.name || topPrediction.label
       
-      // Check if bird species already exists
       const { data: existingBird } = await supabase
         .from('bird_species')
         .select()
@@ -140,7 +132,6 @@ export function BirdIdentifier() {
 
       let error
       if (existingBird) {
-        // Update existing record
         const { error: updateError } = await supabase
           .from('bird_species')
           .update(birdData)
@@ -149,7 +140,6 @@ export function BirdIdentifier() {
           .single()
         error = updateError
       } else {
-        // Insert new record
         const { error: insertError } = await supabase
           .from('bird_species')
           .insert(birdData)
@@ -167,7 +157,6 @@ export function BirdIdentifier() {
           : "Bird species saved successfully",
       })
       
-      // Close the dialog and reset state
       handleCancel()
     } catch (error) {
       console.error('Error saving bird species:', error)
@@ -201,38 +190,14 @@ export function BirdIdentifier() {
         </DialogHeader>
         <ScrollArea className="max-h-[calc(90vh-80px)] px-6 pb-6">
           <div className="space-y-4">
-            <BirdImageCapture
+            <BirdCaptureSection
               onCameraCapture={handleCameraCapture}
               onFileInput={handleFileInput}
               isProcessing={isProcessing}
+              previewUrl={previewUrl}
+              soundUrl={soundUrl}
+              setSoundUrl={setSoundUrl}
             />
-
-            {soundUrl && (
-              <div className="bg-gray-50 rounded-lg p-4">
-                <p className="text-sm text-gray-600 mb-2">Recorded bird call:</p>
-                <audio controls className="w-full">
-                  <source src={soundUrl} type="audio/webm" />
-                  Your browser does not support the audio element.
-                </audio>
-              </div>
-            )}
-
-            {previewUrl && (
-              <div className="relative aspect-video w-full overflow-hidden rounded-lg border">
-                <img
-                  src={previewUrl}
-                  alt="Preview"
-                  className="h-full w-full object-cover"
-                />
-              </div>
-            )}
-
-            {isProcessing && (
-              <div className="flex items-center justify-center gap-2">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                <p>Analyzing image...</p>
-              </div>
-            )}
 
             {predictions && <BirdPredictions predictions={predictions} />}
 
@@ -245,16 +210,10 @@ export function BirdIdentifier() {
             )}
 
             {predictions && (
-              <div className="flex justify-end gap-2 pt-4">
-                <Button variant="outline" onClick={handleCancel}>
-                  <X className="h-4 w-4 mr-2" />
-                  Cancel
-                </Button>
-                <Button onClick={handleSave}>
-                  <Save className="h-4 w-4 mr-2" />
-                  Save to Species
-                </Button>
-              </div>
+              <BirdActionButtons
+                onSave={handleSave}
+                onCancel={handleCancel}
+              />
             )}
           </div>
         </ScrollArea>
