@@ -14,6 +14,8 @@ import SupportButtons from "@/components/auth/SupportButtons"
 import { Button } from "@/components/ui/button"
 import { ChevronDown, ChevronUp } from "lucide-react"
 import { useAdminGroups } from "@/hooks/useAdminGroups"
+import { BirdSpeciesManager } from "@/components/birds/BirdSpeciesManager"
+import { BirdIdentifier } from "@/components/birds/BirdIdentifier"
 
 const Index = () => {
   const [showBirdSounds, setShowBirdSounds] = useState(false)
@@ -45,6 +47,8 @@ const Index = () => {
                   <GoogleDriveBackup />
                 </div>
                 <div className="flex flex-wrap gap-4 items-center">
+                  <BirdSpeciesManager />
+                  <BirdIdentifier />
                   <BirdSpeciesImporter />
                   <ProfileImporter />
                   <SupportButtons />

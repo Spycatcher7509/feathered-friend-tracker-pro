@@ -8,7 +8,6 @@ import { useToast } from "@/hooks/use-toast"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Search } from "lucide-react"
-import { BirdIdentifier } from "./BirdIdentifier"
 
 interface BirdSpecies {
   id: string
@@ -61,13 +60,10 @@ export function BirdSpeciesManager() {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <div className="flex gap-2">
-          <Button variant="outline" className="gap-2">
-            <Search className="h-4 w-4" />
-            Browse Bird Species
-          </Button>
-          <BirdIdentifier />
-        </div>
+        <Button variant="outline" className="gap-2">
+          <Search className="h-4 w-4" />
+          Browse Bird Species
+        </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[725px]">
         <DialogHeader>
