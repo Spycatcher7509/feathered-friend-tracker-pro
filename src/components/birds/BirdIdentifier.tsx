@@ -1,3 +1,4 @@
+
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Camera, Upload, Loader2, Save, X } from "lucide-react"
@@ -6,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+import { ScrollArea } from "@/components/ui/scroll-area"
 
 interface BirdMetadata {
   name: string
@@ -125,38 +127,52 @@ export function BirdIdentifier() {
 
     try {
       const topPrediction = predictions[0]
+      const birdName = metadata.name || topPrediction.label
+      
+      // Check if bird species already exists
+      const { data: existingBird } = await supabase
+        .from('bird_species')
+        .select()
+        .ilike('name', birdName)
+        .maybeSingle()
+
       const birdData = {
         ...metadata,
-        name: metadata.name || topPrediction.label,
+        name: birdName,
         image_url: previewUrl || null,
       }
 
-      const { error } = await supabase
-        .from('bird_species')
-        .insert(birdData)
-        .select()
-        .single()
+      let error
+      if (existingBird) {
+        // Update existing record
+        const { error: updateError } = await supabase
+          .from('bird_species')
+          .update(birdData)
+          .eq('id', existingBird.id)
+          .select()
+          .single()
+        error = updateError
+      } else {
+        // Insert new record
+        const { error: insertError } = await supabase
+          .from('bird_species')
+          .insert(birdData)
+          .select()
+          .single()
+        error = insertError
+      }
 
       if (error) throw error
 
       toast({
         title: "Success",
-        description: "Bird species saved successfully",
+        description: existingBird 
+          ? "Bird species updated successfully" 
+          : "Bird species saved successfully",
       })
       
       // Close the dialog and reset state
-      setIsOpen(false)
-      setPredictions(null)
-      setPreviewUrl(null)
-      setMetadata({
-        name: '',
-        scientific_name: '',
-        description: '',
-        habitat: '',
-        size_range: '',
-        conservation_status: '',
-        seasonal_patterns: ''
-      })
+      handleCancel()
     } catch (error) {
       console.error('Error saving bird species:', error)
       toast({
@@ -190,148 +206,149 @@ export function BirdIdentifier() {
           Identify Bird
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[600px]">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] p-0">
+        <DialogHeader className="p-6 pb-0">
           <DialogTitle>Identify Bird Species</DialogTitle>
         </DialogHeader>
-        
-        <div className="space-y-4">
-          <div className="flex gap-2">
-            <Button
-              onClick={handleCameraCapture}
-              disabled={isProcessing}
-              variant="outline"
-              className="flex-1"
-            >
-              <Camera className="h-4 w-4 mr-2" />
-              Use Camera
-            </Button>
-            
-            <label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleFileInput}
-                className="hidden"
-                disabled={isProcessing}
-              />
+        <ScrollArea className="max-h-[calc(90vh-80px)] px-6 pb-6">
+          <div className="space-y-4">
+            <div className="flex gap-2">
               <Button
+                onClick={handleCameraCapture}
+                disabled={isProcessing}
                 variant="outline"
                 className="flex-1"
-                asChild
               >
-                <span>
-                  <Upload className="h-4 w-4 mr-2" />
-                  Upload Image
-                </span>
+                <Camera className="h-4 w-4 mr-2" />
+                Use Camera
               </Button>
-            </label>
-          </div>
-
-          {previewUrl && (
-            <div className="relative aspect-video w-full overflow-hidden rounded-lg border">
-              <img
-                src={previewUrl}
-                alt="Preview"
-                className="h-full w-full object-cover"
-              />
+              
+              <label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileInput}
+                  className="hidden"
+                  disabled={isProcessing}
+                />
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  asChild
+                >
+                  <span>
+                    <Upload className="h-4 w-4 mr-2" />
+                    Upload Image
+                  </span>
+                </Button>
+              </label>
             </div>
-          )}
 
-          {isProcessing && (
-            <div className="flex items-center justify-center gap-2">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              <p>Analyzing image...</p>
-            </div>
-          )}
-
-          {predictions && (
-            <div className="space-y-2">
-              <h3 className="font-semibold">Possible Matches:</h3>
-              <div className="rounded-lg border p-4 space-y-2">
-                {predictions.map((prediction: any, index: number) => (
-                  <div key={index} className="flex justify-between">
-                    <span>{prediction.label}</span>
-                    <span className="text-gray-500">
-                      {(prediction.score * 100).toFixed(1)}%
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {predictions && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium">Name</label>
-                  <Input
-                    placeholder={predictions[0].label}
-                    value={metadata.name}
-                    onChange={(e) => handleMetadataChange('name', e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Scientific Name</label>
-                  <Input
-                    value={metadata.scientific_name}
-                    onChange={(e) => handleMetadataChange('scientific_name', e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Habitat</label>
-                  <Input
-                    value={metadata.habitat}
-                    onChange={(e) => handleMetadataChange('habitat', e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Size Range</label>
-                  <Input
-                    value={metadata.size_range}
-                    onChange={(e) => handleMetadataChange('size_range', e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Conservation Status</label>
-                  <Input
-                    value={metadata.conservation_status}
-                    onChange={(e) => handleMetadataChange('conservation_status', e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Seasonal Patterns</label>
-                  <Input
-                    value={metadata.seasonal_patterns}
-                    onChange={(e) => handleMetadataChange('seasonal_patterns', e.target.value)}
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="text-sm font-medium">Description</label>
-                <Textarea
-                  value={metadata.description}
-                  onChange={(e) => handleMetadataChange('description', e.target.value)}
-                  className="h-20"
+            {previewUrl && (
+              <div className="relative aspect-video w-full overflow-hidden rounded-lg border">
+                <img
+                  src={previewUrl}
+                  alt="Preview"
+                  className="h-full w-full object-cover"
                 />
               </div>
-            </div>
-          )}
+            )}
 
-          {predictions && (
-            <div className="flex justify-end gap-2 pt-4">
-              <Button variant="outline" onClick={handleCancel}>
-                <X className="h-4 w-4 mr-2" />
-                Cancel
-              </Button>
-              <Button onClick={handleSave}>
-                <Save className="h-4 w-4 mr-2" />
-                Save to Species
-              </Button>
-            </div>
-          )}
-        </div>
+            {isProcessing && (
+              <div className="flex items-center justify-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <p>Analyzing image...</p>
+              </div>
+            )}
+
+            {predictions && (
+              <div className="space-y-2">
+                <h3 className="font-semibold">Possible Matches:</h3>
+                <div className="rounded-lg border p-4 space-y-2">
+                  {predictions.map((prediction: any, index: number) => (
+                    <div key={index} className="flex justify-between">
+                      <span>{prediction.label}</span>
+                      <span className="text-gray-500">
+                        {(prediction.score * 100).toFixed(1)}%
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {predictions && (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium">Name</label>
+                    <Input
+                      placeholder={predictions[0].label}
+                      value={metadata.name}
+                      onChange={(e) => handleMetadataChange('name', e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">Scientific Name</label>
+                    <Input
+                      value={metadata.scientific_name}
+                      onChange={(e) => handleMetadataChange('scientific_name', e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">Habitat</label>
+                    <Input
+                      value={metadata.habitat}
+                      onChange={(e) => handleMetadataChange('habitat', e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">Size Range</label>
+                    <Input
+                      value={metadata.size_range}
+                      onChange={(e) => handleMetadataChange('size_range', e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">Conservation Status</label>
+                    <Input
+                      value={metadata.conservation_status}
+                      onChange={(e) => handleMetadataChange('conservation_status', e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">Seasonal Patterns</label>
+                    <Input
+                      value={metadata.seasonal_patterns}
+                      onChange={(e) => handleMetadataChange('seasonal_patterns', e.target.value)}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Description</label>
+                  <Textarea
+                    value={metadata.description}
+                    onChange={(e) => handleMetadataChange('description', e.target.value)}
+                    className="h-20"
+                  />
+                </div>
+              </div>
+            )}
+
+            {predictions && (
+              <div className="flex justify-end gap-2 pt-4">
+                <Button variant="outline" onClick={handleCancel}>
+                  <X className="h-4 w-4 mr-2" />
+                  Cancel
+                </Button>
+                <Button onClick={handleSave}>
+                  <Save className="h-4 w-4 mr-2" />
+                  Save to Species
+                </Button>
+              </div>
+            )}
+          </div>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   )
