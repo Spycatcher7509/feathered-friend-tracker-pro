@@ -252,6 +252,42 @@ export type Database = {
         }
         Relationships: []
       }
+      custom_backup_schedules: {
+        Row: {
+          created_at: string
+          day_of_month: number | null
+          day_of_week: number | null
+          frequency: Database["public"]["Enums"]["backup_frequency"]
+          id: string
+          is_active: boolean | null
+          time_of_day: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          day_of_month?: number | null
+          day_of_week?: number | null
+          frequency: Database["public"]["Enums"]["backup_frequency"]
+          id?: string
+          is_active?: boolean | null
+          time_of_day: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          day_of_month?: number | null
+          day_of_week?: number | null
+          frequency?: Database["public"]["Enums"]["backup_frequency"]
+          id?: string
+          is_active?: boolean | null
+          time_of_day?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       discord_webhooks: {
         Row: {
           created_at: string
@@ -446,6 +482,7 @@ export type Database = {
       }
     }
     Enums: {
+      backup_frequency: "daily" | "weekly" | "monthly"
       trend_category:
         | "strong decline"
         | "weak decline"
