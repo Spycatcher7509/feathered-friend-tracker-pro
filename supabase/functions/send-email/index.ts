@@ -46,7 +46,7 @@ serve(async (req) => {
     console.log('Processing email request:', { to, subject })
 
     const emailData = {
-      from: 'BirdWatch Support <support@resend.dev>', // Update the from address
+      from: 'support@yourdomain.com', // Replace 'yourdomain.com' with your verified domain
       to: [to],
       subject,
       text,
