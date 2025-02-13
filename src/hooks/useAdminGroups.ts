@@ -17,10 +17,14 @@ export const useAdminGroups = () => {
         .from('admin_groups')
         .select('id')
         .eq('name', 'System Administrators')
-        .single()
+        .maybeSingle()
 
       if (groupError) {
         throw new Error('Failed to fetch admin group')
+      }
+
+      if (!adminGroups) {
+        throw new Error('Admin group not found')
       }
 
       // Get the user by email
@@ -102,7 +106,7 @@ export const useAdminGroups = () => {
         .from('profiles')
         .select('is_admin')
         .eq('id', user.id)
-        .single()
+        .maybeSingle()
 
       if (profileError) {
         console.error('Error checking profile admin status:', profileError)
