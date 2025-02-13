@@ -24,11 +24,15 @@ export function BirdSpeciesManager() {
     queryKey: ["bird-species", searchQuery],
     queryFn: async () => {
       console.log("Searching for:", searchQuery) // Debug log
-      const { data, error } = await supabase
+      const query = supabase
         .from("bird_species")
         .select("*")
-        .or('name.ilike.%' + searchQuery + '%,scientific_name.ilike.%' + searchQuery + '%')
-        .order("name")
+        
+      if (searchQuery) {
+        query.or(`name.ilike.%${searchQuery.toLowerCase()}%,scientific_name.ilike.%${searchQuery.toLowerCase()}%`)
+      }
+      
+      const { data, error } = await query.order("name")
 
       if (error) {
         console.error("Supabase error:", error) // Debug log
