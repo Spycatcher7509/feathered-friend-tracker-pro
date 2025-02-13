@@ -222,27 +222,42 @@ export type Database = {
       }
       bird_species: {
         Row: {
+          conservation_status: string | null
           created_at: string
           description: string | null
+          habitat: string | null
           id: string
+          image_url: string | null
           name: string
           scientific_name: string | null
+          seasonal_patterns: string | null
+          size_range: string | null
           updated_at: string
         }
         Insert: {
+          conservation_status?: string | null
           created_at?: string
           description?: string | null
+          habitat?: string | null
           id?: string
+          image_url?: string | null
           name: string
           scientific_name?: string | null
+          seasonal_patterns?: string | null
+          size_range?: string | null
           updated_at?: string
         }
         Update: {
+          conservation_status?: string | null
           created_at?: string
           description?: string | null
+          habitat?: string | null
           id?: string
+          image_url?: string | null
           name?: string
           scientific_name?: string | null
+          seasonal_patterns?: string | null
+          size_range?: string | null
           updated_at?: string
         }
         Relationships: []
