@@ -5,12 +5,10 @@ import { useState, useEffect } from "react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Code } from "@/components/ui/code"
 import { useAdminGroups } from "@/hooks/useAdminGroups"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { supabase } from "@/integrations/supabase/client"
 import { useToast } from "@/hooks/use-toast"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Label } from "@/components/ui/label"
+import { ScheduleForm } from "./ScheduleForm"
+import { ScheduleList } from "./ScheduleList"
 
 const GoogleDriveBackup = () => {
   const { isLoading, handleBackup, handleRestore, sendDiscordNotification, pickBackupFile } = useBackupOperations()
@@ -20,15 +18,7 @@ const GoogleDriveBackup = () => {
   const { checkAdminStatus } = useAdminGroups()
   const currentDomain = window.location.origin
   const { toast } = useToast()
-
-  // Schedule state
-  const [scheduleFrequency, setScheduleFrequency] = useState("daily")
-  const [scheduleTime, setScheduleTime] = useState("00:00")
-  const [scheduleDayOfWeek, setScheduleDayOfWeek] = useState("0")
-  const [scheduleDayOfMonth, setScheduleDayOfMonth] = useState("1")
   const [schedules, setSchedules] = useState([])
-  const [operationType, setOperationType] = useState("backup")
-  const [selectedBackupId, setSelectedBackupId] = useState("")
 
   useEffect(() => {
     const checkAdmin = async () => {
@@ -60,11 +50,17 @@ const GoogleDriveBackup = () => {
     }
   }
 
-  const handleScheduleOperation = async () => {
+  const handleScheduleOperation = async (formData: {
+    frequency: "daily" | "weekly" | "monthly",
+    timeOfDay: string,
+    dayOfWeek: string,
+    dayOfMonth: string,
+    operationType: "backup" | "restore"
+  }) => {
     try {
       let sourceFileId = null
       
-      if (operationType === 'restore') {
+      if (formData.operationType === 'restore') {
         const file = await pickBackupFile()
         if (!file) return
         sourceFileId = file.id
@@ -73,27 +69,27 @@ const GoogleDriveBackup = () => {
       const { data, error } = await supabase
         .from('custom_backup_schedules')
         .insert({
-          frequency: scheduleFrequency,
-          time_of_day: scheduleTime,
-          day_of_week: scheduleFrequency === 'weekly' ? parseInt(scheduleDayOfWeek) : null,
-          day_of_month: scheduleFrequency === 'monthly' ? parseInt(scheduleDayOfMonth) : null,
-          operation_type: operationType,
+          frequency: formData.frequency,
+          time_of_day: formData.timeOfDay,
+          day_of_week: formData.frequency === 'weekly' ? parseInt(formData.dayOfWeek) : null,
+          day_of_month: formData.frequency === 'monthly' ? parseInt(formData.dayOfMonth) : null,
+          operation_type: formData.operationType,
           source_file_id: sourceFileId
         })
         .select()
 
       if (error) throw error
 
-      await sendDiscordNotification(`🔄 New ${operationType} schedule created:
-• Frequency: ${scheduleFrequency}
-• Time: ${scheduleTime}
-${scheduleFrequency === 'weekly' ? `• Day: ${['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][parseInt(scheduleDayOfWeek)]}` : ''}
-${scheduleFrequency === 'monthly' ? `• Day of Month: ${scheduleDayOfMonth}` : ''}
+      await sendDiscordNotification(`🔄 New ${formData.operationType} schedule created:
+• Frequency: ${formData.frequency}
+• Time: ${formData.timeOfDay}
+${formData.frequency === 'weekly' ? `• Day: ${['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][parseInt(formData.dayOfWeek)]}` : ''}
+${formData.frequency === 'monthly' ? `• Day of Month: ${formData.dayOfMonth}` : ''}
 ${sourceFileId ? `• Source File ID: ${sourceFileId}` : ''}`)
 
       toast({
         title: "Success",
-        description: `${operationType} schedule created successfully`,
+        description: `${formData.operationType} schedule created successfully`,
       })
 
       fetchSchedules()
@@ -102,7 +98,7 @@ ${sourceFileId ? `• Source File ID: ${sourceFileId}` : ''}`)
       console.error('Error creating schedule:', error)
       toast({
         title: "Error",
-        description: `Failed to create ${operationType} schedule`,
+        description: `Failed to create ${formData.operationType} schedule`,
         variant: "destructive",
       })
     }
@@ -182,126 +178,13 @@ ${scheduleToDelete.day_of_month !== null ? `• Day of Month: ${scheduleToDelete
       </div>
 
       {showScheduler && (
-        <div className="p-4 border rounded-lg space-y-4 bg-white">
-          <h3 className="text-lg font-semibold">Schedule New Operation</h3>
-          <div className="grid gap-4">
-            <div className="space-y-2">
-              <label className="block text-sm font-medium">Operation Type</label>
-              <RadioGroup
-                value={operationType}
-                onValueChange={setOperationType}
-                className="flex gap-4"
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="backup" id="backup" />
-                  <Label htmlFor="backup">Backup</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="restore" id="restore" />
-                  <Label htmlFor="restore">Restore</Label>
-                </div>
-              </RadioGroup>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1">Frequency</label>
-              <Select value={scheduleFrequency} onValueChange={setScheduleFrequency}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select frequency" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="daily">Daily</SelectItem>
-                  <SelectItem value="weekly">Weekly</SelectItem>
-                  <SelectItem value="monthly">Monthly</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1">Time</label>
-              <Input
-                type="time"
-                value={scheduleTime}
-                onChange={(e) => setScheduleTime(e.target.value)}
-              />
-            </div>
-
-            {scheduleFrequency === 'weekly' && (
-              <div>
-                <label className="block text-sm font-medium mb-1">Day of Week</label>
-                <Select value={scheduleDayOfWeek} onValueChange={setScheduleDayOfWeek}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select day" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="0">Sunday</SelectItem>
-                    <SelectItem value="1">Monday</SelectItem>
-                    <SelectItem value="2">Tuesday</SelectItem>
-                    <SelectItem value="3">Wednesday</SelectItem>
-                    <SelectItem value="4">Thursday</SelectItem>
-                    <SelectItem value="5">Friday</SelectItem>
-                    <SelectItem value="6">Saturday</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-
-            {scheduleFrequency === 'monthly' && (
-              <div>
-                <label className="block text-sm font-medium mb-1">Day of Month</label>
-                <Input
-                  type="number"
-                  min="1"
-                  max="31"
-                  value={scheduleDayOfMonth}
-                  onChange={(e) => setScheduleDayOfMonth(e.target.value)}
-                />
-              </div>
-            )}
-
-            <Button onClick={handleScheduleOperation}>
-              Create Schedule
-            </Button>
-          </div>
-        </div>
+        <ScheduleForm onSubmit={handleScheduleOperation} />
       )}
 
-      {schedules.length > 0 && (
-        <div className="mt-4">
-          <h3 className="text-lg font-semibold mb-2">Existing Schedules</h3>
-          <div className="space-y-2">
-            {schedules.map((schedule: any) => (
-              <div key={schedule.id} className="flex justify-between items-center p-3 border rounded-lg">
-                <div>
-                  <span className="font-medium capitalize">{schedule.operation_type}</span>
-                  <span className="mx-2">•</span>
-                  <span className="font-medium capitalize">{schedule.frequency}</span>
-                  <span className="mx-2">at</span>
-                  <span>{schedule.time_of_day}</span>
-                  {schedule.frequency === 'weekly' && (
-                    <span className="ml-2">on {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][schedule.day_of_week]}</span>
-                  )}
-                  {schedule.frequency === 'monthly' && (
-                    <span className="ml-2">on day {schedule.day_of_month}</span>
-                  )}
-                  {schedule.source_file_id && (
-                    <span className="ml-2 text-sm text-gray-500">
-                      (File ID: {schedule.source_file_id})
-                    </span>
-                  )}
-                </div>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => deleteSchedule(schedule.id)}
-                >
-                  Delete
-                </Button>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      <ScheduleList 
+        schedules={schedules} 
+        onDelete={deleteSchedule}
+      />
 
       {showInstructions && (
         <Alert>

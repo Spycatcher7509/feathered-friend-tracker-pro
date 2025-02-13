@@ -2,9 +2,29 @@
 import { useState } from "react"
 import { useToast } from "@/hooks/use-toast"
 import { useAdminGroups } from "@/hooks/useAdminGroups"
-import { pickBackupFile } from "@/utils/googleDrive"
 import { createBackup, restoreBackup } from "@/utils/backup"
 import { sendDiscordWebhookMessage } from "@/utils/discord"
+
+export const pickBackupFile = async () => {
+  console.log('Opening file picker...')
+  return new Promise<{ id: string; text: () => Promise<string> } | null>((resolve) => {
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.accept = '.json'
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0] || null
+      if (file) {
+        resolve({
+          id: file.name, // Using filename as ID for now
+          text: () => file.text()
+        })
+      } else {
+        resolve(null)
+      }
+    }
+    input.click()
+  })
+}
 
 export const useBackupOperations = () => {
   const [isLoading, setIsLoading] = useState(false)
@@ -128,6 +148,7 @@ export const useBackupOperations = () => {
     isLoading,
     handleBackup,
     handleRestore,
-    sendDiscordNotification
+    sendDiscordNotification,
+    pickBackupFile
   }
 }
