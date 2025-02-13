@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { supabase } from "@/integrations/supabase/client"
 import { generateCaseNumber, generateSupportEmailContent } from "@/utils/support"
+import { sendDiscordWebhookMessage } from "@/utils/discord"
 
 interface IssueReportDialogProps {
   userEmail: string | null
@@ -58,7 +59,9 @@ export const IssueReportDialog = ({ userEmail }: IssueReportDialogProps) => {
         .from('issues')
         .insert({
           user_id: user.id,
-          description: issueDescription
+          description: issueDescription,
+          status: 'open',
+          reported_at: new Date().toISOString()
         })
 
       if (dbError) {
@@ -88,6 +91,11 @@ export const IssueReportDialog = ({ userEmail }: IssueReportDialogProps) => {
       if (ackError) {
         console.error('Error sending acknowledgment email:', ackError)
       }
+
+      // Send Discord notification
+      await sendDiscordWebhookMessage(`🎫 New Issue Report (${caseNumber})
+📧 Reporter: ${userEmail}
+📝 Description: ${issueDescription}`, "support")
 
       toast({
         title: "Issue Report Sent",
