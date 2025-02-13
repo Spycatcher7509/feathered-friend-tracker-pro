@@ -26,6 +26,22 @@ const BirdSightingsList = () => {
     checkAdmin()
   }, [])
 
+  const { data: trendSpecies } = useQuery({
+    queryKey: ["bird-trends", searchQuery],
+    queryFn: async () => {
+      if (!searchQuery) return []
+      
+      const { data, error } = await supabase
+        .from("bird_trends")
+        .select("species_name")
+        .ilike('species_name', `%${searchQuery}%`)
+        .order('species_name')
+      
+      if (error) throw error
+      return data.map(trend => trend.species_name)
+    }
+  })
+
   const { data: sightings, isLoading, refetch } = useQuery({
     queryKey: ["bird-sightings", showGlobal, searchQuery],
     queryFn: async () => {
@@ -46,7 +62,12 @@ const BirdSightingsList = () => {
       }
 
       if (searchQuery) {
-        query = query.textSearch('search_text', searchQuery)
+        // Include birds from trends data in the search
+        if (trendSpecies?.length) {
+          query = query.or(`bird_name.ilike.%${searchQuery}%,bird_name.in.(${trendSpecies.map(name => `'${name}'`).join(',')})`)
+        } else {
+          query = query.ilike('bird_name', `%${searchQuery}%`)
+        }
       }
       
       const { data, error } = await query
@@ -58,7 +79,8 @@ const BirdSightingsList = () => {
         isPersonal: sighting.user_id === user?.id,
         scientificName: sighting.bird_species?.scientific_name
       }))
-    }
+    },
+    enabled: !!trendSpecies // Only run this query after we have trend species data
   })
 
   const handleImageUpload = async (sightingId: string, file: File) => {
