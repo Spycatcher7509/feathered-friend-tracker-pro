@@ -57,14 +57,12 @@ export const IssueReportDialog = ({ userEmail }: IssueReportDialogProps) => {
         throw new Error("User not authenticated")
       }
 
-      // Store issue in database
+      // Store issue in database - status will default to 'open'
       const { error: dbError } = await supabase
         .from('issues')
         .insert({
           user_id: user.id,
-          description: issueDescription,
-          status: 'open'
-          // Remove reported_at as it's not in the schema
+          description: issueDescription
         })
 
       if (dbError) {
