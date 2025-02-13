@@ -2,12 +2,12 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { useQuery } from "@tanstack/react-query"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { supabase } from "@/integrations/supabase/client"
 import { useToast } from "@/hooks/use-toast"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Search } from "lucide-react"
+import { Search, Trash2 } from "lucide-react"
 
 interface BirdSpecies {
   id: string
@@ -24,6 +24,7 @@ interface BirdSpecies {
 export function BirdSpeciesManager() {
   const [searchQuery, setSearchQuery] = useState("")
   const { toast } = useToast()
+  const queryClient = useQueryClient()
 
   const { data: birdSpecies, isLoading, error } = useQuery({
     queryKey: ["bird-species", searchQuery],
@@ -48,6 +49,34 @@ export function BirdSpeciesManager() {
       return data as BirdSpecies[]
     }
   })
+
+  const handleDelete = async (speciesId: string) => {
+    try {
+      const { error } = await supabase
+        .from('bird_species')
+        .delete()
+        .eq('id', speciesId)
+
+      if (error) {
+        throw error
+      }
+
+      toast({
+        title: "Success",
+        description: "Bird species deleted successfully",
+      })
+
+      // Refresh the bird species list
+      queryClient.invalidateQueries({ queryKey: ["bird-species"] })
+    } catch (error) {
+      console.error("Error deleting bird species:", error)
+      toast({
+        title: "Error",
+        description: "Failed to delete bird species. You can only delete species you've recorded.",
+        variant: "destructive",
+      })
+    }
+  }
 
   if (error) {
     toast({
@@ -100,13 +129,23 @@ export function BirdSpeciesManager() {
                       </div>
                     )}
                     <div className="flex-grow space-y-2">
-                      <div>
-                        <h4 className="font-medium text-lg">{species.name}</h4>
-                        {species.scientific_name && (
-                          <p className="text-sm text-gray-500 italic">
-                            {species.scientific_name}
-                          </p>
-                        )}
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h4 className="font-medium text-lg">{species.name}</h4>
+                          {species.scientific_name && (
+                            <p className="text-sm text-gray-500 italic">
+                              {species.scientific_name}
+                            </p>
+                          )}
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDelete(species.id)}
+                          className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                       
                       {species.description && (
