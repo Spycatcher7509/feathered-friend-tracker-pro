@@ -28,6 +28,12 @@ endobj
 5 0 obj
 <</Length 2000>>
 stream
+q
+/DeviceRGB cs
+0.95 0.99 0.89 rg % Light green background (#F2FCE2)
+0 0 612 792 re
+f
+1 1 1 rg % White text
 BT
 /F1 24 Tf
 50 750 Td
@@ -144,6 +150,7 @@ BT
 0 -15 Td
 (   - Document all system changes) Tj
 ET
+Q
 endstream
 endobj
 
