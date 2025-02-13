@@ -92,6 +92,39 @@ export type Database = {
         }
         Relationships: []
       }
+      backup_schedules: {
+        Row: {
+          created_at: string
+          day_of_month: number | null
+          day_of_week: number | null
+          frequency: string
+          id: string
+          is_active: boolean | null
+          time_of_day: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          day_of_month?: number | null
+          day_of_week?: number | null
+          frequency: string
+          id?: string
+          is_active?: boolean | null
+          time_of_day: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          day_of_month?: number | null
+          day_of_week?: number | null
+          frequency?: string
+          id?: string
+          is_active?: boolean | null
+          time_of_day?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       backups: {
         Row: {
           created_at: string
@@ -100,6 +133,8 @@ export type Database = {
           filename: string
           id: string
           size_bytes: number | null
+          total_cost: number | null
+          total_tokens: number | null
           updated_at: string
         }
         Insert: {
@@ -109,6 +144,8 @@ export type Database = {
           filename: string
           id?: string
           size_bytes?: number | null
+          total_cost?: number | null
+          total_tokens?: number | null
           updated_at?: string
         }
         Update: {
@@ -118,6 +155,8 @@ export type Database = {
           filename?: string
           id?: string
           size_bytes?: number | null
+          total_cost?: number | null
+          total_tokens?: number | null
           updated_at?: string
         }
         Relationships: []
@@ -400,6 +439,10 @@ export type Database = {
           user_id: string
         }
         Returns: boolean
+      }
+      trigger_backup: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
     }
     Enums: {

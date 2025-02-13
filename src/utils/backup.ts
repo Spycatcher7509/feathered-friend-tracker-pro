@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client"
 import { uploadToGoogleDrive } from "@/utils/googleDrive"
 import { sendDiscordWebhookMessage } from "@/utils/discord"
@@ -74,11 +75,19 @@ export const createBackup = async () => {
     const filename = `birdwatch_backup_${format(now, 'dd-MM-yyyy_HH-mm-ss')}.json`
     const result = await uploadToGoogleDrive(file, filename, BACKUP_FOLDER_ID)
     
+    // Calculate tokens and cost
+    const tokensPerRecord = 100 // Estimate tokens per record
+    const costPerToken = 0.0001 // Example cost per token in USD
+    const totalTokens = (profiles.length + birdSounds.length) * tokensPerRecord
+    const totalCost = totalTokens * costPerToken
+    
     // Record the backup in Supabase
     const { error: backupError } = await supabase.from('backups').insert({
       filename: result.name,
       drive_file_id: result.id,
-      size_bytes: file.size
+      size_bytes: file.size,
+      total_tokens: totalTokens,
+      total_cost: totalCost
     })
     
     if (backupError) {
@@ -97,7 +106,15 @@ export const createBackup = async () => {
   • ${profiles.length} user profiles
   • ${birdSounds.length} bird recordings
 📦 Size: ${fileSizeInMB} MB
-🔗 Drive File ID: ${result.id}`)
+💰 Cost:
+  • Tokens used: ${totalTokens.toLocaleString()}
+  • Total cost: $${totalCost.toFixed(4)}
+🔗 Drive File ID: ${result.id}
+
+⏰ Next scheduled backups:
+• Daily: Midnight (00:00)
+• Weekly: Sunday at Midnight
+• Monthly: 1st day at Midnight`)
     
     console.log('Backup process completed successfully')
     return result
