@@ -1,4 +1,3 @@
-
 %PDF-1.7
 1 0 obj
 <</Type /Catalog
@@ -30,7 +29,7 @@ endobj
 stream
 q
 /DeviceRGB cs
-0.95 0.99 0.89 rg % Light green background (#F2FCE2)
+0.133 0.208 0.161 rg % Very dark green background (#223534)
 0 0 612 792 re
 f
 1 1 1 rg % White text
