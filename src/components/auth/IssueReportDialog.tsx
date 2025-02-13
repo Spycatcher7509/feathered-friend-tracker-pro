@@ -93,13 +93,18 @@ export const IssueReportDialog = ({ userEmail }: IssueReportDialogProps) => {
         console.error('Error sending acknowledgment email:', ackError)
       }
 
-      // Send Discord notification
-      await sendDiscordWebhookMessage(`🎫 New Issue Report (${caseNumber})
+      try {
+        // Send Discord notification
+        await sendDiscordWebhookMessage(`🎫 New Issue Report (${caseNumber})
 📅 Reported: ${formattedDate}
 📧 Reporter: ${userEmail}
 📝 Description: ${issueDescription}
 
 Our support team will respond within 48 hours.`, "support")
+      } catch (discordError) {
+        console.error('Error sending Discord notification:', discordError)
+        // Don't throw the error as this is not critical for the user
+      }
 
       toast({
         title: "Issue Report Sent",
@@ -111,8 +116,9 @@ Your reported issue:
 Our support team will get back to you within 48 hours.`,
       })
 
+      // Close dialog first, then reset description
       setIsDialogOpen(false)
-      setIssueDescription("")
+      setTimeout(() => setIssueDescription(""), 100)
     } catch (error) {
       console.error('Error sending issue report:', error)
       toast({
@@ -126,7 +132,15 @@ Our support team will get back to you within 48 hours.`,
   }
 
   return (
-    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+    <Dialog 
+      open={isDialogOpen} 
+      onOpenChange={(open) => {
+        setIsDialogOpen(open)
+        if (!open) {
+          setTimeout(() => setIssueDescription(""), 100)
+        }
+      }}
+    >
       <DialogTrigger asChild>
         <Button
           variant="outline"
