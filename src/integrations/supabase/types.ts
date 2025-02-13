@@ -171,8 +171,10 @@ export type Database = {
           latitude: number | null
           location: string
           longitude: number | null
+          search_text: unknown | null
           sighting_date: string
           sound_url: string | null
+          species_id: string | null
           updated_at: string
           user_id: string
         }
@@ -185,8 +187,10 @@ export type Database = {
           latitude?: number | null
           location: string
           longitude?: number | null
+          search_text?: unknown | null
           sighting_date?: string
           sound_url?: string | null
+          species_id?: string | null
           updated_at?: string
           user_id: string
         }
@@ -199,10 +203,47 @@ export type Database = {
           latitude?: number | null
           location?: string
           longitude?: number | null
+          search_text?: unknown | null
           sighting_date?: string
           sound_url?: string | null
+          species_id?: string | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bird_sightings_species_id_fkey"
+            columns: ["species_id"]
+            isOneToOne: false
+            referencedRelation: "bird_species"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bird_species: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          scientific_name: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          scientific_name?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          scientific_name?: string | null
+          updated_at?: string
         }
         Relationships: []
       }

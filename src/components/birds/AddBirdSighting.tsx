@@ -7,6 +7,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { Bird, MapPin, Mic } from "lucide-react"
 import { supabase } from "@/integrations/supabase/client"
 import AudioRecorder from "./AudioRecorder"
+import { BirdSpeciesManager } from "./BirdSpeciesManager"
+import { useQuery } from "@tanstack/react-query"
 
 const AddBirdSighting = () => {
   const [loading, setLoading] = useState(false)
@@ -15,6 +17,24 @@ const AddBirdSighting = () => {
   const [description, setDescription] = useState("")
   const [soundUrl, setSoundUrl] = useState<string | null>(null)
   const { toast } = useToast()
+
+  // Add query for bird species suggestions
+  const { data: birdSuggestions } = useQuery({
+    queryKey: ["bird-species-suggestions", birdName],
+    queryFn: async () => {
+      if (!birdName) return []
+      
+      const { data, error } = await supabase
+        .from("bird_species")
+        .select("id, name")
+        .ilike("name", `%${birdName}%`)
+        .limit(5)
+
+      if (error) throw error
+      return data
+    },
+    enabled: birdName.length > 0
+  })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -27,10 +47,31 @@ const AddBirdSighting = () => {
         throw new Error("User not authenticated")
       }
 
+      // First check if this bird species exists
+      const { data: species } = await supabase
+        .from("bird_species")
+        .select("id")
+        .ilike("name", birdName)
+        .maybeSingle()
+
+      // If it doesn't exist, create it
+      let speciesId = species?.id
+      if (!species) {
+        const { data: newSpecies, error: speciesError } = await supabase
+          .from("bird_species")
+          .insert({ name: birdName })
+          .select("id")
+          .single()
+
+        if (speciesError) throw speciesError
+        speciesId = newSpecies.id
+      }
+
       const { error } = await supabase
         .from("bird_sightings")
         .insert({
           bird_name: birdName,
+          species_id: speciesId,
           location,
           description,
           sound_url: soundUrl,
@@ -107,13 +148,24 @@ const AddBirdSighting = () => {
         <label htmlFor="birdName" className="text-sm font-medium text-gray-700">
           Bird Name
         </label>
-        <Input
-          id="birdName"
-          value={birdName}
-          onChange={(e) => setBirdName(e.target.value)}
-          placeholder="Enter bird name"
-          required
-        />
+        <div className="relative">
+          <Input
+            id="birdName"
+            value={birdName}
+            onChange={(e) => setBirdName(e.target.value)}
+            placeholder="Enter bird name"
+            required
+            list="bird-suggestions"
+          />
+          <datalist id="bird-suggestions">
+            {birdSuggestions?.map(bird => (
+              <option key={bird.id} value={bird.name} />
+            ))}
+          </datalist>
+          <div className="absolute right-0 top-0">
+            <BirdSpeciesManager />
+          </div>
+        </div>
       </div>
 
       <div className="space-y-2">

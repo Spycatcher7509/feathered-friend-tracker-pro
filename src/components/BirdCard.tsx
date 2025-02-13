@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast"
 interface BirdCardProps {
   image: string
   name: string
+  scientificName?: string
   location: string
   date: string
   description?: string
@@ -23,6 +24,7 @@ interface BirdCardProps {
 const BirdCard = ({ 
   image, 
   name, 
+  scientificName,
   location, 
   date, 
   description, 
@@ -142,7 +144,12 @@ const BirdCard = ({
 
       <div className="p-4 space-y-2">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-nature-800">{name}</h3>
+          <div>
+            <h3 className="text-lg font-semibold text-nature-800">{name}</h3>
+            {scientificName && (
+              <p className="text-sm italic text-gray-600">{scientificName}</p>
+            )}
+          </div>
           {isPersonal && (
             <Badge variant="secondary" className="bg-nature-100 text-nature-800">
               My Sighting
@@ -166,6 +173,12 @@ const BirdCard = ({
               <ScrollArea className="max-h-[60vh] mt-4">
                 <div className="space-y-4">
                   <img src={image} alt={name} className="w-full rounded-lg" />
+                  {scientificName && (
+                    <div>
+                      <h4 className="font-semibold">Scientific Name</h4>
+                      <p className="italic">{scientificName}</p>
+                    </div>
+                  )}
                   <div>
                     <h4 className="font-semibold">Location</h4>
                     <p>{location}</p>

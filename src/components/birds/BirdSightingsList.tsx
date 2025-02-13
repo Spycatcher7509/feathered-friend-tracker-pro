@@ -32,7 +32,13 @@ const BirdSightingsList = () => {
       const { data: { user } } = await supabase.auth.getUser()
       let query = supabase
         .from("bird_sightings")
-        .select("*")
+        .select(`
+          *,
+          bird_species (
+            name,
+            scientific_name
+          )
+        `)
         .order("created_at", { ascending: false })
 
       if (!showGlobal) {
@@ -49,7 +55,8 @@ const BirdSightingsList = () => {
       
       return data.map(sighting => ({
         ...sighting,
-        isPersonal: sighting.user_id === user?.id
+        isPersonal: sighting.user_id === user?.id,
+        scientificName: sighting.bird_species?.scientific_name
       }))
     }
   })
@@ -171,6 +178,7 @@ const BirdSightingsList = () => {
               <BirdCard
                 key={sighting.id}
                 name={sighting.bird_name}
+                scientificName={sighting.scientificName}
                 location={sighting.location}
                 date={format(new Date(sighting.created_at), "PPP")}
                 image={sighting.image_url || "/placeholder.svg"}
