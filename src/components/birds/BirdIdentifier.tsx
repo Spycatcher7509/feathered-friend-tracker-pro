@@ -1,10 +1,21 @@
-
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Camera, Upload, Loader2, Save, X } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { supabase } from "@/integrations/supabase/client"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+
+interface BirdMetadata {
+  name: string
+  scientific_name: string
+  description: string
+  habitat: string
+  size_range: string
+  conservation_status: string
+  seasonal_patterns: string
+}
 
 export function BirdIdentifier() {
   const [isProcessing, setIsProcessing] = useState(false)
@@ -12,6 +23,15 @@ export function BirdIdentifier() {
   const { toast } = useToast()
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [isOpen, setIsOpen] = useState(false)
+  const [metadata, setMetadata] = useState<BirdMetadata>({
+    name: '',
+    scientific_name: '',
+    description: '',
+    habitat: '',
+    size_range: '',
+    conservation_status: '',
+    seasonal_patterns: ''
+  })
 
   const handleImageUpload = async (file: File) => {
     try {
@@ -47,47 +67,6 @@ export function BirdIdentifier() {
     } finally {
       setIsProcessing(false)
     }
-  }
-
-  const handleSave = async () => {
-    if (!predictions || predictions.length === 0) return
-
-    try {
-      const topPrediction = predictions[0]
-      const { error } = await supabase
-        .from('bird_species')
-        .insert({
-          name: topPrediction.label,
-          image_url: previewUrl || null,
-        })
-        .select()
-        .single()
-
-      if (error) throw error
-
-      toast({
-        title: "Success",
-        description: "Bird species saved successfully",
-      })
-      
-      // Close the dialog and reset state
-      setIsOpen(false)
-      setPredictions(null)
-      setPreviewUrl(null)
-    } catch (error) {
-      console.error('Error saving bird species:', error)
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to save bird species. Please try again.",
-      })
-    }
-  }
-
-  const handleCancel = () => {
-    setIsOpen(false)
-    setPredictions(null)
-    setPreviewUrl(null)
   }
 
   const handleFileInput = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -134,6 +113,75 @@ export function BirdIdentifier() {
     }
   }
 
+  const handleMetadataChange = (field: keyof BirdMetadata, value: string) => {
+    setMetadata(prev => ({
+      ...prev,
+      [field]: value
+    }))
+  }
+
+  const handleSave = async () => {
+    if (!predictions || predictions.length === 0) return
+
+    try {
+      const topPrediction = predictions[0]
+      const birdData = {
+        ...metadata,
+        name: metadata.name || topPrediction.label,
+        image_url: previewUrl || null,
+      }
+
+      const { error } = await supabase
+        .from('bird_species')
+        .insert(birdData)
+        .select()
+        .single()
+
+      if (error) throw error
+
+      toast({
+        title: "Success",
+        description: "Bird species saved successfully",
+      })
+      
+      // Close the dialog and reset state
+      setIsOpen(false)
+      setPredictions(null)
+      setPreviewUrl(null)
+      setMetadata({
+        name: '',
+        scientific_name: '',
+        description: '',
+        habitat: '',
+        size_range: '',
+        conservation_status: '',
+        seasonal_patterns: ''
+      })
+    } catch (error) {
+      console.error('Error saving bird species:', error)
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to save bird species. Please try again.",
+      })
+    }
+  }
+
+  const handleCancel = () => {
+    setIsOpen(false)
+    setPredictions(null)
+    setPreviewUrl(null)
+    setMetadata({
+      name: '',
+      scientific_name: '',
+      description: '',
+      habitat: '',
+      size_range: '',
+      conservation_status: '',
+      seasonal_patterns: ''
+    })
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
@@ -142,7 +190,7 @@ export function BirdIdentifier() {
           Identify Bird
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>Identify Bird Species</DialogTitle>
         </DialogHeader>
@@ -209,6 +257,64 @@ export function BirdIdentifier() {
                     </span>
                   </div>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {predictions && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium">Name</label>
+                  <Input
+                    placeholder={predictions[0].label}
+                    value={metadata.name}
+                    onChange={(e) => handleMetadataChange('name', e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Scientific Name</label>
+                  <Input
+                    value={metadata.scientific_name}
+                    onChange={(e) => handleMetadataChange('scientific_name', e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Habitat</label>
+                  <Input
+                    value={metadata.habitat}
+                    onChange={(e) => handleMetadataChange('habitat', e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Size Range</label>
+                  <Input
+                    value={metadata.size_range}
+                    onChange={(e) => handleMetadataChange('size_range', e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Conservation Status</label>
+                  <Input
+                    value={metadata.conservation_status}
+                    onChange={(e) => handleMetadataChange('conservation_status', e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Seasonal Patterns</label>
+                  <Input
+                    value={metadata.seasonal_patterns}
+                    onChange={(e) => handleMetadataChange('seasonal_patterns', e.target.value)}
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="text-sm font-medium">Description</label>
+                <Textarea
+                  value={metadata.description}
+                  onChange={(e) => handleMetadataChange('description', e.target.value)}
+                  className="h-20"
+                />
               </div>
             </div>
           )}
