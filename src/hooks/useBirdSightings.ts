@@ -25,7 +25,7 @@ export const useBirdSightings = (
   trendSpecies: string[] | undefined
 ) => {
   return useQuery({
-    queryKey: ["bird-sightings", showGlobal, searchQuery],
+    queryKey: ["bird-sightings", showGlobal, searchQuery, trendSpecies],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser()
       let query = supabase
@@ -44,11 +44,14 @@ export const useBirdSightings = (
       }
 
       if (searchQuery) {
+        const searchConditions = [`bird_name.ilike.%${searchQuery}%`]
+        
+        // Add trend species to search if available
         if (trendSpecies?.length) {
-          query = query.or(`bird_name.ilike.%${searchQuery}%,bird_name.in.(${trendSpecies.map(name => `'${name}'`).join(',')})`)
-        } else {
-          query = query.ilike('bird_name', `%${searchQuery}%`)
+          searchConditions.push(`bird_name.in.(${trendSpecies.map(name => `'${name}'`).join(',')})`)
         }
+        
+        query = query.or(searchConditions.join(','))
       }
       
       const { data, error } = await query
@@ -61,7 +64,7 @@ export const useBirdSightings = (
         scientificName: sighting.bird_species?.scientific_name
       }))
     },
-    enabled: !!trendSpecies
+    enabled: true // Remove the dependency on trendSpecies
   })
 }
 

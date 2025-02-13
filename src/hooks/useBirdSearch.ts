@@ -15,7 +15,7 @@ export const useBirdSearch = (searchQuery: string) => {
         .order('species_name')
       
       if (error) throw error
-      return data.map(trend => trend.species_name)
+      return data?.map(trend => trend.species_name) || []
     }
   })
 }
