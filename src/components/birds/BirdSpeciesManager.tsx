@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Search } from "lucide-react"
+import { BirdIdentifier } from "./BirdIdentifier"
 
 interface BirdSpecies {
   id: string
@@ -23,7 +24,7 @@ export function BirdSpeciesManager() {
   const { data: birdSpecies, isLoading, error } = useQuery({
     queryKey: ["bird-species", searchQuery],
     queryFn: async () => {
-      console.log("Searching for:", searchQuery) // Debug log
+      console.log("Searching for:", searchQuery)
       const query = supabase
         .from("bird_species")
         .select("*")
@@ -35,11 +36,11 @@ export function BirdSpeciesManager() {
       const { data, error } = await query.order("name")
 
       if (error) {
-        console.error("Supabase error:", error) // Debug log
+        console.error("Supabase error:", error)
         throw error
       }
       
-      console.log("Search results:", data) // Debug log
+      console.log("Search results:", data)
       return data as BirdSpecies[]
     }
   })
@@ -55,10 +56,13 @@ export function BirdSpeciesManager() {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline" className="gap-2">
-          <Search className="h-4 w-4" />
-          Browse Bird Species
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" className="gap-2">
+            <Search className="h-4 w-4" />
+            Browse Bird Species
+          </Button>
+          <BirdIdentifier />
+        </div>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[625px]">
         <DialogHeader>
