@@ -9,5 +9,5 @@ verify_jwt = false
 
 [functions.send-email]
 verify_jwt = false
-import_map = "./supabase/functions/send-email/import_map.json"
+import_map = "./functions/send-email/import_map.json"
 
