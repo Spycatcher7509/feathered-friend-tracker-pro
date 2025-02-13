@@ -449,6 +449,33 @@ export type Database = {
         }
         Relationships: []
       }
+      guides: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+          title: string
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+          title: string
+          type: string
+          updated_at?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+          title?: string
+          type?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       issues: {
         Row: {
           created_at: string

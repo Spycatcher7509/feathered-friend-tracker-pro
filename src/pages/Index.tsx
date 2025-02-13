@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react"
 import Navigation from "@/components/Navigation"
 import PageLayout from "@/components/layout/PageLayout"
@@ -12,15 +11,18 @@ import ApiUsageMonitor from "@/components/admin/ApiUsageMonitor"
 import BirdTrends from "@/components/birds/BirdTrends"
 import SupportButtons from "@/components/auth/SupportButtons"
 import { Button } from "@/components/ui/button"
-import { ChevronDown, ChevronUp, BookOpenText, Shield } from "lucide-react"
+import { ChevronDown, ChevronUp, BookOpenText, Shield, FileText, FileCode } from "lucide-react"
 import { useAdminGroups } from "@/hooks/useAdminGroups"
 import { BirdSpeciesManager } from "@/components/birds/BirdSpeciesManager"
 import { BirdIdentifier } from "@/components/birds/BirdIdentifier"
 import { useToast } from "@/hooks/use-toast"
+import { GuideViewer } from "@/components/guides/GuideViewer"
 
 const Index = () => {
   const [showBirdSounds, setShowBirdSounds] = useState(false)
   const [showTrends, setShowTrends] = useState(false)
+  const [showUserGuide, setShowUserGuide] = useState(false)
+  const [showAdminGuide, setShowAdminGuide] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
   const { checkAdminStatus } = useAdminGroups()
   const { toast } = useToast()
@@ -80,26 +82,56 @@ const Index = () => {
           <div>
             <div className="mb-6">
               <h1 className="text-3xl font-bold text-nature-800">Bird Watching Dashboard</h1>
-              <div className="mt-4 flex gap-4">
-                <Button
-                  variant="outline"
-                  className="bg-[#223534] text-white hover:bg-[#2a4241]"
-                  onClick={handleUserGuide}
-                >
-                  <BookOpenText className="mr-2" />
-                  User Guide
-                </Button>
-                {isAdmin && (
+              <div className="mt-4 flex flex-wrap gap-4">
+                <div className="flex gap-2">
                   <Button
                     variant="outline"
                     className="bg-[#223534] text-white hover:bg-[#2a4241]"
-                    onClick={handleAdminGuide}
+                    onClick={handleUserGuide}
                   >
-                    <Shield className="mr-2" />
-                    Admin Guide
+                    <FileText className="mr-2" />
+                    PDF Guide
                   </Button>
+                  <Button
+                    variant="outline"
+                    className="bg-[#223534] text-white hover:bg-[#2a4241]"
+                    onClick={() => setShowUserGuide(!showUserGuide)}
+                  >
+                    <FileCode className="mr-2" />
+                    HTML Guide
+                  </Button>
+                </div>
+                {isAdmin && (
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      className="bg-[#223534] text-white hover:bg-[#2a4241]"
+                      onClick={handleAdminGuide}
+                    >
+                      <FileText className="mr-2" />
+                      PDF Admin Guide
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="bg-[#223534] text-white hover:bg-[#2a4241]"
+                      onClick={() => setShowAdminGuide(!showAdminGuide)}
+                    >
+                      <FileCode className="mr-2" />
+                      HTML Admin Guide
+                    </Button>
+                  </div>
                 )}
               </div>
+              {showUserGuide && (
+                <div className="mt-4">
+                  <GuideViewer type="user" />
+                </div>
+              )}
+              {showAdminGuide && isAdmin && (
+                <div className="mt-4">
+                  <GuideViewer type="admin" />
+                </div>
+              )}
             </div>
             
             <div className="grid md:grid-cols-2 gap-6">
