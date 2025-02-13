@@ -41,12 +41,13 @@ serve(async (req) => {
 
     console.log('Processing email request:', { to, subject })
 
+    // During development/testing, we use the Resend sandbox domain
     const response = await resend.emails.send({
-      from: 'BirdWatch Support <onboarding@resend.dev>',
+      from: 'BirdWatch <onboarding@resend.dev>',
       to: [to],
-      subject,
-      text,
-      html: html || text,
+      subject: `[TEST] ${subject}`,
+      text: `This is a test email from BirdWatch development environment.\n\n${text}`,
+      html: html ? `<div><p><strong>This is a test email from BirdWatch development environment.</strong></p>${html}</div>` : undefined,
     })
 
     console.log('Email sent successfully:', response)
@@ -69,4 +70,3 @@ serve(async (req) => {
     )
   }
 })
-
