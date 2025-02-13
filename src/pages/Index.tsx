@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react"
 import Navigation from "@/components/Navigation"
 import PageLayout from "@/components/layout/PageLayout"
@@ -11,7 +12,7 @@ import ApiUsageMonitor from "@/components/admin/ApiUsageMonitor"
 import BirdTrends from "@/components/birds/BirdTrends"
 import SupportButtons from "@/components/auth/SupportButtons"
 import { Button } from "@/components/ui/button"
-import { ChevronDown, ChevronUp, BookOpenText, Shield, FileText, FileCode } from "lucide-react"
+import { ChevronDown, ChevronUp, FileCode } from "lucide-react"
 import { useAdminGroups } from "@/hooks/useAdminGroups"
 import { BirdSpeciesManager } from "@/components/birds/BirdSpeciesManager"
 import { BirdIdentifier } from "@/components/birds/BirdIdentifier"
@@ -35,46 +36,6 @@ const Index = () => {
     checkAdmin()
   }, [])
 
-  const handleUserGuide = async () => {
-    try {
-      window.open('/BirdWatch-User-Guide.pdf', '_blank')
-      toast({
-        title: "Success",
-        description: "User guide opened in a new tab",
-      })
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Could not open the user guide",
-      })
-    }
-  }
-
-  const handleAdminGuide = async () => {
-    try {
-      if (isAdmin) {
-        window.open('/BirdWatch-Admin-Guide.pdf', '_blank')
-        toast({
-          title: "Success",
-          description: "Admin guide opened in a new tab",
-        })
-      } else {
-        toast({
-          variant: "destructive",
-          title: "Access Denied",
-          description: "You need admin privileges to view this guide",
-        })
-      }
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Could not open the admin guide",
-      })
-    }
-  }
-
   return (
     <PageLayout header={<Navigation />}>
       <div className="container mx-auto px-4 py-8 space-y-12">
@@ -83,43 +44,23 @@ const Index = () => {
             <div className="mb-6">
               <h1 className="text-3xl font-bold text-nature-800">Bird Watching Dashboard</h1>
               <div className="mt-4 flex flex-wrap gap-4">
-                <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  className="bg-[#223534] text-white hover:bg-[#2a4241]"
+                  onClick={() => setShowUserGuide(!showUserGuide)}
+                >
+                  <FileCode className="mr-2" />
+                  User Guide
+                </Button>
+                {isAdmin && (
                   <Button
                     variant="outline"
                     className="bg-[#223534] text-white hover:bg-[#2a4241]"
-                    onClick={handleUserGuide}
-                  >
-                    <FileText className="mr-2" />
-                    PDF Guide
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="bg-[#223534] text-white hover:bg-[#2a4241]"
-                    onClick={() => setShowUserGuide(!showUserGuide)}
+                    onClick={() => setShowAdminGuide(!showAdminGuide)}
                   >
                     <FileCode className="mr-2" />
-                    HTML Guide
+                    Admin Guide
                   </Button>
-                </div>
-                {isAdmin && (
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      className="bg-[#223534] text-white hover:bg-[#2a4241]"
-                      onClick={handleAdminGuide}
-                    >
-                      <FileText className="mr-2" />
-                      PDF Admin Guide
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="bg-[#223534] text-white hover:bg-[#2a4241]"
-                      onClick={() => setShowAdminGuide(!showAdminGuide)}
-                    >
-                      <FileCode className="mr-2" />
-                      HTML Admin Guide
-                    </Button>
-                  </div>
                 )}
               </div>
               {showUserGuide && (
