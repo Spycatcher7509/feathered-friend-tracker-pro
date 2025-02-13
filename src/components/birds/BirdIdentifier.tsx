@@ -1,7 +1,7 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Camera, Upload, Loader2 } from "lucide-react"
+import { Camera, Upload, Loader2, Save, X } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { supabase } from "@/integrations/supabase/client"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
@@ -11,6 +11,7 @@ export function BirdIdentifier() {
   const [predictions, setPredictions] = useState<any[] | null>(null)
   const { toast } = useToast()
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [isOpen, setIsOpen] = useState(false)
 
   const handleImageUpload = async (file: File) => {
     try {
@@ -46,6 +47,47 @@ export function BirdIdentifier() {
     } finally {
       setIsProcessing(false)
     }
+  }
+
+  const handleSave = async () => {
+    if (!predictions || predictions.length === 0) return
+
+    try {
+      const topPrediction = predictions[0]
+      const { error } = await supabase
+        .from('bird_species')
+        .insert({
+          name: topPrediction.label,
+          image_url: previewUrl || null,
+        })
+        .select()
+        .single()
+
+      if (error) throw error
+
+      toast({
+        title: "Success",
+        description: "Bird species saved successfully",
+      })
+      
+      // Close the dialog and reset state
+      setIsOpen(false)
+      setPredictions(null)
+      setPreviewUrl(null)
+    } catch (error) {
+      console.error('Error saving bird species:', error)
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to save bird species. Please try again.",
+      })
+    }
+  }
+
+  const handleCancel = () => {
+    setIsOpen(false)
+    setPredictions(null)
+    setPreviewUrl(null)
   }
 
   const handleFileInput = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -93,7 +135,7 @@ export function BirdIdentifier() {
   }
 
   return (
-    <Dialog>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" className="gap-2">
           <Camera className="h-4 w-4" />
@@ -168,6 +210,19 @@ export function BirdIdentifier() {
                   </div>
                 ))}
               </div>
+            </div>
+          )}
+
+          {predictions && (
+            <div className="flex justify-end gap-2 pt-4">
+              <Button variant="outline" onClick={handleCancel}>
+                <X className="h-4 w-4 mr-2" />
+                Cancel
+              </Button>
+              <Button onClick={handleSave}>
+                <Save className="h-4 w-4 mr-2" />
+                Save to Species
+              </Button>
             </div>
           )}
         </div>
