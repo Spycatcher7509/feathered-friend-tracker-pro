@@ -1,7 +1,8 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { Resend } from "npm:resend@2.0.0"
 
-const GMAIL_API_KEY = Deno.env.get('GMAIL_API_KEY')
+const resend = new Resend(Deno.env.get('RESEND_API_KEY'))
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -22,11 +23,6 @@ serve(async (req) => {
   }
 
   try {
-    if (!GMAIL_API_KEY) {
-      console.error('GMAIL_API_KEY is not configured')
-      throw new Error('GMAIL_API_KEY is not configured')
-    }
-
     const requestData = await req.json()
     console.log('Received request data:', requestData)
 
@@ -45,39 +41,17 @@ serve(async (req) => {
 
     console.log('Processing email request:', { to, subject })
 
-    // Create email content in base64 format
-    const email = {
-      raw: btoa(`
-From: BirdWatch Support <support@thewrightsupport.com>
-To: ${to}
-Subject: ${subject}
-Content-Type: ${html ? 'text/html' : 'text/plain'}
-
-${html || text}
-      `).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
-    }
-
-    console.log('Sending email with data:', { to, subject })
-
-    const response = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${GMAIL_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(email),
+    const response = await resend.emails.send({
+      from: 'BirdWatch Support <onboarding@resend.dev>',
+      to: [to],
+      subject,
+      text,
+      html: html || text,
     })
 
-    if (!response.ok) {
-      const errorText = await response.text()
-      console.error('Gmail API error response:', response.status, errorText)
-      throw new Error(`Gmail API error: ${errorText}`)
-    }
+    console.log('Email sent successfully:', response)
 
-    const responseData = await response.json()
-    console.log('Gmail API success response:', responseData)
-
-    return new Response(JSON.stringify(responseData), {
+    return new Response(JSON.stringify(response), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
     })
