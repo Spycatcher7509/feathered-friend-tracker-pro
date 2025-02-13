@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client"
 import { uploadToGoogleDrive } from "@/utils/googleDrive"
 import { sendDiscordWebhookMessage } from "@/utils/discord"
@@ -37,14 +36,20 @@ export const createBackup = async () => {
   console.log('Starting backup process...')
   
   try {
+    await sendDiscordWebhookMessage("🔄 Starting backup process...")
+
     // Fetch data from Supabase
     console.log('Fetching profiles from Supabase...')
     const { data: profiles, error: profilesError } = await supabase.from('profiles').select('*')
     if (profilesError) throw profilesError
 
+    await sendDiscordWebhookMessage(`📊 Found ${profiles.length} user profiles`)
+
     console.log('Fetching bird sounds from Supabase...')
     const { data: birdSounds, error: birdSoundsError } = await supabase.from('external_bird_sounds').select('*')
     if (birdSoundsError) throw birdSoundsError
+
+    await sendDiscordWebhookMessage(`🎵 Found ${birdSounds.length} bird sound recordings`)
 
     // Process bird sounds to ensure they're in our storage
     console.log('Processing bird sounds...')
@@ -69,6 +74,8 @@ export const createBackup = async () => {
     console.log('Creating backup file...')
     const file = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' })
     
+    await sendDiscordWebhookMessage("💾 Creating backup file and uploading to Google Drive...")
+    
     console.log('Uploading backup to Google Drive...')
     const filename = `birdwatch_backup_${format(now, 'dd-MM-yyyy_HH-mm-ss')}.json`
     const result = await uploadToGoogleDrive(file, filename, BACKUP_FOLDER_ID)
@@ -85,13 +92,26 @@ export const createBackup = async () => {
       throw backupError
     }
     
+    const fileSizeInMB = (file.size / (1024 * 1024)).toFixed(2)
+    
     console.log('Sending success notification to Discord...')
-    await sendDiscordWebhookMessage(`✅ Backup completed successfully at ${format(now, 'dd/MM/yyyy, HH:mm:ss')}`)
+    await sendDiscordWebhookMessage(`✅ Backup completed successfully!
+
+📅 Time: ${format(now, 'dd/MM/yyyy, HH:mm:ss')}
+📁 Filename: ${result.name}
+📊 Contents:
+  • ${profiles.length} user profiles
+  • ${birdSounds.length} bird recordings
+📦 Size: ${fileSizeInMB} MB
+🔗 Drive File ID: ${result.id}`)
     
     console.log('Backup process completed successfully')
     return result
   } catch (error) {
     console.error('Error during backup process:', error)
+    await sendDiscordWebhookMessage(`❌ Backup failed at ${format(new Date(), 'dd/MM/yyyy, HH:mm:ss')}
+    
+⚠️ Error: ${error instanceof Error ? error.message : String(error)}`)
     throw error
   }
 }
