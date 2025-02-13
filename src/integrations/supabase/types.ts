@@ -380,6 +380,48 @@ export type Database = {
         }
         Relationships: []
       }
+      email_queue: {
+        Row: {
+          attempts: number | null
+          created_at: string | null
+          error_message: string | null
+          html_content: string | null
+          id: string
+          sent_at: string | null
+          status: string
+          subject: string
+          text_content: string
+          to_email: string
+          updated_at: string | null
+        }
+        Insert: {
+          attempts?: number | null
+          created_at?: string | null
+          error_message?: string | null
+          html_content?: string | null
+          id?: string
+          sent_at?: string | null
+          status?: string
+          subject: string
+          text_content: string
+          to_email: string
+          updated_at?: string | null
+        }
+        Update: {
+          attempts?: number | null
+          created_at?: string | null
+          error_message?: string | null
+          html_content?: string | null
+          id?: string
+          sent_at?: string | null
+          status?: string
+          subject?: string
+          text_content?: string
+          to_email?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       external_bird_sounds: {
         Row: {
           bird_name: string
@@ -559,6 +601,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_daily_email_count: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
       gtrgm_compress: {
         Args: {
           "": unknown

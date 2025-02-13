@@ -6,3 +6,9 @@ verify_jwt = false
 
 [functions.download-audio]
 verify_jwt = false
+
+[functions.send-email]
+verify_jwt = false
+import_map = [
+  "https://raw.githubusercontent.com/googleapis/google-api-nodejs-client/main/src/apis/gmail/v1.ts"
+]
