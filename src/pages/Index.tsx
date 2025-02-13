@@ -10,6 +10,7 @@ import BirdSightingsList from "@/components/birds/BirdSightingsList"
 import BirdSpeciesImporter from "@/components/birds/BirdSpeciesImporter"
 import ApiUsageMonitor from "@/components/admin/ApiUsageMonitor"
 import BirdTrends from "@/components/birds/BirdTrends"
+import SupportButtons from "@/components/auth/SupportButtons"
 import { Button } from "@/components/ui/button"
 import { ChevronDown, ChevronUp } from "lucide-react"
 import { useAdminGroups } from "@/hooks/useAdminGroups"
@@ -40,12 +41,7 @@ const Index = () => {
             <div className="flex flex-wrap gap-4 items-center">
               <BirdSpeciesImporter />
               <ProfileImporter />
-              <Button variant="outline" size="sm">
-                User Guide
-              </Button>
-              <Button variant="outline" size="sm">
-                Report an Issue
-              </Button>
+              <SupportButtons />
             </div>
           </div>
           
