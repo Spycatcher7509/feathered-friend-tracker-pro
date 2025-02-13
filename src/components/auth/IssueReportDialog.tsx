@@ -63,8 +63,8 @@ export const IssueReportDialog = ({ userEmail }: IssueReportDialogProps) => {
         .insert({
           user_id: user.id,
           description: issueDescription,
-          status: 'open',
-          reported_at: reportedAt.toISOString()
+          status: 'open'
+          // Remove reported_at as it's not in the schema
         })
 
       if (dbError) {
