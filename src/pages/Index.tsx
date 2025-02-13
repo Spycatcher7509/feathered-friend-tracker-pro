@@ -38,17 +38,18 @@ const Index = () => {
               <h1 className="text-3xl font-bold text-nature-800">Bird Watching Dashboard</h1>
             </div>
             
-            <div className="flex flex-wrap gap-4 items-center">
-              <BirdSpeciesImporter />
-              <ProfileImporter />
-              <SupportButtons />
-            </div>
-          </div>
-          
-          <div className="grid md:grid-cols-2 gap-6">
-            <AddBirdSighting />
-            <div className="bg-white rounded-lg shadow p-6">
-              <GoogleDriveBackup />
+            <div className="grid md:grid-cols-2 gap-6">
+              <AddBirdSighting />
+              <div className="space-y-6">
+                <div className="bg-white rounded-lg shadow p-6">
+                  <GoogleDriveBackup />
+                </div>
+                <div className="flex flex-wrap gap-4 items-center">
+                  <BirdSpeciesImporter />
+                  <ProfileImporter />
+                  <SupportButtons />
+                </div>
+              </div>
             </div>
           </div>
 
