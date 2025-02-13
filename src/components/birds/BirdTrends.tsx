@@ -21,6 +21,7 @@ const BirdTrends = ({ isAdmin = false }: BirdTrendsProps) => {
       const query = supabase
         .from('bird_trends')
         .select('*')
+        .order('species_name')
       
       if (!isAdmin || !showAllData) {
         if (!searchTerm) return []
