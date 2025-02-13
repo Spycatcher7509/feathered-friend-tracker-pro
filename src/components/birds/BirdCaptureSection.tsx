@@ -120,7 +120,7 @@ export function BirdCaptureSection({
 
   return (
     <div className="space-y-4">
-      <div className="flex gap-2">
+      <div className="space-y-2">
         <BirdImageCapture
           onCameraCapture={onCameraCapture}
           onFileInput={onFileInput}
@@ -128,11 +128,11 @@ export function BirdCaptureSection({
         />
         <Button
           variant="outline"
-          size="icon"
           onClick={isRecording ? stopRecording : startRecording}
-          className={isRecording ? "bg-red-100 hover:bg-red-200" : ""}
+          className={`w-full ${isRecording ? "bg-red-100 hover:bg-red-200" : ""}`}
         >
-          <Mic className={`h-4 w-4 ${isRecording ? "text-red-500" : ""}`} />
+          <Mic className={`h-4 w-4 mr-2 ${isRecording ? "text-red-500" : ""}`} />
+          Match a Bird Song
         </Button>
       </div>
 
