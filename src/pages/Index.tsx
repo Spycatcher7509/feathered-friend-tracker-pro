@@ -12,16 +12,18 @@ import ApiUsageMonitor from "@/components/admin/ApiUsageMonitor"
 import BirdTrends from "@/components/birds/BirdTrends"
 import SupportButtons from "@/components/auth/SupportButtons"
 import { Button } from "@/components/ui/button"
-import { ChevronDown, ChevronUp } from "lucide-react"
+import { ChevronDown, ChevronUp, BookOpenText, Shield } from "lucide-react"
 import { useAdminGroups } from "@/hooks/useAdminGroups"
 import { BirdSpeciesManager } from "@/components/birds/BirdSpeciesManager"
 import { BirdIdentifier } from "@/components/birds/BirdIdentifier"
+import { useToast } from "@/hooks/use-toast"
 
 const Index = () => {
   const [showBirdSounds, setShowBirdSounds] = useState(false)
   const [showTrends, setShowTrends] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
   const { checkAdminStatus } = useAdminGroups()
+  const { toast } = useToast()
 
   useEffect(() => {
     const checkAdmin = async () => {
@@ -31,6 +33,46 @@ const Index = () => {
     checkAdmin()
   }, [])
 
+  const handleUserGuide = async () => {
+    try {
+      window.open('/BirdWatch-User-Guide.pdf', '_blank')
+      toast({
+        title: "Success",
+        description: "User guide opened in a new tab",
+      })
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Could not open the user guide",
+      })
+    }
+  }
+
+  const handleAdminGuide = async () => {
+    try {
+      if (isAdmin) {
+        window.open('/BirdWatch-Admin-Guide.pdf', '_blank')
+        toast({
+          title: "Success",
+          description: "Admin guide opened in a new tab",
+        })
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Access Denied",
+          description: "You need admin privileges to view this guide",
+        })
+      }
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Could not open the admin guide",
+      })
+    }
+  }
+
   return (
     <PageLayout header={<Navigation />}>
       <div className="container mx-auto px-4 py-8 space-y-12">
@@ -38,6 +80,26 @@ const Index = () => {
           <div>
             <div className="mb-6">
               <h1 className="text-3xl font-bold text-nature-800">Bird Watching Dashboard</h1>
+              <div className="mt-4 flex gap-4">
+                <Button
+                  variant="outline"
+                  className="bg-[#223534] text-white hover:bg-[#2a4241]"
+                  onClick={handleUserGuide}
+                >
+                  <BookOpenText className="mr-2" />
+                  User Guide
+                </Button>
+                {isAdmin && (
+                  <Button
+                    variant="outline"
+                    className="bg-[#223534] text-white hover:bg-[#2a4241]"
+                    onClick={handleAdminGuide}
+                  >
+                    <Shield className="mr-2" />
+                    Admin Guide
+                  </Button>
+                )}
+              </div>
             </div>
             
             <div className="grid md:grid-cols-2 gap-6">
@@ -99,4 +161,3 @@ const Index = () => {
 }
 
 export default Index
-
