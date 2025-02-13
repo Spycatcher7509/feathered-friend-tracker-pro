@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { supabase } from "@/integrations/supabase/client"
 import { generateCaseNumber, generateSupportEmailContent } from "@/utils/support"
 import { sendDiscordWebhookMessage } from "@/utils/discord"
+import { format } from "date-fns"
 
 interface IssueReportDialogProps {
   userEmail: string | null
@@ -42,6 +43,8 @@ export const IssueReportDialog = ({ userEmail }: IssueReportDialogProps) => {
 
       setIsSending(true)
       const caseNumber = generateCaseNumber()
+      const reportedAt = new Date()
+      const formattedDate = format(reportedAt, "MMMM d, yyyy 'at' h:mm a")
 
       toast({
         title: "Sending...",
@@ -61,7 +64,7 @@ export const IssueReportDialog = ({ userEmail }: IssueReportDialogProps) => {
           user_id: user.id,
           description: issueDescription,
           status: 'open',
-          reported_at: new Date().toISOString()
+          reported_at: reportedAt.toISOString()
         })
 
       if (dbError) {
@@ -94,12 +97,20 @@ export const IssueReportDialog = ({ userEmail }: IssueReportDialogProps) => {
 
       // Send Discord notification
       await sendDiscordWebhookMessage(`🎫 New Issue Report (${caseNumber})
+📅 Reported: ${formattedDate}
 📧 Reporter: ${userEmail}
-📝 Description: ${issueDescription}`, "support")
+📝 Description: ${issueDescription}
+
+Our support team will respond within 48 hours.`, "support")
 
       toast({
         title: "Issue Report Sent",
-        description: `Your case number is ${caseNumber}. We'll respond shortly.`,
+        description: `Case #${caseNumber} - ${formattedDate}
+
+Your reported issue:
+"${issueDescription}"
+
+Our support team will get back to you within 48 hours.`,
       })
 
       setIsDialogOpen(false)
