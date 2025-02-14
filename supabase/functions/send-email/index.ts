@@ -88,8 +88,9 @@ serve(async (req) => {
       html || `<div>${text}</div>`
     ].join('\n')
 
-    // Encode the email
-    const encodedEmail = Buffer.from(emailContent).toString('base64')
+    // Encode the email using TextEncoder and btoa
+    const encoder = new TextEncoder()
+    const encodedEmail = btoa(String.fromCharCode(...encoder.encode(emailContent)))
       .replace(/\+/g, '-')
       .replace(/\//g, '_')
       .replace(/=+$/, '')
