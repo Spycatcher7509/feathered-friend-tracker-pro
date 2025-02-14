@@ -21,32 +21,6 @@ const supabaseClient = createClient(
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
 )
 
-// Helper function to format private key
-const formatPrivateKey = (key: string): string => {
-  // Remove any existing line breaks and spaces
-  let formattedKey = key.replace(/\\n/g, '').replace(/\s/g, '')
-  
-  // Add header if not present
-  if (!formattedKey.startsWith('-----BEGIN PRIVATE KEY-----')) {
-    formattedKey = '-----BEGIN PRIVATE KEY-----\n' + formattedKey
-  }
-  
-  // Add footer if not present
-  if (!formattedKey.endsWith('-----END PRIVATE KEY-----')) {
-    formattedKey = formattedKey + '\n-----END PRIVATE KEY-----'
-  }
-  
-  // Insert a line break every 64 characters between header and footer
-  const keyBody = formattedKey
-    .replace('-----BEGIN PRIVATE KEY-----\n', '')
-    .replace('\n-----END PRIVATE KEY-----', '')
-  
-  const chunks = keyBody.match(/.{1,64}/g) || []
-  const formattedBody = chunks.join('\n')
-  
-  return `-----BEGIN PRIVATE KEY-----\n${formattedBody}\n-----END PRIVATE KEY-----`
-}
-
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -105,16 +79,12 @@ serve(async (req) => {
 
     if (queueError) throw queueError
 
-    // Format the private key properly
-    const formattedPrivateKey = formatPrivateKey(credentials.private_key)
-    console.log('Formatted private key structure:', formattedPrivateKey.substring(0, 50) + '...')
-
     // Initialize Gmail API with fetched credentials
     const gmail = google.gmail('v1')
     const auth = new google.auth.GoogleAuth({
       credentials: {
         client_email: credentials.client_email,
-        private_key: formattedPrivateKey,
+        private_key: credentials.private_key,
       },
       scopes: ['https://www.googleapis.com/auth/gmail.send']
     })
