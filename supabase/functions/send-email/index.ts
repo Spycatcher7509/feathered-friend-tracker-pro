@@ -52,6 +52,18 @@ serve(async (req) => {
       throw new Error('Daily email limit reached (2000 emails/day)')
     }
 
+    // Get Gmail service account credentials
+    const { data: credentials, error: credentialsError } = await supabaseClient
+      .from('gmail_service_account')
+      .select('client_email, private_key')
+      .limit(1)
+      .single()
+
+    if (credentialsError || !credentials) {
+      console.error('Error fetching Gmail credentials:', credentialsError)
+      throw new Error('Gmail service account credentials not found')
+    }
+
     // Store email in queue
     const { data: queuedEmail, error: queueError } = await supabaseClient
       .from('email_queue')
@@ -67,12 +79,12 @@ serve(async (req) => {
 
     if (queueError) throw queueError
 
-    // Initialize Gmail API
+    // Initialize Gmail API with fetched credentials
     const gmail = google.gmail('v1')
     const auth = new google.auth.GoogleAuth({
       credentials: {
-        client_email: Deno.env.get("GMAIL_CLIENT_EMAIL"),
-        private_key: Deno.env.get("GMAIL_PRIVATE_KEY")?.replace(/\\n/g, '\n'),
+        client_email: credentials.client_email,
+        private_key: credentials.private_key.replace(/\\n/g, '\n'),
       },
       scopes: ['https://www.googleapis.com/auth/gmail.send']
     })

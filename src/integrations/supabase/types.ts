@@ -449,6 +449,30 @@ export type Database = {
         }
         Relationships: []
       }
+      gmail_service_account: {
+        Row: {
+          client_email: string
+          created_at: string
+          id: string
+          private_key: string
+          updated_at: string
+        }
+        Insert: {
+          client_email: string
+          created_at?: string
+          id?: string
+          private_key: string
+          updated_at?: string
+        }
+        Update: {
+          client_email?: string
+          created_at?: string
+          id?: string
+          private_key?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       google_drive_config: {
         Row: {
           client_id: string
