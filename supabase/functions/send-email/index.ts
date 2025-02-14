@@ -1,6 +1,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { google } from "googleapis"
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -13,6 +14,12 @@ interface EmailRequest {
   text: string
   html?: string
 }
+
+// Create a Supabase client for the Edge Function
+const supabaseClient = createClient(
+  Deno.env.get('SUPABASE_URL') ?? '',
+  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+)
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -38,7 +45,7 @@ serve(async (req) => {
     }
 
     // Check daily email count
-    const { data: { count }, error: countError } = await supabase.rpc('get_daily_email_count')
+    const { data: { count }, error: countError } = await supabaseClient.rpc('get_daily_email_count')
     if (countError) throw countError
     
     if (count >= 2000) {
@@ -46,7 +53,7 @@ serve(async (req) => {
     }
 
     // Store email in queue
-    const { data: queuedEmail, error: queueError } = await supabase
+    const { data: queuedEmail, error: queueError } = await supabaseClient
       .from('email_queue')
       .insert({
         to_email: to,
@@ -97,7 +104,7 @@ serve(async (req) => {
     })
 
     // Update email status in queue
-    const { error: updateError } = await supabase
+    const { error: updateError } = await supabaseClient
       .from('email_queue')
       .update({ 
         status: 'sent',
