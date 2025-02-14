@@ -21,31 +21,6 @@ const supabaseClient = createClient(
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
 )
 
-const sanitizePrivateKey = (key: string): string => {
-  // If the key is already in the correct format (contains proper line breaks), return it
-  if (key.includes('-----BEGIN PRIVATE KEY-----') && key.includes('\n')) {
-    return key;
-  }
-
-  // If the key has escaped newlines, replace them
-  if (key.includes('\\n')) {
-    return key.replace(/\\n/g, '\n');
-  }
-
-  // If the key is a single line, add proper formatting
-  const cleanKey = key
-    .replace('-----BEGIN PRIVATE KEY-----', '')
-    .replace('-----END PRIVATE KEY-----', '')
-    .trim();
-
-  const chunks = cleanKey.match(/.{1,64}/g) || [];
-  return [
-    '-----BEGIN PRIVATE KEY-----',
-    ...chunks,
-    '-----END PRIVATE KEY-----'
-  ].join('\n');
-}
-
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -80,7 +55,7 @@ serve(async (req) => {
     // Get Gmail service account credentials
     const { data: credentials, error: credentialsError } = await supabaseClient
       .from('gmail_service_account')
-      .select('client_email, private_key')
+      .select('*')  // Select all fields to get complete credentials
       .limit(1)
       .single()
 
@@ -104,29 +79,20 @@ serve(async (req) => {
 
     if (queueError) throw queueError
 
-    // Process the private key
-    const privateKey = sanitizePrivateKey(credentials.private_key)
-    
-    // Log the first and last few characters of the key for debugging
-    console.log('Private key preview:', {
-      start: privateKey.substring(0, 32),
-      end: privateKey.substring(privateKey.length - 32),
-      containsHeader: privateKey.includes('-----BEGIN PRIVATE KEY-----'),
-      containsFooter: privateKey.includes('-----END PRIVATE KEY-----'),
-      hasLineBreaks: privateKey.includes('\n'),
-      totalLength: privateKey.length
-    })
-
     // Initialize Gmail API with fetched credentials
     const gmail = google.gmail('v1')
     const auth = new google.auth.GoogleAuth({
       credentials: {
         type: 'service_account',
         project_id: 'birdwatchingprogram',
-        private_key_id: credentials.private_key_id || undefined,
-        private_key: privateKey,
+        private_key_id: credentials.private_key_id,
+        private_key: credentials.private_key,
         client_email: credentials.client_email,
-        client_id: credentials.client_id || undefined,
+        client_id: credentials.client_id,
+        auth_uri: 'https://accounts.google.com/o/oauth2/auth',
+        token_uri: 'https://oauth2.googleapis.com/token',
+        auth_provider_x509_cert_url: 'https://www.googleapis.com/oauth2/v1/certs',
+        client_x509_cert_url: `https://www.googleapis.com/robot/v1/metadata/x509/${encodeURIComponent(credentials.client_email)}`
       },
       scopes: ['https://www.googleapis.com/auth/gmail.send']
     })
