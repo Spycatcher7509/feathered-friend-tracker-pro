@@ -79,12 +79,20 @@ serve(async (req) => {
 
     if (queueError) throw queueError
 
+    // Process the private key to ensure proper line breaks
+    const privateKey = credentials.private_key.replace(/\\n/g, '\n')
+    
+    console.log('Private key starts with:', privateKey.substring(0, 50))
+    console.log('Private key contains proper line breaks:', privateKey.includes('\n'))
+
     // Initialize Gmail API with fetched credentials
     const gmail = google.gmail('v1')
     const auth = new google.auth.GoogleAuth({
       credentials: {
+        type: 'service_account',
         client_email: credentials.client_email,
-        private_key: credentials.private_key,
+        private_key: privateKey,
+        project_id: 'birdwatchingprogram', // Adding required field
       },
       scopes: ['https://www.googleapis.com/auth/gmail.send']
     })
