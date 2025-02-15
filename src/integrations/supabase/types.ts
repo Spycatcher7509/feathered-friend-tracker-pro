@@ -625,6 +625,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      format_pem_key: {
+        Args: {
+          raw_key: string
+        }
+        Returns: string
+      }
       get_daily_email_count: {
         Args: Record<PropertyKey, never>
         Returns: number
