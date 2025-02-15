@@ -16,34 +16,39 @@ interface EmailRequest {
 }
 
 const formatPrivateKey = (rawKey: string): string => {
-  // First, normalize line endings and remove any extra whitespace
-  const normalized = rawKey
-    .replace(/\\n/g, '\n')
-    .replace(/\r\n/g, '\n')
-    .replace(/\r/g, '\n')
-    .trim();
+  try {
+    // First, normalize line endings and remove any extra whitespace
+    let normalized = rawKey
+      .replace(/\\n/g, '\n')
+      .replace(/\r\n/g, '\n')
+      .replace(/\r/g, '\n')
+      .trim();
 
-  // If the key is already properly formatted, return it
-  if (normalized.startsWith('-----BEGIN PRIVATE KEY-----\n') &&
-      normalized.endsWith('\n-----END PRIVATE KEY-----')) {
-    return normalized;
+    // If the key already has proper headers, just ensure line breaks are correct
+    if (normalized.includes('-----BEGIN PRIVATE KEY-----') && 
+        normalized.includes('-----END PRIVATE KEY-----')) {
+      normalized = normalized
+        .replace('-----BEGIN PRIVATE KEY-----', '')
+        .replace('-----END PRIVATE KEY-----', '')
+        .replace(/\s+/g, '');
+    }
+
+    // Remove any existing headers/footers and all whitespace
+    const cleanKey = normalized.replace(/-----(BEGIN|END) PRIVATE KEY-----/g, '').replace(/\s+/g, '');
+
+    // Split the key into 64-character chunks
+    const chunks = cleanKey.match(/.{1,64}/g) || [];
+
+    // Reconstruct the key with proper PEM formatting
+    return [
+      '-----BEGIN PRIVATE KEY-----',
+      ...chunks,
+      '-----END PRIVATE KEY-----'
+    ].join('\n');
+  } catch (error) {
+    console.error('Error formatting private key:', error);
+    throw new Error('Failed to format private key: ' + error.message);
   }
-
-  // Remove any existing headers/footers
-  const cleanKey = normalized
-    .replace(/-----BEGIN PRIVATE KEY-----/g, '')
-    .replace(/-----END PRIVATE KEY-----/g, '')
-    .replace(/\s+/g, '');
-
-  // Split the key into 64-character lines
-  const lines = cleanKey.match(/.{1,64}/g) || [];
-
-  // Reconstruct the key with proper PEM formatting
-  return [
-    '-----BEGIN PRIVATE KEY-----',
-    ...lines,
-    '-----END PRIVATE KEY-----'
-  ].join('\n');
 }
 
 // Create a Supabase client for the Edge Function
@@ -110,21 +115,21 @@ serve(async (req) => {
 
     if (queueError) throw queueError
 
-    // Initialize Gmail API with fetched credentials
-    const gmail = google.gmail('v1')
-    
-    // Format the private key
-    const formattedKey = formatPrivateKey(credentials.private_key)
+    // Format and validate the private key
+    const formattedKey = formatPrivateKey(credentials.private_key);
     
     // Debug log the key structure (without exposing the actual key)
-    console.log('Key structure check:', {
+    console.log('Private key validation:', {
       hasHeader: formattedKey.startsWith('-----BEGIN PRIVATE KEY-----'),
       hasFooter: formattedKey.endsWith('-----END PRIVATE KEY-----'),
-      lineCount: formattedKey.split('\n').length,
       totalLength: formattedKey.length,
-      firstLineLength: formattedKey.split('\n')[1]?.length || 0
-    })
+      lineCount: formattedKey.split('\n').length,
+      firstChunkLength: formattedKey.split('\n')[1]?.length || 0
+    });
 
+    // Initialize Gmail API
+    const gmail = google.gmail('v1')
+    
     const auth = new google.auth.GoogleAuth({
       credentials: {
         type: 'service_account',
@@ -152,7 +157,7 @@ serve(async (req) => {
       html || `<div>${text}</div>`
     ].join('\n')
 
-    // Encode the email using TextEncoder and btoa
+    // Encode the email
     const encoder = new TextEncoder()
     const encodedEmail = btoa(String.fromCharCode(...encoder.encode(emailContent)))
       .replace(/\+/g, '-')
