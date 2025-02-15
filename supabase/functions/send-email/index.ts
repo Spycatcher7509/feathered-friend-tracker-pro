@@ -15,33 +15,35 @@ interface EmailRequest {
   html?: string
 }
 
-const sanitizePrivateKey = (key: string): string => {
-  try {
-    // Log the raw key format (length only for security)
-    console.log('Raw key info:', {
-      length: key.length,
-      containsHeader: key.includes('-----BEGIN PRIVATE KEY-----'),
-      containsFooter: key.includes('-----END PRIVATE KEY-----'),
-      containsEscapedNewlines: key.includes('\\n'),
-      containsRealNewlines: key.includes('\n')
-    })
+const formatPrivateKey = (rawKey: string): string => {
+  // First, normalize line endings and remove any extra whitespace
+  const normalized = rawKey
+    .replace(/\\n/g, '\n')
+    .replace(/\r\n/g, '\n')
+    .replace(/\r/g, '\n')
+    .trim();
 
-    // Simple but effective sanitization
-    const cleanKey = key
-      .replace(/\\n/g, '\n') // Replace escaped newlines
-      .trim()
-
-    // If the key doesn't already have proper PEM format, it's invalid
-    if (!cleanKey.startsWith('-----BEGIN PRIVATE KEY-----') || 
-        !cleanKey.endsWith('-----END PRIVATE KEY-----')) {
-      throw new Error('Invalid private key format - missing PEM header/footer')
-    }
-
-    return cleanKey
-  } catch (error) {
-    console.error('Error in sanitizePrivateKey:', error)
-    throw error
+  // If the key is already properly formatted, return it
+  if (normalized.startsWith('-----BEGIN PRIVATE KEY-----\n') &&
+      normalized.endsWith('\n-----END PRIVATE KEY-----')) {
+    return normalized;
   }
+
+  // Remove any existing headers/footers
+  const cleanKey = normalized
+    .replace(/-----BEGIN PRIVATE KEY-----/g, '')
+    .replace(/-----END PRIVATE KEY-----/g, '')
+    .replace(/\s+/g, '');
+
+  // Split the key into 64-character lines
+  const lines = cleanKey.match(/.{1,64}/g) || [];
+
+  // Reconstruct the key with proper PEM formatting
+  return [
+    '-----BEGIN PRIVATE KEY-----',
+    ...lines,
+    '-----END PRIVATE KEY-----'
+  ].join('\n');
 }
 
 // Create a Supabase client for the Edge Function
@@ -111,18 +113,16 @@ serve(async (req) => {
     // Initialize Gmail API with fetched credentials
     const gmail = google.gmail('v1')
     
-    // Sanitize and format the private key
-    const sanitizedPrivateKey = sanitizePrivateKey(credentials.private_key)
+    // Format the private key
+    const formattedKey = formatPrivateKey(credentials.private_key)
     
-    // Log key format information for debugging (without exposing the key)
-    console.log('Private key format check:', {
-      hasHeader: sanitizedPrivateKey.includes('-----BEGIN PRIVATE KEY-----'),
-      hasFooter: sanitizedPrivateKey.includes('-----END PRIVATE KEY-----'),
-      hasLineBreaks: sanitizedPrivateKey.includes('\n'),
-      totalLength: sanitizedPrivateKey.length,
-      lineCount: sanitizedPrivateKey.split('\n').length,
-      firstLine: sanitizedPrivateKey.split('\n')[0],
-      lastLine: sanitizedPrivateKey.split('\n').slice(-1)[0]
+    // Debug log the key structure (without exposing the actual key)
+    console.log('Key structure check:', {
+      hasHeader: formattedKey.startsWith('-----BEGIN PRIVATE KEY-----'),
+      hasFooter: formattedKey.endsWith('-----END PRIVATE KEY-----'),
+      lineCount: formattedKey.split('\n').length,
+      totalLength: formattedKey.length,
+      firstLineLength: formattedKey.split('\n')[1]?.length || 0
     })
 
     const auth = new google.auth.GoogleAuth({
@@ -130,7 +130,7 @@ serve(async (req) => {
         type: 'service_account',
         project_id: credentials.project_id,
         private_key_id: credentials.private_key_id,
-        private_key: sanitizedPrivateKey,
+        private_key: formattedKey,
         client_email: credentials.client_email,
         client_id: credentials.client_id,
         auth_uri: 'https://accounts.google.com/o/oauth2/auth',
