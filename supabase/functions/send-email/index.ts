@@ -6,6 +6,8 @@ import { SESv2Client, SendEmailCommand } from "https://esm.sh/@aws-sdk/client-se
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Content-Type': 'application/json'
 }
 
 interface EmailRequest {
@@ -33,7 +35,7 @@ const sesClient = new SESv2Client({
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders })
+    return new Response('ok', { headers: corsHeaders })
   }
 
   try {
@@ -126,7 +128,7 @@ serve(async (req) => {
       message: 'Email sent successfully',
       messageId: response.MessageId 
     }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: corsHeaders,
       status: 200,
     })
   } catch (error) {
@@ -137,7 +139,7 @@ serve(async (req) => {
         details: error instanceof Error ? error.stack : undefined
       }),
       { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: corsHeaders,
         status: 500,
       }
     )
