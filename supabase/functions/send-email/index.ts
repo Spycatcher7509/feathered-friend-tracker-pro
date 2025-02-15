@@ -73,7 +73,7 @@ serve(async (req) => {
 
     // Prepare email data for Mailgun
     const formData = new FormData()
-    formData.append('from', 'BirdWatch Support <support@your-domain.com>')
+    formData.append('from', 'BirdWatch Support <postmaster@sandbox701608d79c824197ae3fabb7236e81ae.mailgun.org>')
     formData.append('to', to)
     formData.append('subject', subject)
     formData.append('text', text)
@@ -83,7 +83,7 @@ serve(async (req) => {
 
     // Send email via Mailgun API
     const response = await fetch(
-      'https://api.mailgun.net/v3/your-domain.com/messages',
+      'https://api.mailgun.net/v3/sandbox701608d79c824197ae3fabb7236e81ae.mailgun.org/messages',
       {
         method: 'POST',
         headers: {
