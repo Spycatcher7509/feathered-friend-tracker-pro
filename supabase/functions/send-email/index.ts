@@ -78,7 +78,7 @@ serve(async (req) => {
 
     // Prepare the email sending command
     const sendEmailCommand = new SendEmailCommand({
-      FromEmailAddress: 'support@thewrightsupport.com',
+      FromEmailAddress: 'accounts@thewrightsupport.com',
       Destination: {
         ToAddresses: [to],
       },
