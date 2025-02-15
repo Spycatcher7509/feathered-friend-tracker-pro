@@ -74,7 +74,7 @@ serve(async (req) => {
     // Send email via Resend
     console.log('Sending email via Resend...')
     const response = await resend.emails.send({
-      from: 'accounts@thewrightsupport.com',
+      from: 'BirdWatch <onboarding@resend.dev>',
       to: [to],
       subject,
       text,
