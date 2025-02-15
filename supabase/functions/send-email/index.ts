@@ -17,36 +17,30 @@ interface EmailRequest {
 
 const sanitizePrivateKey = (key: string): string => {
   try {
-    // First, clean up any potential issues
-    let cleanKey = key
-      .replace(/\\n/g, '\n')  // Replace escaped newlines
-      .replace(/\s+/g, '\n')  // Replace any whitespace sequences with newlines
-      .trim()                 // Remove leading/trailing whitespace
+    // Log the raw key format (length only for security)
+    console.log('Raw key info:', {
+      length: key.length,
+      containsHeader: key.includes('-----BEGIN PRIVATE KEY-----'),
+      containsFooter: key.includes('-----END PRIVATE KEY-----'),
+      containsEscapedNewlines: key.includes('\\n'),
+      containsRealNewlines: key.includes('\n')
+    })
 
-    // Extract the key content (remove header and footer if present)
-    let keyContent = cleanKey
-    if (cleanKey.includes('-----BEGIN PRIVATE KEY-----')) {
-      keyContent = cleanKey
-        .replace('-----BEGIN PRIVATE KEY-----', '')
-        .replace('-----END PRIVATE KEY-----', '')
-        .trim()
+    // Simple but effective sanitization
+    const cleanKey = key
+      .replace(/\\n/g, '\n') // Replace escaped newlines
+      .trim()
+
+    // If the key doesn't already have proper PEM format, it's invalid
+    if (!cleanKey.startsWith('-----BEGIN PRIVATE KEY-----') || 
+        !cleanKey.endsWith('-----END PRIVATE KEY-----')) {
+      throw new Error('Invalid private key format - missing PEM header/footer')
     }
 
-    // Split the key into 64-character chunks
-    const chunks = keyContent
-      .replace(/[\r\n]+/g, '') // Remove any existing line breaks
-      .match(/.{1,64}/g) || []
-
-    // Reconstruct the key in proper PEM format
-    return [
-      '-----BEGIN PRIVATE KEY-----',
-      ...chunks,
-      '-----END PRIVATE KEY-----'
-    ].join('\n')
-
+    return cleanKey
   } catch (error) {
-    console.error('Error sanitizing private key:', error)
-    throw new Error('Failed to sanitize private key')
+    console.error('Error in sanitizePrivateKey:', error)
+    throw error
   }
 }
 
