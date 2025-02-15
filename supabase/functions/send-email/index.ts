@@ -1,7 +1,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1"
-import { SESv2Client, SendEmailCommand } from "npm:@aws-sdk/client-sesv2"
+import { SESv2Client, SendEmailCommand } from "https://esm.sh/@aws-sdk/client-sesv2"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
