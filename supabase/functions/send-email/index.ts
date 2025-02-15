@@ -1,6 +1,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1"
+import { SESv2Client, SendEmailCommand } from "npm:@aws-sdk/client-sesv2"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -19,6 +20,15 @@ const supabaseClient = createClient(
   Deno.env.get('SUPABASE_URL') ?? '',
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
 )
+
+// Initialize SES client
+const sesClient = new SESv2Client({
+  region: Deno.env.get('AWS_REGION') ?? 'eu-north-1',
+  credentials: {
+    accessKeyId: Deno.env.get('AWS_ACCESS_KEY_ID') ?? '',
+    secretAccessKey: Deno.env.get('AWS_SECRET_ACCESS_KEY') ?? ''
+  }
+})
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -66,58 +76,38 @@ serve(async (req) => {
 
     if (queueError) throw queueError
 
-    const MAILGUN_API_KEY = Deno.env.get('MAILGUN_API_KEY')
-    if (!MAILGUN_API_KEY) {
-      throw new Error('Mailgun API key not found')
-    }
-
-    // Create URLSearchParams for request body
-    const params = new URLSearchParams()
-    params.append('from', 'BirdWatch Support <postmaster@sandbox701608d79c824197ae3fabb7236e81ae.mailgun.org>')
-    params.append('to', to)
-    params.append('subject', subject)
-    params.append('text', text)
-    if (html) {
-      params.append('html', html)
-    }
-
-    // Convert API key to Base64 for Authorization header
-    const auth = btoa(`api:${MAILGUN_API_KEY}`)
-    console.log('Sending request to Mailgun with auth:', auth.substring(0, 10) + '...')
-
-    // Send email via Mailgun API
-    const response = await fetch(
-      'https://api.mailgun.net/v3/sandbox701608d79c824197ae3fabb7236e81ae.mailgun.org/messages',
-      {
-        method: 'POST',
-        headers: {
-          'Authorization': `Basic ${auth}`,
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: params.toString(),
+    // Prepare the email sending command
+    const sendEmailCommand = new SendEmailCommand({
+      FromEmailAddress: 'support@thewrightsupport.com',
+      Destination: {
+        ToAddresses: [to],
+      },
+      Content: {
+        Simple: {
+          Subject: {
+            Data: subject,
+            Charset: 'UTF-8'
+          },
+          Body: {
+            Text: {
+              Data: text,
+              Charset: 'UTF-8'
+            },
+            ...(html && {
+              Html: {
+                Data: html,
+                Charset: 'UTF-8'
+              }
+            })
+          }
+        }
       }
-    )
+    })
 
-    // Get the response text first
-    const responseText = await response.text()
-    console.log('Raw Mailgun response:', responseText)
-
-    if (!response.ok) {
-      console.error('Mailgun API error:', {
-        status: response.status,
-        statusText: response.statusText,
-        response: responseText
-      })
-      throw new Error(`Mailgun API error: ${response.statusText}`)
-    }
-
-    let responseData
-    try {
-      responseData = JSON.parse(responseText)
-    } catch (e) {
-      console.warn('Could not parse Mailgun response as JSON:', responseText)
-      responseData = { message: 'Email sent but response was not JSON' }
-    }
+    // Send email via AWS SES
+    console.log('Sending email via AWS SES...')
+    const response = await sesClient.send(sendEmailCommand)
+    console.log('SES Response:', response)
 
     // Update email status in queue
     const { error: updateError } = await supabaseClient
@@ -130,9 +120,12 @@ serve(async (req) => {
 
     if (updateError) throw updateError
 
-    console.log('Email sent successfully:', responseData)
+    console.log('Email sent successfully:', response)
 
-    return new Response(JSON.stringify(responseData), {
+    return new Response(JSON.stringify({ 
+      message: 'Email sent successfully',
+      messageId: response.MessageId 
+    }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
     })
