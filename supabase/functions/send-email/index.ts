@@ -15,6 +15,44 @@ interface EmailRequest {
   html?: string
 }
 
+const sanitizePrivateKey = (key: string): string => {
+  // Remove any whitespace at the start or end
+  let cleanKey = key.trim()
+
+  // If the key doesn't have the header and footer, add them
+  if (!cleanKey.includes('-----BEGIN PRIVATE KEY-----')) {
+    cleanKey = `-----BEGIN PRIVATE KEY-----\n${cleanKey}`
+  }
+  if (!cleanKey.includes('-----END PRIVATE KEY-----')) {
+    cleanKey = `${cleanKey}\n-----END PRIVATE KEY-----`
+  }
+
+  // Replace escaped newlines with actual newlines
+  cleanKey = cleanKey.replace(/\\n/g, '\n')
+
+  // Ensure there's a newline after the header and before the footer
+  cleanKey = cleanKey
+    .replace('-----BEGIN PRIVATE KEY-----', '-----BEGIN PRIVATE KEY-----\n')
+    .replace('-----END PRIVATE KEY-----', '\n-----END PRIVATE KEY-----')
+
+  // If the key content is a single line, format it into multiple lines
+  const keyContent = cleanKey
+    .replace('-----BEGIN PRIVATE KEY-----', '')
+    .replace('-----END PRIVATE KEY-----', '')
+    .trim()
+
+  if (!keyContent.includes('\n')) {
+    const chunks = keyContent.match(/.{1,64}/g) || []
+    cleanKey = [
+      '-----BEGIN PRIVATE KEY-----',
+      ...chunks,
+      '-----END PRIVATE KEY-----'
+    ].join('\n')
+  }
+
+  return cleanKey
+}
+
 // Create a Supabase client for the Edge Function
 const supabaseClient = createClient(
   Deno.env.get('SUPABASE_URL') ?? '',
@@ -55,7 +93,7 @@ serve(async (req) => {
     // Get Gmail service account credentials
     const { data: credentials, error: credentialsError } = await supabaseClient
       .from('gmail_service_account')
-      .select('*')  // Select all fields to get complete credentials
+      .select('*')
       .limit(1)
       .single()
 
@@ -81,12 +119,25 @@ serve(async (req) => {
 
     // Initialize Gmail API with fetched credentials
     const gmail = google.gmail('v1')
+    
+    // Sanitize and format the private key
+    const sanitizedPrivateKey = sanitizePrivateKey(credentials.private_key)
+    
+    // Log key format information for debugging (without exposing the key)
+    console.log('Private key format check:', {
+      hasHeader: sanitizedPrivateKey.includes('-----BEGIN PRIVATE KEY-----'),
+      hasFooter: sanitizedPrivateKey.includes('-----END PRIVATE KEY-----'),
+      hasLineBreaks: sanitizedPrivateKey.includes('\n'),
+      totalLength: sanitizedPrivateKey.length,
+      lineCount: sanitizedPrivateKey.split('\n').length
+    })
+
     const auth = new google.auth.GoogleAuth({
       credentials: {
         type: 'service_account',
-        project_id: 'birdwatchingprogram',
+        project_id: credentials.project_id,
         private_key_id: credentials.private_key_id,
-        private_key: credentials.private_key,
+        private_key: sanitizedPrivateKey,
         client_email: credentials.client_email,
         client_id: credentials.client_id,
         auth_uri: 'https://accounts.google.com/o/oauth2/auth',
@@ -155,3 +206,4 @@ serve(async (req) => {
     )
   }
 })
+
