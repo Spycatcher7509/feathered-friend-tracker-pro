@@ -1,7 +1,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1"
-import { SESv2Client, SendEmailCommand } from "https://cdn.skypack.dev/@aws-sdk/client-sesv2"
+import { Resend } from "npm:resend@2.0.0"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -23,15 +23,7 @@ const supabaseClient = createClient(
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
 )
 
-// Initialize SES client with minimal configuration
-const sesClient = new SESv2Client({
-  region: Deno.env.get('AWS_REGION') ?? 'eu-north-1',
-  credentials: {
-    accessKeyId: Deno.env.get('AWS_ACCESS_KEY_ID') ?? '',
-    secretAccessKey: Deno.env.get('AWS_SECRET_ACCESS_KEY') ?? ''
-  },
-  runtime: 'edge'
-})
+const resend = new Resend(Deno.env.get('RESEND_API_KEY'))
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -79,38 +71,17 @@ serve(async (req) => {
 
     if (queueError) throw queueError
 
-    // Prepare the email sending command
-    const sendEmailCommand = new SendEmailCommand({
-      FromEmailAddress: 'accounts@thewrightsupport.com',
-      Destination: {
-        ToAddresses: [to],
-      },
-      Content: {
-        Simple: {
-          Subject: {
-            Data: subject,
-            Charset: 'UTF-8'
-          },
-          Body: {
-            Text: {
-              Data: text,
-              Charset: 'UTF-8'
-            },
-            ...(html && {
-              Html: {
-                Data: html,
-                Charset: 'UTF-8'
-              }
-            })
-          }
-        }
-      }
+    // Send email via Resend
+    console.log('Sending email via Resend...')
+    const response = await resend.emails.send({
+      from: 'accounts@thewrightsupport.com',
+      to: [to],
+      subject,
+      text,
+      html: html || undefined
     })
 
-    // Send email via AWS SES
-    console.log('Sending email via AWS SES...')
-    const response = await sesClient.send(sendEmailCommand)
-    console.log('SES Response:', response)
+    console.log('Resend Response:', response)
 
     // Update email status in queue
     const { error: updateError } = await supabaseClient
@@ -127,7 +98,7 @@ serve(async (req) => {
 
     return new Response(JSON.stringify({ 
       message: 'Email sent successfully',
-      messageId: response.MessageId 
+      messageId: response.id 
     }), {
       headers: corsHeaders,
       status: 200,
