@@ -16,41 +16,38 @@ interface EmailRequest {
 }
 
 const sanitizePrivateKey = (key: string): string => {
-  // Remove any whitespace at the start or end
-  let cleanKey = key.trim()
+  try {
+    // First, clean up any potential issues
+    let cleanKey = key
+      .replace(/\\n/g, '\n')  // Replace escaped newlines
+      .replace(/\s+/g, '\n')  // Replace any whitespace sequences with newlines
+      .trim()                 // Remove leading/trailing whitespace
 
-  // If the key doesn't have the header and footer, add them
-  if (!cleanKey.includes('-----BEGIN PRIVATE KEY-----')) {
-    cleanKey = `-----BEGIN PRIVATE KEY-----\n${cleanKey}`
-  }
-  if (!cleanKey.includes('-----END PRIVATE KEY-----')) {
-    cleanKey = `${cleanKey}\n-----END PRIVATE KEY-----`
-  }
+    // Extract the key content (remove header and footer if present)
+    let keyContent = cleanKey
+    if (cleanKey.includes('-----BEGIN PRIVATE KEY-----')) {
+      keyContent = cleanKey
+        .replace('-----BEGIN PRIVATE KEY-----', '')
+        .replace('-----END PRIVATE KEY-----', '')
+        .trim()
+    }
 
-  // Replace escaped newlines with actual newlines
-  cleanKey = cleanKey.replace(/\\n/g, '\n')
+    // Split the key into 64-character chunks
+    const chunks = keyContent
+      .replace(/[\r\n]+/g, '') // Remove any existing line breaks
+      .match(/.{1,64}/g) || []
 
-  // Ensure there's a newline after the header and before the footer
-  cleanKey = cleanKey
-    .replace('-----BEGIN PRIVATE KEY-----', '-----BEGIN PRIVATE KEY-----\n')
-    .replace('-----END PRIVATE KEY-----', '\n-----END PRIVATE KEY-----')
-
-  // If the key content is a single line, format it into multiple lines
-  const keyContent = cleanKey
-    .replace('-----BEGIN PRIVATE KEY-----', '')
-    .replace('-----END PRIVATE KEY-----', '')
-    .trim()
-
-  if (!keyContent.includes('\n')) {
-    const chunks = keyContent.match(/.{1,64}/g) || []
-    cleanKey = [
+    // Reconstruct the key in proper PEM format
+    return [
       '-----BEGIN PRIVATE KEY-----',
       ...chunks,
       '-----END PRIVATE KEY-----'
     ].join('\n')
-  }
 
-  return cleanKey
+  } catch (error) {
+    console.error('Error sanitizing private key:', error)
+    throw new Error('Failed to sanitize private key')
+  }
 }
 
 // Create a Supabase client for the Edge Function
@@ -129,7 +126,9 @@ serve(async (req) => {
       hasFooter: sanitizedPrivateKey.includes('-----END PRIVATE KEY-----'),
       hasLineBreaks: sanitizedPrivateKey.includes('\n'),
       totalLength: sanitizedPrivateKey.length,
-      lineCount: sanitizedPrivateKey.split('\n').length
+      lineCount: sanitizedPrivateKey.split('\n').length,
+      firstLine: sanitizedPrivateKey.split('\n')[0],
+      lastLine: sanitizedPrivateKey.split('\n').slice(-1)[0]
     })
 
     const auth = new google.auth.GoogleAuth({
@@ -206,4 +205,3 @@ serve(async (req) => {
     )
   }
 })
-
