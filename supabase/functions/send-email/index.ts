@@ -71,7 +71,7 @@ serve(async (req) => {
       throw new Error('Mailgun API key not found')
     }
 
-    // Create URLSearchParams instead of FormData for proper encoding
+    // Create URLSearchParams for request body
     const params = new URLSearchParams()
     params.append('from', 'BirdWatch Support <postmaster@sandbox701608d79c824197ae3fabb7236e81ae.mailgun.org>')
     params.append('to', to)
@@ -81,13 +81,17 @@ serve(async (req) => {
       params.append('html', html)
     }
 
-    // Send email via Mailgun API with proper authentication
+    // Convert API key to Base64 for Authorization header
+    const auth = btoa(`api:${MAILGUN_API_KEY}`)
+    console.log('Sending request to Mailgun with auth:', auth.substring(0, 10) + '...')
+
+    // Send email via Mailgun API
     const response = await fetch(
       'https://api.mailgun.net/v3/sandbox701608d79c824197ae3fabb7236e81ae.mailgun.org/messages',
       {
         method: 'POST',
         headers: {
-          'Authorization': `Basic ${btoa(`api:${MAILGUN_API_KEY}`)}`,
+          'Authorization': `Basic ${auth}`,
           'Content-Type': 'application/x-www-form-urlencoded',
         },
         body: params.toString(),
