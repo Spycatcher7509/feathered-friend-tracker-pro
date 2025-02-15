@@ -81,25 +81,39 @@ serve(async (req) => {
       formData.append('html', html)
     }
 
-    // Send email via Mailgun API
+    // Send email via Mailgun API with proper authentication
     const response = await fetch(
       'https://api.mailgun.net/v3/sandbox701608d79c824197ae3fabb7236e81ae.mailgun.org/messages',
       {
         method: 'POST',
         headers: {
           'Authorization': `Basic ${btoa(`api:${MAILGUN_API_KEY}`)}`,
+          'Content-Type': 'application/x-www-form-urlencoded',
         },
         body: formData,
       }
     )
 
+    // Get the response text first
+    const responseText = await response.text()
+    console.log('Raw Mailgun response:', responseText)
+
     if (!response.ok) {
-      const errorData = await response.json()
-      console.error('Mailgun API error:', errorData)
-      throw new Error(`Mailgun API error: ${errorData.message || 'Unknown error'}`)
+      console.error('Mailgun API error:', {
+        status: response.status,
+        statusText: response.statusText,
+        response: responseText
+      })
+      throw new Error(`Mailgun API error: ${response.statusText}`)
     }
 
-    const responseData = await response.json()
+    let responseData
+    try {
+      responseData = JSON.parse(responseText)
+    } catch (e) {
+      console.warn('Could not parse Mailgun response as JSON:', responseText)
+      responseData = { message: 'Email sent but response was not JSON' }
+    }
 
     // Update email status in queue
     const { error: updateError } = await supabaseClient
