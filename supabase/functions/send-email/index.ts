@@ -1,7 +1,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1"
-import { SESv2Client, SendEmailCommand } from "https://esm.sh/@aws-sdk/client-sesv2"
+import { SESv2Client, SendEmailCommand } from "https://cdn.skypack.dev/@aws-sdk/client-sesv2"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -23,17 +23,14 @@ const supabaseClient = createClient(
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
 )
 
-// Initialize SES client with explicit configuration
+// Initialize SES client with minimal configuration
 const sesClient = new SESv2Client({
   region: Deno.env.get('AWS_REGION') ?? 'eu-north-1',
   credentials: {
     accessKeyId: Deno.env.get('AWS_ACCESS_KEY_ID') ?? '',
     secretAccessKey: Deno.env.get('AWS_SECRET_ACCESS_KEY') ?? ''
   },
-  // Disable credential loading from shared files
-  credentialDefaultProvider: () => async () => {
-    throw new Error('Credentials must be provided through environment variables')
-  }
+  runtime: 'edge'
 })
 
 serve(async (req) => {
