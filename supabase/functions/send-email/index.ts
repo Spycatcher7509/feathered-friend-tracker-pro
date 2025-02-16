@@ -98,34 +98,18 @@ serve(async (req) => {
 
     console.log('Resend API Response:', JSON.stringify(response, null, 2))
 
-    // Determine bounce type and reason from the error response
-    let bounceType = null
-    let bounceReason = null
-    
-    if (response.error) {
-      if (response.error.statusCode === 400 || response.error.statusCode === 422) {
-        bounceType = 'permanent'
-        bounceReason = response.error.message
-      } else if (response.error.statusCode >= 500) {
-        bounceType = 'transient'
-        bounceReason = 'Server error'
-      } else {
-        bounceType = 'undetermined'
-        bounceReason = response.error.message
-      }
+    // Check if the response is actually successful
+    if (!response.id) {
+      throw new Error('Email sending failed: No message ID returned from Resend')
     }
 
-    // Update email status in queue with more detailed information
+    // Update email status in queue
     const { error: updateError } = await supabaseClient
       .from('email_queue')
       .update({ 
-        status: response.error ? 'failed' : 'sent',
-        delivery_status: response.error ? 'failed' : 'delivered',
+        status: 'sent',
+        delivery_status: 'delivered',
         sent_at: new Date().toISOString(),
-        error_message: response.error ? JSON.stringify(response.error) : null,
-        bounce_info: response.error ? { error: response.error } : null,
-        bounce_type: bounceType,
-        bounce_reason: bounceReason,
         attempted_count: 1
       })
       .eq('id', queuedEmail.id)
@@ -133,11 +117,6 @@ serve(async (req) => {
     if (updateError) {
       console.error('Error updating email queue:', updateError)
       throw updateError
-    }
-
-    if (response.error) {
-      console.error('Resend API Error:', response.error)
-      throw new Error(`Failed to send email: ${JSON.stringify(response.error)}`)
     }
 
     console.log('Email sent successfully:', {
@@ -159,6 +138,25 @@ serve(async (req) => {
       stack: error.stack,
       cause: error.cause
     })
+    
+    // If we have a queued email, update its status to failed
+    try {
+      if (error.queuedEmail?.id) {
+        await supabaseClient
+          .from('email_queue')
+          .update({ 
+            status: 'failed',
+            delivery_status: 'failed',
+            error_message: error.message,
+            bounce_type: 'permanent',
+            bounce_reason: error.message,
+            attempted_count: 1
+          })
+          .eq('id', error.queuedEmail.id)
+      }
+    } catch (updateError) {
+      console.error('Error updating failed email status:', updateError)
+    }
     
     return new Response(
       JSON.stringify({ 
