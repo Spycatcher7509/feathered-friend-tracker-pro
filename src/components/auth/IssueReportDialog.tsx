@@ -72,11 +72,15 @@ export const IssueReportDialog = ({ userEmail }: IssueReportDialogProps) => {
 
       const emailContent = generateSupportEmailContent(caseNumber, userEmail, issueDescription)
 
+      // For testing bounce handling, send to bounced@resend.dev
+      const testBounce = true // Toggle this for testing
+      const supportEmail = testBounce ? 'bounced@resend.dev' : 'accounts@thewrightsupport.com'
+
       // Send issue report to support team
       const { data, error } = await supabase.functions.invoke('send-email', {
         body: {
           ...emailContent.supportEmail,
-          to: 'accounts@thewrightsupport.com' // Updated support email
+          to: supportEmail
         }
       })
 
