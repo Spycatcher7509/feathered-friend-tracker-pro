@@ -66,7 +66,9 @@ serve(async (req) => {
         html_content: html,
         status: 'pending',
         delivery_status: 'pending',
-        attempted_count: 0
+        attempted_count: 0,
+        bounce_type: null,
+        bounce_reason: null
       })
       .select()
       .single()
@@ -96,6 +98,23 @@ serve(async (req) => {
 
     console.log('Resend API Response:', JSON.stringify(response, null, 2))
 
+    // Determine bounce type and reason from the error response
+    let bounceType = null
+    let bounceReason = null
+    
+    if (response.error) {
+      if (response.error.statusCode === 400 || response.error.statusCode === 422) {
+        bounceType = 'permanent'
+        bounceReason = response.error.message
+      } else if (response.error.statusCode >= 500) {
+        bounceType = 'transient'
+        bounceReason = 'Server error'
+      } else {
+        bounceType = 'undetermined'
+        bounceReason = response.error.message
+      }
+    }
+
     // Update email status in queue with more detailed information
     const { error: updateError } = await supabaseClient
       .from('email_queue')
@@ -105,6 +124,8 @@ serve(async (req) => {
         sent_at: new Date().toISOString(),
         error_message: response.error ? JSON.stringify(response.error) : null,
         bounce_info: response.error ? { error: response.error } : null,
+        bounce_type: bounceType,
+        bounce_reason: bounceReason,
         attempted_count: 1
       })
       .eq('id', queuedEmail.id)

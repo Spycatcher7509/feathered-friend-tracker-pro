@@ -385,6 +385,8 @@ export type Database = {
           attempted_count: number | null
           attempts: number | null
           bounce_info: Json | null
+          bounce_reason: string | null
+          bounce_type: string | null
           created_at: string | null
           delivery_status: string | null
           error_message: string | null
@@ -401,6 +403,8 @@ export type Database = {
           attempted_count?: number | null
           attempts?: number | null
           bounce_info?: Json | null
+          bounce_reason?: string | null
+          bounce_type?: string | null
           created_at?: string | null
           delivery_status?: string | null
           error_message?: string | null
@@ -417,6 +421,8 @@ export type Database = {
           attempted_count?: number | null
           attempts?: number | null
           bounce_info?: Json | null
+          bounce_reason?: string | null
+          bounce_type?: string | null
           created_at?: string | null
           delivery_status?: string | null
           error_message?: string | null
