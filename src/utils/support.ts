@@ -10,7 +10,7 @@ export const generateCaseNumber = () => {
 
 export const generateSupportEmailContent = (caseNumber: string, userEmail: string, issueDescription: string) => ({
   supportEmail: {
-    to: 'accounts@thewrightsupport.com',
+    to: 'support@thewrightsupport.com',
     subject: `BirdWatch Issue Report - Case ${caseNumber}`,
     text: `Issue Report from ${userEmail}:\nCase Number: ${caseNumber}\n\n${issueDescription}`,
     html: `
