@@ -85,79 +85,74 @@ serve(async (req) => {
       html: html ? 'HTML content provided' : 'No HTML content'
     })
 
-    const response = await resend.emails.send({
-      from: `BirdWatch <${VERIFIED_FROM_EMAIL}>`,
-      to: [to],
-      subject,
-      text,
-      html: html || undefined,
-      reply_to: VERIFIED_FROM_EMAIL,
-      headers: {
-        'X-Entity-Ref-ID': queuedEmail.id
-      }
-    })
-
-    console.log('Resend API Response:', JSON.stringify(response, null, 2))
-
-    // Check if the response is actually successful
-    if (!response.id) {
-      throw new Error('Email sending failed: No message ID returned from Resend')
-    }
-
-    // Update email status in queue
-    const { error: updateError } = await supabaseClient
-      .from('email_queue')
-      .update({ 
-        status: 'sent',
-        delivery_status: 'delivered',
-        sent_at: new Date().toISOString(),
-        attempted_count: 1
+    try {
+      const response = await resend.emails.send({
+        from: `BirdWatch <${VERIFIED_FROM_EMAIL}>`,
+        to: [to],
+        subject,
+        text,
+        html: html || undefined,
+        reply_to: VERIFIED_FROM_EMAIL,
+        headers: {
+          'X-Entity-Ref-ID': queuedEmail.id
+        }
       })
-      .eq('id', queuedEmail.id)
 
-    if (updateError) {
-      console.error('Error updating email queue:', updateError)
-      throw updateError
+      console.log('Raw Resend API Response:', response)
+
+      if (!response || !response.id) {
+        throw new Error('Invalid response from Resend API: ' + JSON.stringify(response))
+      }
+
+      // Update email status in queue
+      const { error: updateError } = await supabaseClient
+        .from('email_queue')
+        .update({ 
+          status: 'sent',
+          delivery_status: 'delivered',
+          sent_at: new Date().toISOString(),
+          attempted_count: 1
+        })
+        .eq('id', queuedEmail.id)
+
+      if (updateError) {
+        console.error('Error updating email queue:', updateError)
+        throw updateError
+      }
+
+      return new Response(JSON.stringify({ 
+        message: 'Email sent successfully',
+        messageId: response.id 
+      }), {
+        headers: corsHeaders,
+        status: 200,
+      })
+
+    } catch (sendError: any) {
+      console.error('Resend API Error:', sendError)
+      
+      // Update email status to failed
+      await supabaseClient
+        .from('email_queue')
+        .update({ 
+          status: 'failed',
+          delivery_status: 'failed',
+          error_message: sendError.message,
+          bounce_type: 'permanent',
+          bounce_reason: sendError.message,
+          attempted_count: 1
+        })
+        .eq('id', queuedEmail.id)
+
+      throw new Error(`Resend API Error: ${sendError.message}`)
     }
 
-    console.log('Email sent successfully:', {
-      id: response.id,
-      to,
-      subject
-    })
-
-    return new Response(JSON.stringify({ 
-      message: 'Email sent successfully',
-      messageId: response.id 
-    }), {
-      headers: corsHeaders,
-      status: 200,
-    })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Detailed error in send-email function:', {
       message: error.message,
       stack: error.stack,
       cause: error.cause
     })
-    
-    // If we have a queued email, update its status to failed
-    try {
-      if (error.queuedEmail?.id) {
-        await supabaseClient
-          .from('email_queue')
-          .update({ 
-            status: 'failed',
-            delivery_status: 'failed',
-            error_message: error.message,
-            bounce_type: 'permanent',
-            bounce_reason: error.message,
-            attempted_count: 1
-          })
-          .eq('id', error.queuedEmail.id)
-      }
-    } catch (updateError) {
-      console.error('Error updating failed email status:', updateError)
-    }
     
     return new Response(
       JSON.stringify({ 
