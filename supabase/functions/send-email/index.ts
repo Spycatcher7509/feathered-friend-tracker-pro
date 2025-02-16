@@ -74,7 +74,7 @@ serve(async (req) => {
     // Send email via Resend
     console.log('Attempting to send email with the following configuration:')
     console.log({
-      from: 'onboarding@resend.dev',
+      from: 'accounts@thewrightsupport.com',
       to,
       subject,
       textLength: text?.length,
@@ -82,12 +82,12 @@ serve(async (req) => {
     })
 
     const response = await resend.emails.send({
-      from: 'onboarding@resend.dev',
+      from: 'BirdWatch Support <accounts@thewrightsupport.com>',
       to: [to],
       subject,
       text,
       html: html || undefined,
-      reply_to: 'onboarding@resend.dev'
+      reply_to: 'accounts@thewrightsupport.com'
     })
 
     console.log('Full Resend Response:', JSON.stringify(response, null, 2))
