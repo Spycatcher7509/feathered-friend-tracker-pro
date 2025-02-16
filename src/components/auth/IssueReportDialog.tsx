@@ -74,7 +74,10 @@ export const IssueReportDialog = ({ userEmail }: IssueReportDialogProps) => {
 
       // Send issue report to support team
       const { data, error } = await supabase.functions.invoke('send-email', {
-        body: emailContent.supportEmail
+        body: {
+          ...emailContent.supportEmail,
+          to: 'support@thewrightsupport.com' // Ensure correct support email
+        }
       })
 
       if (error) {
