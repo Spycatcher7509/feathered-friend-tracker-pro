@@ -74,7 +74,7 @@ serve(async (req) => {
     // Send email via Resend using verified domain
     console.log('Attempting to send email with the following configuration:')
     console.log({
-      from: 'BirdWatch Support <support@thewrightsupport.com>',
+      from: 'BirdWatch Support <onboarding@resend.dev>',
       to,
       subject,
       textLength: text?.length,
@@ -82,12 +82,12 @@ serve(async (req) => {
     })
 
     const response = await resend.emails.send({
-      from: 'BirdWatch Support <support@thewrightsupport.com>',
+      from: 'BirdWatch Support <onboarding@resend.dev>',
       to: [to],
       subject,
       text,
       html: html || undefined,
-      reply_to: 'support@thewrightsupport.com'
+      reply_to: 'onboarding@resend.dev'
     })
 
     console.log('Full Resend Response:', JSON.stringify(response, null, 2))
