@@ -56,7 +56,7 @@ serve(async (req) => {
       throw new Error('Daily email limit reached (2000 emails/day)')
     }
 
-    // Store email in queue
+    // Store email in queue with initial status
     const { data: queuedEmail, error: queueError } = await supabaseClient
       .from('email_queue')
       .insert({
@@ -64,7 +64,9 @@ serve(async (req) => {
         subject,
         text_content: text,
         html_content: html,
-        status: 'pending'
+        status: 'pending',
+        delivery_status: 'pending',
+        attempted_count: 0
       })
       .select()
       .single()
@@ -72,43 +74,56 @@ serve(async (req) => {
     if (queueError) throw queueError
 
     // Send email via Resend using testing domain
-    console.log('Attempting to send email with the following configuration:')
-    console.log({
-      from: 'BirdWatch Support <onboarding@resend.dev>',
+    console.log('Attempting to send email with the following configuration:', {
+      from: 'BirdWatch <onboarding@resend.dev>',
       to,
       subject,
-      textLength: text?.length,
-      htmlLength: html?.length
+      text: text?.substring(0, 100) + '...',
+      html: html ? 'HTML content provided' : 'No HTML content'
     })
 
     const response = await resend.emails.send({
-      from: 'BirdWatch Support <onboarding@resend.dev>',
+      from: 'BirdWatch <onboarding@resend.dev>',
       to: [to],
       subject,
       text,
       html: html || undefined,
-      reply_to: 'onboarding@resend.dev'
+      reply_to: 'onboarding@resend.dev',
+      headers: {
+        'X-Entity-Ref-ID': queuedEmail.id
+      }
     })
 
-    console.log('Full Resend Response:', JSON.stringify(response, null, 2))
+    console.log('Resend API Response:', JSON.stringify(response, null, 2))
 
-    // Update email status in queue
+    // Update email status in queue with more detailed information
     const { error: updateError } = await supabaseClient
       .from('email_queue')
       .update({ 
         status: response.error ? 'failed' : 'sent',
+        delivery_status: response.error ? 'failed' : 'delivered',
         sent_at: new Date().toISOString(),
-        error_message: response.error ? JSON.stringify(response.error) : null
+        error_message: response.error ? JSON.stringify(response.error) : null,
+        bounce_info: response.error ? { error: response.error } : null,
+        attempted_count: 1
       })
       .eq('id', queuedEmail.id)
 
-    if (updateError) throw updateError
-
-    if (response.error) {
-      throw new Error(`Resend API Error: ${JSON.stringify(response.error)}`)
+    if (updateError) {
+      console.error('Error updating email queue:', updateError)
+      throw updateError
     }
 
-    console.log('Email sent successfully:', response)
+    if (response.error) {
+      console.error('Resend API Error:', response.error)
+      throw new Error(`Failed to send email: ${JSON.stringify(response.error)}`)
+    }
+
+    console.log('Email sent successfully:', {
+      id: response.id,
+      to,
+      subject
+    })
 
     return new Response(JSON.stringify({ 
       message: 'Email sent successfully',

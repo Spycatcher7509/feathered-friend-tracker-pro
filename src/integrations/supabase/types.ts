@@ -382,8 +382,11 @@ export type Database = {
       }
       email_queue: {
         Row: {
+          attempted_count: number | null
           attempts: number | null
+          bounce_info: Json | null
           created_at: string | null
+          delivery_status: string | null
           error_message: string | null
           html_content: string | null
           id: string
@@ -395,8 +398,11 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          attempted_count?: number | null
           attempts?: number | null
+          bounce_info?: Json | null
           created_at?: string | null
+          delivery_status?: string | null
           error_message?: string | null
           html_content?: string | null
           id?: string
@@ -408,8 +414,11 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          attempted_count?: number | null
           attempts?: number | null
+          bounce_info?: Json | null
           created_at?: string | null
+          delivery_status?: string | null
           error_message?: string | null
           html_content?: string | null
           id?: string
