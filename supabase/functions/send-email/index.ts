@@ -72,27 +72,41 @@ serve(async (req) => {
     if (queueError) throw queueError
 
     // Send email via Resend
-    console.log('Sending email via Resend...')
+    console.log('Attempting to send email with the following configuration:')
+    console.log({
+      from: 'onboarding@resend.dev',
+      to,
+      subject,
+      textLength: text?.length,
+      htmlLength: html?.length
+    })
+
     const response = await resend.emails.send({
-      from: 'BirdWatch <onboarding@resend.dev>',
+      from: 'onboarding@resend.dev',
       to: [to],
       subject,
       text,
-      html: html || undefined
+      html: html || undefined,
+      reply_to: 'onboarding@resend.dev'
     })
 
-    console.log('Resend Response:', response)
+    console.log('Full Resend Response:', JSON.stringify(response, null, 2))
 
     // Update email status in queue
     const { error: updateError } = await supabaseClient
       .from('email_queue')
       .update({ 
-        status: 'sent',
-        sent_at: new Date().toISOString()
+        status: response.error ? 'failed' : 'sent',
+        sent_at: new Date().toISOString(),
+        error_message: response.error ? JSON.stringify(response.error) : null
       })
       .eq('id', queuedEmail.id)
 
     if (updateError) throw updateError
+
+    if (response.error) {
+      throw new Error(`Resend API Error: ${JSON.stringify(response.error)}`)
+    }
 
     console.log('Email sent successfully:', response)
 
@@ -104,7 +118,12 @@ serve(async (req) => {
       status: 200,
     })
   } catch (error) {
-    console.error('Error in send-email function:', error)
+    console.error('Detailed error in send-email function:', {
+      message: error.message,
+      stack: error.stack,
+      cause: error.cause
+    })
+    
     return new Response(
       JSON.stringify({ 
         error: error.message,
