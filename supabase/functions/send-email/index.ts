@@ -24,7 +24,8 @@ const supabaseClient = createClient(
 )
 
 const resend = new Resend(Deno.env.get('RESEND_API_KEY'))
-const VERIFIED_FROM_EMAIL = Deno.env.get('resend-thewrightsupport-email') || 'noreply@thewrightsupport.com'
+// Temporarily use Resend's test email while domain is being verified
+const VERIFIED_FROM_EMAIL = 'onboarding@resend.dev'
 
 serve(async (req) => {
   // Handle CORS preflight requests
