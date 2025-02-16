@@ -101,7 +101,8 @@ serve(async (req) => {
 
       console.log('Raw Resend API Response:', response)
 
-      if (!response || !response.id) {
+      // Updated validation to check response.data.id instead of response.id
+      if (!response?.data?.id) {
         throw new Error('Invalid response from Resend API: ' + JSON.stringify(response))
       }
 
@@ -123,7 +124,7 @@ serve(async (req) => {
 
       return new Response(JSON.stringify({ 
         message: 'Email sent successfully',
-        messageId: response.id 
+        messageId: response.data.id 
       }), {
         headers: corsHeaders,
         status: 200,
