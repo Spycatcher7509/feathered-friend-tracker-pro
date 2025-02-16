@@ -56,14 +56,11 @@ serve(async (req) => {
       throw new Error('Daily email limit reached (2000 emails/day)')
     }
 
-    // Store original recipient for reference
-    const originalTo = to
-
     // Store email in queue
     const { data: queuedEmail, error: queueError } = await supabaseClient
       .from('email_queue')
       .insert({
-        to_email: originalTo, // Store the original recipient
+        to_email: to,
         subject,
         text_content: text,
         html_content: html,
@@ -74,31 +71,23 @@ serve(async (req) => {
 
     if (queueError) throw queueError
 
-    // Send email via Resend (always to accounts@thewrightsupport.com in test mode)
+    // Send email via Resend using verified domain
     console.log('Attempting to send email with the following configuration:')
     console.log({
-      from: 'accounts@thewrightsupport.com',
-      to: 'accounts@thewrightsupport.com', // Override recipient in test mode
-      originalTo,
+      from: 'support@thewrightsupport.com',
+      to,
       subject,
       textLength: text?.length,
       htmlLength: html?.length
     })
 
-    const testModeText = `[TEST MODE] Original recipient: ${originalTo}\n\n${text}`
-    const testModeHtml = html ? 
-      `<div style="background: #f0f0f0; padding: 10px; margin-bottom: 10px; border-left: 4px solid #ff9800;">
-        <strong>TEST MODE</strong><br>
-        Original recipient: ${originalTo}
-      </div>${html}` : undefined
-
     const response = await resend.emails.send({
-      from: 'BirdWatch Support <accounts@thewrightsupport.com>',
-      to: ['accounts@thewrightsupport.com'], // Only send to verified address in test mode
-      subject: `[TEST] ${subject}`,
-      text: testModeText,
-      html: testModeHtml,
-      reply_to: 'accounts@thewrightsupport.com'
+      from: 'BirdWatch Support <support@thewrightsupport.com>',
+      to: [to],
+      subject,
+      text,
+      html: html || undefined,
+      reply_to: 'support@thewrightsupport.com'
     })
 
     console.log('Full Resend Response:', JSON.stringify(response, null, 2))
