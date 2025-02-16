@@ -24,6 +24,7 @@ const supabaseClient = createClient(
 )
 
 const resend = new Resend(Deno.env.get('RESEND_API_KEY'))
+const VERIFIED_FROM_EMAIL = Deno.env.get('resend-thewrightsupport-email') || 'noreply@thewrightsupport.com'
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -75,9 +76,9 @@ serve(async (req) => {
 
     if (queueError) throw queueError
 
-    // Send email via Resend using testing domain
+    // Send email via Resend using verified domain
     console.log('Attempting to send email with the following configuration:', {
-      from: 'BirdWatch <onboarding@resend.dev>',
+      from: `BirdWatch <${VERIFIED_FROM_EMAIL}>`,
       to,
       subject,
       text: text?.substring(0, 100) + '...',
@@ -85,12 +86,12 @@ serve(async (req) => {
     })
 
     const response = await resend.emails.send({
-      from: 'BirdWatch <onboarding@resend.dev>',
+      from: `BirdWatch <${VERIFIED_FROM_EMAIL}>`,
       to: [to],
       subject,
       text,
       html: html || undefined,
-      reply_to: 'onboarding@resend.dev',
+      reply_to: VERIFIED_FROM_EMAIL,
       headers: {
         'X-Entity-Ref-ID': queuedEmail.id
       }
