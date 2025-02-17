@@ -89,26 +89,17 @@ export const useBackupOperations = () => {
   const handleBackup = async () => {
     try {
       setIsLoading(true)
-
-      const adminCheck = await isAdmin()
-      if (!adminCheck) {
-        toast({
-          title: "Access Denied",
-          description: "Only the authorized administrator can perform backup operations",
-          variant: "destructive",
-        })
-        return
-      }
-
       await createBackup()
       
       toast({
         title: "Backup Successful",
-        description: "Your data has been backed up to Google Drive",
+        description: "Your data has been backed up",
       })
     } catch (error) {
       console.error('Backup error:', error)
-      await sendDiscordWebhookMessage(`❌ Backup failed at ${new Date().toLocaleString()}: ${error}`)
+      if (await isAdmin()) {
+        await sendDiscordWebhookMessage(`❌ Backup failed at ${new Date().toLocaleString()}: ${error}`)
+      }
       toast({
         title: "Backup Failed",
         description: "There was an error backing up your data",
@@ -122,16 +113,6 @@ export const useBackupOperations = () => {
   const handleRestore = async () => {
     try {
       setIsLoading(true)
-
-      const adminCheck = await isAdmin()
-      if (!adminCheck) {
-        toast({
-          title: "Access Denied",
-          description: "Only the authorized administrator can perform restore operations",
-          variant: "destructive",
-        })
-        return
-      }
       
       const file = await pickBackupFile()
       if (!file) return
@@ -145,7 +126,9 @@ export const useBackupOperations = () => {
       })
     } catch (error) {
       console.error('Restore error:', error)
-      await sendDiscordWebhookMessage(`❌ Restore failed at ${new Date().toLocaleString()}: ${error}`)
+      if (await isAdmin()) {
+        await sendDiscordWebhookMessage(`❌ Restore failed at ${new Date().toLocaleString()}: ${error}`)
+      }
       toast({
         title: "Restore Failed",
         description: "There was an error restoring your data",
