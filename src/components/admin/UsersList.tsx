@@ -26,18 +26,36 @@ export function UsersList() {
   const fetchUsers = async () => {
     try {
       console.log('Fetching users...')
-      const { data: profiles, error } = await supabase
+      // First get all auth users
+      const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers()
+      
+      if (authError) {
+        console.error('Error fetching auth users:', authError)
+        throw authError
+      }
+
+      // Then get all profiles
+      const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
         .select()
         .order('username')
 
-      if (error) {
-        console.error('Error fetching profiles:', error)
-        throw error
+      if (profilesError) {
+        console.error('Error fetching profiles:', profilesError)
+        throw profilesError
       }
 
-      console.log('Fetched profiles:', profiles)
-      setUsers(profiles)
+      // Merge auth users with profiles
+      const mergedUsers = profiles.map(profile => {
+        const authUser = authUsers.users.find(u => u.id === profile.id)
+        return {
+          ...profile,
+          email: authUser?.email
+        }
+      })
+
+      console.log('Fetched users:', mergedUsers)
+      setUsers(mergedUsers)
     } catch (error) {
       console.error('Error fetching users:', error)
       toast({
@@ -78,12 +96,10 @@ export function UsersList() {
 
   const deleteUser = async (userId: string) => {
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .delete()
-        .eq('id', userId)
-
-      if (error) throw error
+      // First delete from auth.users which will trigger cascade delete
+      const { error: authError } = await supabase.auth.admin.deleteUser(userId)
+      
+      if (authError) throw authError
 
       toast({
         title: "Success",
@@ -112,6 +128,7 @@ export function UsersList() {
         <TableHeader>
           <TableRow>
             <TableHead>Username</TableHead>
+            <TableHead>Email</TableHead>
             <TableHead>Admin Status</TableHead>
             <TableHead>Location</TableHead>
             <TableHead>Experience Level</TableHead>
@@ -122,6 +139,7 @@ export function UsersList() {
           {users.map((user) => (
             <TableRow key={user.id}>
               <TableCell className="font-medium">{user.username || 'Anonymous User'}</TableCell>
+              <TableCell>{user.email || 'No email'}</TableCell>
               <TableCell>
                 {user.is_admin ? (
                   <Badge className="bg-green-500">Admin</Badge>
