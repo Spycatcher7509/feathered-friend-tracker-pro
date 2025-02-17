@@ -38,22 +38,16 @@ const BirdCardActions = ({ onImageUpload, onDelete, isDeleting }: BirdCardAction
         </Button>
       </label>
 
-      <Button
-        variant="outline"
-        size="sm"
-        className="flex items-center gap-1"
-      >
-        <AudioRecorder
-          onRecordingComplete={(url) => {
-            console.log("Recording completed:", url)
-            // Handle the recording URL here
-          }}
-          buttonChildren={<>
-            <Mic className="h-4 w-4 mr-1" />
-            Record Call
-          </>}
-        />
-      </Button>
+      <AudioRecorder
+        onRecordingComplete={(url) => {
+          console.log("Recording completed:", url)
+          // Handle the recording URL here
+        }}
+        buttonChildren={<>
+          <Mic className="h-4 w-4 mr-1" />
+          Record Call
+        </>}
+      />
 
       {onDelete && (
         <Button
