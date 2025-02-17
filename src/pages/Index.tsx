@@ -86,6 +86,9 @@ const Index = () => {
                   <ProfileImporter />
                   <SupportButtons />
                 </div>
+                <div className="bg-white rounded-lg shadow p-6">
+                  <GoogleDriveBackup />
+                </div>
               </div>
             </div>
           </div>
@@ -94,9 +97,6 @@ const Index = () => {
             <div className="space-y-6">
               <div className="bg-white rounded-lg shadow p-6">
                 <ApiUsageMonitor />
-              </div>
-              <div className="bg-white rounded-lg shadow p-6">
-                <GoogleDriveBackup />
               </div>
             </div>
           )}
