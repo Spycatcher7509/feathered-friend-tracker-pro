@@ -61,12 +61,14 @@ export const IssueReportDialog = ({ userEmail }: IssueReportDialogProps) => {
       const { data: supportConfig, error: configError } = await supabase
         .from('support_team_config')
         .select('support_email')
-        .single()
+        .maybeSingle()
 
       if (configError) {
         console.error('Error fetching support team config:', configError)
         throw new Error("Could not fetch support team configuration")
       }
+
+      const supportEmail = supportConfig?.support_email || 'accounts@thewrightsupport.com'
 
       // Store issue in database - status will default to 'open'
       const { error: dbError } = await supabase
@@ -87,7 +89,7 @@ export const IssueReportDialog = ({ userEmail }: IssueReportDialogProps) => {
       const { error: supportEmailError } = await supabase.functions.invoke('send-email', {
         body: {
           ...emailContent.supportEmail,
-          to: supportConfig.support_email
+          to: supportEmail
         }
       })
 
