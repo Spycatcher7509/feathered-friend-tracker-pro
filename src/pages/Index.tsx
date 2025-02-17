@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react"
 import Navigation from "@/components/Navigation"
 import PageLayout from "@/components/layout/PageLayout"
@@ -18,6 +19,7 @@ import { GuideViewer } from "@/components/guides/GuideViewer"
 import { DisclaimerDialog } from "@/components/auth/DisclaimerDialog"
 import GoogleDriveBackup from "@/components/backup/GoogleDriveBackup"
 import { Chat } from "@/components/chat/Chat"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 const Index = () => {
   const [showBirdSounds, setShowBirdSounds] = useState(false)
@@ -89,17 +91,19 @@ const Index = () => {
           </div>
 
           {isAdmin && (
-            <>
+            <div className="space-y-6">
               <div className="bg-white rounded-lg shadow p-6">
                 <ApiUsageMonitor />
               </div>
               <div className="bg-white rounded-lg shadow p-6">
                 <GoogleDriveBackup />
               </div>
-            </>
+            </div>
           )}
 
-          <BirdSightingsList />
+          <div className="bg-white rounded-lg shadow p-6">
+            <BirdSightingsList />
+          </div>
         </div>
 
         <div className="space-y-4">
