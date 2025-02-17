@@ -97,6 +97,26 @@ export const createBackup = async () => {
     
     const fileSizeInMB = (file.size / (1024 * 1024)).toFixed(2)
     
+    // Get all active schedules for status report
+    const { data: schedules } = await supabase
+      .from('custom_backup_schedules')
+      .select('*')
+      .eq('is_active', true)
+      .order('created_at', { ascending: true })
+    
+    const scheduleInfo = schedules?.map(schedule => {
+      let timing = ""
+      if (schedule.frequency === 'daily') {
+        timing = `Daily at ${format(new Date(`2000-01-01T${schedule.time_of_day}`), 'HH:mm')}`
+      } else if (schedule.frequency === 'weekly') {
+        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+        timing = `Weekly on ${days[schedule.day_of_week || 0]} at ${format(new Date(`2000-01-01T${schedule.time_of_day}`), 'HH:mm')}`
+      } else if (schedule.frequency === 'monthly') {
+        timing = `Monthly on day ${schedule.day_of_month} at ${format(new Date(`2000-01-01T${schedule.time_of_day}`), 'HH:mm')}`
+      }
+      return `• ${timing}`
+    }).join('\n')
+    
     console.log('Sending success notification to Discord...')
     await sendDiscordWebhookMessage(`✅ Backup completed successfully!
 
@@ -111,10 +131,8 @@ export const createBackup = async () => {
   • Total cost: $${totalCost.toFixed(4)}
 🔗 Drive File ID: ${result.id}
 
-⏰ Next scheduled backups:
-• Daily: Midnight (00:00)
-• Weekly: Sunday at Midnight
-• Monthly: 1st day at Midnight`)
+⏰ Active Backup Schedules:
+${scheduleInfo || 'No active schedules'}`)
     
     console.log('Backup process completed successfully')
     return result
