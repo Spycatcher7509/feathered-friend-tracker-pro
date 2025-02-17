@@ -1,29 +1,11 @@
 
 import { useState, useEffect } from "react"
 import { supabase } from "@/integrations/supabase/client"
-import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
-import { EditableCell } from "./EditableCell"
-import { UserActions } from "./UserActions"
-import { UsersTableHeader } from "./UsersTableHeader"
 import { SearchBar } from "./SearchBar"
 import { CreateUserDialog } from "./CreateUserDialog"
-
-interface Profile {
-  id: string
-  username: string
-  email?: string
-  is_admin: boolean
-  location?: string
-  experience_level?: string
-}
-
-interface EditingState {
-  id: string | null
-  field: 'username' | 'location' | 'experience_level' | null
-  value: string
-}
+import { UsersTable } from "./UsersTable"
+import { Profile, EditingState } from "./types"
 
 export function UsersList() {
   const [users, setUsers] = useState<Profile[]>([])
@@ -171,76 +153,16 @@ export function UsersList() {
         <CreateUserDialog onUserCreated={fetchUsers} />
       </div>
       
-      <div className="rounded-md border">
-        <Table>
-          <UsersTableHeader />
-          <TableBody>
-            {users.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={6} className="text-center py-4">
-                  No users found. Try adjusting your search.
-                </TableCell>
-              </TableRow>
-            ) : (
-              users.map((user) => (
-                <TableRow key={user.id} className="group">
-                  <TableCell>
-                    <EditableCell
-                      value={user.username}
-                      isEditing={editing.id === user.id && editing.field === 'username'}
-                      onEdit={() => startEditing(user.id, 'username', user.username)}
-                      onSave={saveEdit}
-                      onCancel={cancelEditing}
-                      onChange={(value) => setEditing(prev => ({ ...prev, value }))}
-                      editValue={editing.value}
-                    />
-                  </TableCell>
-                  <TableCell>{user.email || 'No email'}</TableCell>
-                  <TableCell>
-                    {user.is_admin ? (
-                      <Badge className="bg-green-500">Admin</Badge>
-                    ) : (
-                      <Badge variant="secondary">User</Badge>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <EditableCell
-                      value={user.location}
-                      isEditing={editing.id === user.id && editing.field === 'location'}
-                      onEdit={() => startEditing(user.id, 'location', user.location || '')}
-                      onSave={saveEdit}
-                      onCancel={cancelEditing}
-                      onChange={(value) => setEditing(prev => ({ ...prev, value }))}
-                      editValue={editing.value}
-                      placeholder="Not specified"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <EditableCell
-                      value={user.experience_level}
-                      isEditing={editing.id === user.id && editing.field === 'experience_level'}
-                      onEdit={() => startEditing(user.id, 'experience_level', user.experience_level || '')}
-                      onSave={saveEdit}
-                      onCancel={cancelEditing}
-                      onChange={(value) => setEditing(prev => ({ ...prev, value }))}
-                      editValue={editing.value}
-                      placeholder="Not specified"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <UserActions
-                      userId={user.id}
-                      isAdmin={user.is_admin}
-                      onToggleAdmin={toggleAdminStatus}
-                      onDelete={deleteUser}
-                    />
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+      <UsersTable
+        users={users}
+        editing={editing}
+        onStartEditing={startEditing}
+        onSaveEdit={saveEdit}
+        onCancelEditing={cancelEditing}
+        onEditingChange={(value) => setEditing(prev => ({ ...prev, value }))}
+        onToggleAdmin={toggleAdminStatus}
+        onDelete={deleteUser}
+      />
     </div>
   )
 }
