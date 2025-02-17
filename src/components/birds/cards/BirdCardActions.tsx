@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button"
-import { Camera, Trash2 } from "lucide-react"
+import { Camera, Trash2, Mic } from "lucide-react"
 import AudioRecorder from "../AudioRecorder"
 
 interface BirdCardActionsProps {
@@ -43,6 +43,11 @@ const BirdCardActions = ({ onImageUpload, onDelete, isDeleting }: BirdCardAction
           console.log("Recording completed:", url)
           // Handle the recording URL here
         }}
+        className="flex items-center gap-1"
+        buttonChildren={<>
+          <Mic className="h-4 w-4 mr-1" />
+          Record Call
+        </>}
       />
 
       {onDelete && (
