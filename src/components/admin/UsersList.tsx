@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react"
 import { supabase } from "@/integrations/supabase/client"
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table"
@@ -8,6 +7,7 @@ import { EditableCell } from "./EditableCell"
 import { UserActions } from "./UserActions"
 import { UsersTableHeader } from "./UsersTableHeader"
 import { SearchBar } from "./SearchBar"
+import { CreateUserDialog } from "./CreateUserDialog"
 
 interface Profile {
   id: string
@@ -161,11 +161,14 @@ export function UsersList() {
 
   return (
     <div className="space-y-4">
-      <SearchBar
-        value={searchQuery}
-        onChange={setSearchQuery}
-        onSearch={handleSearch}
-      />
+      <div className="flex justify-between">
+        <SearchBar
+          value={searchQuery}
+          onChange={setSearchQuery}
+          onSearch={handleSearch}
+        />
+        <CreateUserDialog onUserCreated={fetchUsers} />
+      </div>
       
       <div className="rounded-md border">
         <Table>
