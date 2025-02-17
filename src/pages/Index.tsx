@@ -3,7 +3,6 @@ import { useState, useEffect } from "react"
 import Navigation from "@/components/Navigation"
 import PageLayout from "@/components/layout/PageLayout"
 import ProfileImporter from "@/components/auth/ProfileImporter"
-import GoogleDriveBackup from "@/components/backup/GoogleDriveBackup"
 import ExternalBirdSounds from "@/components/birds/ExternalBirdSounds"
 import AddBirdSighting from "@/components/birds/AddBirdSighting"
 import BirdSightingsList from "@/components/birds/BirdSightingsList"
@@ -16,8 +15,8 @@ import { ChevronDown, ChevronUp, FileCode } from "lucide-react"
 import { useAdminGroups } from "@/hooks/useAdminGroups"
 import { BirdSpeciesManager } from "@/components/birds/BirdSpeciesManager"
 import { BirdIdentifier } from "@/components/birds/BirdIdentifier"
-import { useToast } from "@/hooks/use-toast"
 import { GuideViewer } from "@/components/guides/GuideViewer"
+import { DisclaimerDialog } from "@/components/auth/DisclaimerDialog"
 
 const Index = () => {
   const [showBirdSounds, setShowBirdSounds] = useState(false)
@@ -26,7 +25,6 @@ const Index = () => {
   const [showAdminGuide, setShowAdminGuide] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
   const { checkAdminStatus } = useAdminGroups()
-  const { toast } = useToast()
 
   useEffect(() => {
     const checkAdmin = async () => {
@@ -78,9 +76,6 @@ const Index = () => {
             <div className="grid md:grid-cols-2 gap-6">
               <AddBirdSighting />
               <div className="space-y-6">
-                <div className="bg-white rounded-lg shadow p-6">
-                  <GoogleDriveBackup />
-                </div>
                 <div className="flex flex-wrap gap-4 items-center">
                   <BirdSpeciesManager />
                   <BirdIdentifier />
@@ -129,8 +124,10 @@ const Index = () => {
           {showBirdSounds && <ExternalBirdSounds />}
         </div>
       </div>
+      <DisclaimerDialog />
     </PageLayout>
   )
 }
 
 export default Index
+

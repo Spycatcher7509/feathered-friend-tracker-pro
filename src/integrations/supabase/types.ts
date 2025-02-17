@@ -676,6 +676,24 @@ export type Database = {
         }
         Relationships: []
       }
+      user_disclaimers: {
+        Row: {
+          accepted: boolean
+          accepted_at: string | null
+          user_id: string
+        }
+        Insert: {
+          accepted: boolean
+          accepted_at?: string | null
+          user_id: string
+        }
+        Update: {
+          accepted?: boolean
+          accepted_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
