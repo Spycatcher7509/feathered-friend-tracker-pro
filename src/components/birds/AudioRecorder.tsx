@@ -7,11 +7,12 @@ import { supabase } from "@/integrations/supabase/client"
 
 interface AudioRecorderProps {
   onRecordingComplete?: (url: string) => void
+  mode?: 'bird-call' | 'description'
   className?: string
   buttonChildren?: React.ReactNode
 }
 
-const AudioRecorder = ({ onRecordingComplete, className = "", buttonChildren }: AudioRecorderProps) => {
+const AudioRecorder = ({ onRecordingComplete, mode = 'bird-call', className = "", buttonChildren }: AudioRecorderProps) => {
   const [isRecording, setIsRecording] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
@@ -32,7 +33,11 @@ const AudioRecorder = ({ onRecordingComplete, className = "", buttonChildren }: 
 
       mediaRecorderRef.current.onstop = async () => {
         const audioBlob = new Blob(chunksRef.current, { type: 'audio/webm' })
-        await uploadAudio(audioBlob)
+        if (mode === 'description') {
+          await handleDescriptionRecording(audioBlob)
+        } else {
+          await uploadAudio(audioBlob)
+        }
         stream.getTracks().forEach(track => track.stop())
       }
 
@@ -52,6 +57,39 @@ const AudioRecorder = ({ onRecordingComplete, className = "", buttonChildren }: 
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop()
       setIsRecording(false)
+    }
+  }
+
+  const handleDescriptionRecording = async (blob: Blob) => {
+    setIsUploading(true)
+    try {
+      // Convert blob to base64
+      const buffer = await blob.arrayBuffer()
+      const base64Audio = btoa(String.fromCharCode(...new Uint8Array(buffer)))
+
+      // Call the transcribe-audio function
+      const { data, error } = await supabase.functions.invoke('transcribe-audio', {
+        body: { audio: `data:audio/webm;base64,${base64Audio}` }
+      })
+
+      if (error) throw error
+
+      if (data.text) {
+        onRecordingComplete?.(data.text)
+        toast({
+          title: "Success",
+          description: "Description transcribed successfully!",
+        })
+      }
+    } catch (error) {
+      console.error('Error transcribing audio:', error)
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to transcribe audio. Please try typing instead.",
+      })
+    } finally {
+      setIsUploading(false)
     }
   }
 
@@ -88,17 +126,19 @@ const AudioRecorder = ({ onRecordingComplete, className = "", buttonChildren }: 
     }
   }
 
+  const buttonText = mode === 'description' ? 'Record description' : 'Record Bird Call'
+
   return (
     <div className={className}>
       {!isRecording ? (
         <Button
-          variant="outline"
+          variant={mode === 'description' ? 'ghost' : 'outline'}
           size="sm"
           onClick={startRecording}
           disabled={isUploading}
         >
           <Mic className="h-4 w-4 mr-1" />
-          Record Bird Call
+          {buttonText}
         </Button>
       ) : (
         <Button
