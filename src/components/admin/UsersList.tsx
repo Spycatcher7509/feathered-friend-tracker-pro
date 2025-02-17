@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Shield, Trash2, Search } from "lucide-react"
+import { Shield, Trash2, Search, Pencil, Check, X } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { Input } from "@/components/ui/input"
 
@@ -24,10 +24,17 @@ interface Profile {
   experience_level?: string
 }
 
+interface EditingState {
+  id: string | null
+  field: 'username' | 'location' | 'experience_level' | null
+  value: string
+}
+
 export function UsersList() {
   const [users, setUsers] = useState<Profile[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
+  const [editing, setEditing] = useState<EditingState>({ id: null, field: null, value: "" })
   const { toast } = useToast()
 
   useEffect(() => {
@@ -42,7 +49,6 @@ export function UsersList() {
         .select()
         
       if (search) {
-        // Include email in the search
         query = query.or(`email.ilike.%${search}%,username.ilike.%${search}%,location.ilike.%${search}%,experience_level.ilike.%${search}%`)
       }
       
@@ -72,6 +78,43 @@ export function UsersList() {
     fetchUsers(searchQuery)
   }
 
+  const startEditing = (id: string, field: EditingState['field'], currentValue: string) => {
+    setEditing({ id, field, value: currentValue || '' })
+  }
+
+  const cancelEditing = () => {
+    setEditing({ id: null, field: null, value: "" })
+  }
+
+  const saveEdit = async () => {
+    if (!editing.id || !editing.field) return
+
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ [editing.field]: editing.value })
+        .eq('id', editing.id)
+
+      if (error) throw error
+
+      toast({
+        title: "Success",
+        description: "User details updated successfully",
+      })
+      
+      // Refresh the users list
+      fetchUsers()
+      cancelEditing()
+    } catch (error) {
+      console.error('Error updating user:', error)
+      toast({
+        title: "Error",
+        description: "Failed to update user details",
+        variant: "destructive",
+      })
+    }
+  }
+
   const toggleAdminStatus = async (userId: string, currentStatus: boolean) => {
     try {
       const { error } = await supabase
@@ -86,7 +129,6 @@ export function UsersList() {
         description: `User ${currentStatus ? "demoted" : "promoted"} successfully`,
       })
       
-      // Refresh the users list
       fetchUsers()
     } catch (error) {
       console.error('Error updating admin status:', error)
@@ -112,7 +154,6 @@ export function UsersList() {
         description: "User deleted successfully",
       })
       
-      // Refresh the users list
       fetchUsers()
     } catch (error) {
       console.error('Error deleting user:', error)
@@ -124,8 +165,41 @@ export function UsersList() {
     }
   }
 
-  const getUserDisplayName = (username: string | null) => {
-    return username || 'Full name or Nickname'
+  const renderEditableCell = (user: Profile, field: EditingState['field'], value: string | null) => {
+    const isEditing = editing.id === user.id && editing.field === field
+
+    if (isEditing) {
+      return (
+        <div className="flex items-center gap-2">
+          <Input
+            value={editing.value}
+            onChange={(e) => setEditing(prev => ({ ...prev, value: e.target.value }))}
+            className="h-8 w-[200px]"
+            autoFocus
+          />
+          <Button variant="ghost" size="sm" onClick={saveEdit} className="h-8 w-8 p-0">
+            <Check className="h-4 w-4 text-green-500" />
+          </Button>
+          <Button variant="ghost" size="sm" onClick={cancelEditing} className="h-8 w-8 p-0">
+            <X className="h-4 w-4 text-red-500" />
+          </Button>
+        </div>
+      )
+    }
+
+    return (
+      <div className="flex items-center gap-2">
+        <span className="font-medium">{value || 'Full name or Nickname'}</span>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => startEditing(user.id, field, value || '')}
+          className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+        >
+          <Pencil className="h-4 w-4" />
+        </Button>
+      </div>
+    )
   }
 
   if (loading) {
@@ -162,9 +236,9 @@ export function UsersList() {
           </TableHeader>
           <TableBody>
             {users.map((user) => (
-              <TableRow key={user.id}>
-                <TableCell className="font-medium">
-                  {getUserDisplayName(user.username)}
+              <TableRow key={user.id} className="group">
+                <TableCell>
+                  {renderEditableCell(user, 'username', user.username)}
                 </TableCell>
                 <TableCell>{user.email || 'No email'}</TableCell>
                 <TableCell>
@@ -174,8 +248,12 @@ export function UsersList() {
                     <Badge variant="secondary">User</Badge>
                   )}
                 </TableCell>
-                <TableCell>{user.location || 'Not specified'}</TableCell>
-                <TableCell>{user.experience_level || 'Not specified'}</TableCell>
+                <TableCell>
+                  {renderEditableCell(user, 'location', user.location)}
+                </TableCell>
+                <TableCell>
+                  {renderEditableCell(user, 'experience_level', user.experience_level)}
+                </TableCell>
                 <TableCell>
                   <div className="flex gap-2">
                     <Button
