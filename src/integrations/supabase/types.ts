@@ -349,6 +349,50 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_metadata: {
+        Row: {
+          attachments: Json | null
+          contact_time: string | null
+          conversation_id: string
+          created_at: string | null
+          description: string
+          email: string
+          full_name: string
+          id: string
+          updated_at: string | null
+        }
+        Insert: {
+          attachments?: Json | null
+          contact_time?: string | null
+          conversation_id: string
+          created_at?: string | null
+          description: string
+          email: string
+          full_name: string
+          id?: string
+          updated_at?: string | null
+        }
+        Update: {
+          attachments?: Json | null
+          contact_time?: string | null
+          conversation_id?: string
+          created_at?: string | null
+          description?: string
+          email?: string
+          full_name?: string
+          id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_metadata_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conversations: {
         Row: {
           created_at: string | null
