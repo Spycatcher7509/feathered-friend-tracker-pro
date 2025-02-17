@@ -30,7 +30,9 @@ interface NewUserData {
   is_admin: boolean
 }
 
+// Important: Must match exactly what's in the database constraint
 const experienceLevels = ['beginner', 'intermediate', 'advanced', 'expert'] as const
+type ExperienceLevel = typeof experienceLevels[number]
 
 export function CreateUserDialog({ onUserCreated }: { onUserCreated: () => void }) {
   const [isOpen, setIsOpen] = useState(false)
@@ -42,7 +44,7 @@ export function CreateUserDialog({ onUserCreated }: { onUserCreated: () => void 
     email: "",
     username: "",
     location: "",
-    experience_level: "",
+    experience_level: experienceLevels[0], // Set a default value
     is_admin: false
   })
 
@@ -53,8 +55,16 @@ export function CreateUserDialog({ onUserCreated }: { onUserCreated: () => void 
     try {
       const { data: { session } } = await supabase.auth.getSession()
       
+      // Ensure experience_level is a valid value before sending
+      if (userData.experience_level && !experienceLevels.includes(userData.experience_level as ExperienceLevel)) {
+        throw new Error('Invalid experience level')
+      }
+      
       const { data, error } = await supabase.functions.invoke('create-admin-user', {
-        body: userData
+        body: {
+          ...userData,
+          experience_level: userData.experience_level || null
+        }
       })
 
       if (error) throw error
@@ -75,7 +85,7 @@ export function CreateUserDialog({ onUserCreated }: { onUserCreated: () => void 
         email: "",
         username: "",
         location: "",
-        experience_level: "",
+        experience_level: experienceLevels[0],
         is_admin: false
       })
     } catch (error) {
@@ -135,6 +145,7 @@ export function CreateUserDialog({ onUserCreated }: { onUserCreated: () => void 
             <Select
               value={userData.experience_level}
               onValueChange={(value) => setUserData(prev => ({ ...prev, experience_level: value }))}
+              required
             >
               <SelectTrigger id="experience_level">
                 <SelectValue placeholder="Select experience level" />

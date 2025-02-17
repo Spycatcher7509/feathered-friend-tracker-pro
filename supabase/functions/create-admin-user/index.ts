@@ -11,7 +11,7 @@ interface RequestBody {
   is_admin: boolean
 }
 
-const validExperienceLevels = ['beginner', 'intermediate', 'advanced', 'expert']
+const validExperienceLevels = ['beginner', 'intermediate', 'advanced', 'expert'] as const
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -31,10 +31,15 @@ serve(async (req) => {
     )
 
     const body: RequestBody = await req.json()
+    
+    console.log('Received request body:', body)
 
-    // Validate experience_level
-    if (body.experience_level && !validExperienceLevels.includes(body.experience_level)) {
-      throw new Error('Invalid experience level')
+    // Validate experience_level more strictly
+    if (body.experience_level !== undefined && body.experience_level !== null) {
+      if (!validExperienceLevels.includes(body.experience_level as typeof validExperienceLevels[number])) {
+        console.error('Invalid experience level:', body.experience_level)
+        throw new Error(`Invalid experience level. Must be one of: ${validExperienceLevels.join(', ')}`)
+      }
     }
 
     // First, check if user exists
@@ -75,18 +80,26 @@ serve(async (req) => {
       userId = authData.user.id
     }
 
+    // Prepare profile data with strict typing for experience_level
+    const profileData = {
+      username: body.username,
+      location: body.location,
+      experience_level: body.experience_level || null,  // Ensure null if not provided
+      is_admin: body.is_admin
+    }
+
+    console.log('Updating profile with data:', profileData)
+
     // Update the profile
     const { error: profileError } = await supabase
       .from('profiles')
-      .update({
-        username: body.username,
-        location: body.location,
-        experience_level: body.experience_level || null,
-        is_admin: body.is_admin
-      })
+      .update(profileData)
       .eq('id', userId)
 
-    if (profileError) throw profileError
+    if (profileError) {
+      console.error('Profile update error:', profileError)
+      throw profileError
+    }
 
     return new Response(
       JSON.stringify({ success: true, userId }),
