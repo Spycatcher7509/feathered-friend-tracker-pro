@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react"
 import { useBackupOperations } from "@/hooks/useBackupOperations"
 import { useAdminGroups } from "@/hooks/useAdminGroups"
@@ -7,6 +6,16 @@ import { useToast } from "@/hooks/use-toast"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { OneOffOperations } from "./OneOffOperations"
 import { ScheduledOperations } from "./ScheduledOperations"
+
+interface BackupSchedule {
+  id: string
+  created_at: string
+  frequency: "daily" | "weekly" | "monthly"
+  time_of_day: string
+  day_of_week: number | null
+  day_of_month: number | null
+  operation_type: "backup" | "restore"
+}
 
 const GoogleDriveBackup = () => {
   const { 
@@ -26,7 +35,7 @@ const GoogleDriveBackup = () => {
   const { checkAdminStatus } = useAdminGroups()
   const currentDomain = window.location.origin
   const { toast } = useToast()
-  const [schedules, setSchedules] = useState([])
+  const [schedules, setSchedules] = useState<BackupSchedule[]>([])
 
   useEffect(() => {
     const checkAdmin = async () => {
@@ -109,6 +118,8 @@ ${formData.frequency === 'monthly' ? `• Day of Month: ${formData.dayOfMonth}` 
   const deleteSchedule = async (id: string) => {
     try {
       const scheduleToDelete = schedules.find(s => s.id === id)
+      if (!scheduleToDelete) return
+
       const { error } = await supabase
         .from('custom_backup_schedules')
         .delete()
@@ -138,7 +149,6 @@ ${scheduleToDelete.day_of_month !== null ? `• Day of Month: ${scheduleToDelete
     }
   }
 
-  // If not admin, don't render anything
   if (!isAdmin) {
     return null
   }
