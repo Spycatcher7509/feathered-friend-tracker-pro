@@ -791,6 +791,27 @@ export type Database = {
         }
         Relationships: []
       }
+      support_team_config: {
+        Row: {
+          created_at: string
+          id: string
+          support_email: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          support_email: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          support_email?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_disclaimers: {
         Row: {
           accepted: boolean
