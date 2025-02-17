@@ -69,7 +69,6 @@ const GoogleDriveBackup = () => {
         variant: "destructive",
       })
     } else {
-      // Validate and transform the data to ensure operation_type is either "backup" or "restore"
       const validSchedules = (data || []).map(schedule => ({
         ...schedule,
         operation_type: schedule.operation_type === "restore" ? "restore" : "backup"
@@ -100,10 +99,7 @@ const GoogleDriveBackup = () => {
         })
         .select()
 
-      if (error) {
-        console.error('Error creating schedule:', error)
-        throw error
-      }
+      if (error) throw error
 
       await sendDiscordNotification(`🔄 New ${formData.operationType} schedule created:
 • Frequency: ${formData.frequency}
@@ -162,16 +158,57 @@ ${scheduleToDelete.day_of_month !== null ? `• Day of Month: ${scheduleToDelete
     }
   }
 
-  if (!isAdmin) {
-    return (
-      <div className="space-y-4">
+  return (
+    <div className="space-y-4">
+      {!isAdmin && (
         <Alert variant="default" className="mb-4">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
             You can backup and restore your own data. Please note that this will only affect your personal data.
           </AlertDescription>
         </Alert>
-        
+      )}
+      
+      {isAdmin ? (
+        <>
+          <h2 className="text-xl font-semibold mb-4">Google Drive Backup & Restore</h2>
+          
+          <Tabs defaultValue="one-off" className="w-full">
+            <TabsList className="mb-4">
+              <TabsTrigger value="one-off">One-off Operations</TabsTrigger>
+              <TabsTrigger value="scheduled">Scheduled Operations</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="one-off">
+              <OneOffOperations 
+                isLoading={isLoading}
+                handleBackup={handleBackup}
+                handleRestore={handleRestore}
+                sendDiscordNotification={sendDiscordNotification}
+                setShowInstructions={setShowInstructions}
+                showInstructions={showInstructions}
+                currentDomain={currentDomain}
+                showDisclaimer={showDisclaimer}
+                setShowDisclaimer={setShowDisclaimer}
+                operationType={operationType}
+                initiateBackup={initiateBackup}
+                initiateRestore={initiateRestore}
+                isAdmin={true}
+              />
+            </TabsContent>
+            
+            <TabsContent value="scheduled">
+              <ScheduledOperations 
+                showScheduler={showScheduler}
+                setShowScheduler={setShowScheduler}
+                handleScheduleOperation={handleScheduleOperation}
+                schedules={schedules}
+                deleteSchedule={deleteSchedule}
+              />
+            </TabsContent>
+          </Tabs>
+        </>
+      ) : (
         <OneOffOperations 
           isLoading={isLoading}
           handleBackup={handleBackup}
@@ -187,48 +224,7 @@ ${scheduleToDelete.day_of_month !== null ? `• Day of Month: ${scheduleToDelete
           initiateRestore={initiateRestore}
           isAdmin={false}
         />
-      </div>
-    )
-  }
-
-  return (
-    <div className="space-y-4">
-      <h2 className="text-xl font-semibold mb-4">Google Drive Backup & Restore</h2>
-      
-      <Tabs defaultValue="one-off" className="w-full">
-        <TabsList className="mb-4">
-          <TabsTrigger value="one-off">One-off Operations</TabsTrigger>
-          <TabsTrigger value="scheduled">Scheduled Operations</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="one-off" className="space-y-4">
-          <OneOffOperations 
-            isLoading={isLoading}
-            handleBackup={handleBackup}
-            handleRestore={handleRestore}
-            sendDiscordNotification={sendDiscordNotification}
-            setShowInstructions={setShowInstructions}
-            showInstructions={showInstructions}
-            currentDomain={currentDomain}
-            showDisclaimer={showDisclaimer}
-            setShowDisclaimer={setShowDisclaimer}
-            operationType={operationType}
-            initiateBackup={initiateBackup}
-            initiateRestore={initiateRestore}
-            isAdmin={true}
-          />
-        </TabsContent>
-        
-        <TabsContent value="scheduled" className="space-y-4">
-          <ScheduledOperations 
-            showScheduler={showScheduler}
-            setShowScheduler={setShowScheduler}
-            handleScheduleOperation={handleScheduleOperation}
-            schedules={schedules}
-            deleteSchedule={deleteSchedule}
-          />
-        </TabsContent>
-      </Tabs>
+      )}
     </div>
   )
 }
