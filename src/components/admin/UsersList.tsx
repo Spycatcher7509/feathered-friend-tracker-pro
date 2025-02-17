@@ -26,7 +26,12 @@ export function UsersList() {
       console.log('Fetching users...')
       const { data: profiles, error } = await supabase
         .from('profiles')
-        .select('*, user:auth.users(email)')
+        .select(`
+          *,
+          auth_user:auth.users (
+            email
+          )
+        `)
         .order('username')
 
       if (error) {
@@ -68,7 +73,7 @@ export function UsersList() {
           {users.map((user) => (
             <TableRow key={user.id}>
               <TableCell className="font-medium">{user.username || 'Anonymous User'}</TableCell>
-              <TableCell>{user.user?.email}</TableCell>
+              <TableCell>{user.auth_user?.email}</TableCell>
               <TableCell>
                 {user.is_admin ? (
                   <Badge className="bg-green-500">Admin</Badge>
