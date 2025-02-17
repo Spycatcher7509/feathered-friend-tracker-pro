@@ -35,7 +35,7 @@ export const AdminBackupView = ({
   const fetchSchedules = async () => {
     const { data, error } = await supabase
       .from('backup_schedules')
-      .select('*')
+      .select('id, created_at, frequency, time_of_day, day_of_week, day_of_month, operation_type, is_active, source_file_id, updated_at, user_id')
       .order('created_at', { ascending: false })
 
     if (error) {
@@ -47,7 +47,22 @@ export const AdminBackupView = ({
       return
     }
 
-    setSchedules(data || [])
+    // Ensure the data matches our BackupSchedule type
+    const typedSchedules: BackupSchedule[] = (data || []).map(schedule => ({
+      id: schedule.id,
+      created_at: schedule.created_at,
+      frequency: schedule.frequency as "daily" | "weekly" | "monthly",
+      time_of_day: schedule.time_of_day,
+      day_of_week: schedule.day_of_week,
+      day_of_month: schedule.day_of_month,
+      operation_type: schedule.operation_type || "backup", // Default to "backup" if not specified
+      is_active: schedule.is_active,
+      source_file_id: schedule.source_file_id,
+      updated_at: schedule.updated_at,
+      user_id: schedule.user_id
+    }))
+
+    setSchedules(typedSchedules)
   }
 
   const handleScheduleOperation = async (formData: {
