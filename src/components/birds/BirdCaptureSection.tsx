@@ -133,7 +133,7 @@ export function BirdCaptureSection({
           className={`w-full ${isRecording ? "bg-red-100 hover:bg-red-200" : ""}`}
         >
           <Mic className={`h-4 w-4 mr-2 ${isRecording ? "text-red-500" : ""}`} />
-          {isRecording ? "Stop Recording" : "Match a Bird Song"}
+          {isRecording ? "Stop Recording" : "Record Bird Call"}
         </Button>
       </div>
 
