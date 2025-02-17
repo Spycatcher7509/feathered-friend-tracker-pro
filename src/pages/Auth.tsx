@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { AuthError } from "@supabase/supabase-js"
+import { AuthError, AuthChangeEvent } from "@supabase/supabase-js"
 import { supabase } from "@/integrations/supabase/client"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import PageLayout from "@/components/layout/PageLayout"
@@ -17,8 +17,8 @@ const Auth = () => {
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (event === "SIGNED_UP") {
+      async (event: AuthChangeEvent, session) => {
+        if (event === "SIGNED_IN" && !session?.user.email_confirmed_at) {
           setIsNewUser(true)
         }
         if (event === "SIGNED_IN" && session) {
