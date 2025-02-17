@@ -26,7 +26,12 @@ export function UsersList() {
       console.log('Fetching users...')
       const { data: profiles, error } = await supabase
         .from('profiles')
-        .select('*, auth.users!inner(email)')
+        .select(`
+          *,
+          users:auth.users (
+            email
+          )
+        `)
         .order('username')
 
       if (error) {
