@@ -10,6 +10,7 @@ interface BirdSound {
   id: string
   bird_name: string
   sound_url: string
+  source: string
   user_id: string
 }
 
@@ -38,7 +39,7 @@ const downloadAndUploadToStorage = async (url: string, filename: string): Promis
       .from('external_bird_sounds')
       .update({ sound_url: url })
       .eq('sound_url', url)
-      .select('*')
+      .select('id, bird_name, sound_url, source')
       .single()
 
     if (error) {
@@ -76,7 +77,7 @@ export const createBackup = async (isAdmin: boolean = false) => {
     console.log('Fetching bird sounds from Supabase...')
     const { data: birdSounds, error: birdSoundsError } = await supabase
       .from('external_bird_sounds')
-      .select('id, bird_name, sound_url, user_id')
+      .select('id, bird_name, sound_url, source, user_id')
       .eq('user_id', user.id)
 
     if (birdSoundsError) throw birdSoundsError
@@ -185,8 +186,11 @@ export const restoreBackup = async (backupData: BackupData) => {
           const { error } = await supabase
             .from('external_bird_sounds')
             .upsert({
-              ...sound,
-              sound_url: newUrl
+              id: sound.id,
+              bird_name: sound.bird_name,
+              sound_url: newUrl,
+              source: sound.source,
+              user_id: sound.user_id
             }, { onConflict: 'id' })
           if (error) throw error
         }
