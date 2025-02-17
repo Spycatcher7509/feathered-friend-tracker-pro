@@ -7,23 +7,26 @@ import { sendDiscordWebhookMessage } from "@/utils/discord"
 
 export const pickBackupFile = async () => {
   console.log('Opening file picker...')
-  return new Promise<{ id: string; text: () => Promise<string> } | null>((resolve) => {
-    const input = document.createElement('input')
-    input.type = 'file'
-    input.accept = '.json'
-    input.onchange = async (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0] || null
-      if (file) {
-        resolve({
-          id: file.name, // Using filename as ID for now
-          text: () => file.text()
-        })
-      } else {
-        resolve(null)
-      }
+  try {
+    const [fileHandle] = await window.showOpenFilePicker({
+      types: [{
+        description: 'JSON Files',
+        accept: {'application/json': ['.json']},
+      }],
+      multiple: false
+    })
+    const file = await fileHandle.getFile()
+    return {
+      id: file.name,
+      text: () => file.text()
     }
-    input.click()
-  })
+  } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      console.log('User cancelled the file picker')
+      return null
+    }
+    throw error
+  }
 }
 
 export const useBackupOperations = () => {
@@ -89,12 +92,13 @@ export const useBackupOperations = () => {
   const handleBackup = async () => {
     try {
       setIsLoading(true)
-      await createBackup()
-      
-      toast({
-        title: "Backup Successful",
-        description: "Your data has been backed up",
-      })
+      const result = await createBackup()
+      if (result) {
+        toast({
+          title: "Backup Successful",
+          description: "Your data has been backed up",
+        })
+      }
     } catch (error) {
       console.error('Backup error:', error)
       if (await isAdmin()) {

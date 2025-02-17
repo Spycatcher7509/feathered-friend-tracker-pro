@@ -81,21 +81,35 @@ export const createBackup = async (isAdmin: boolean = false) => {
       
       return result
     } else {
-      // Non-admin backup to local file
-      const file = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' })
-      const filename = `my_birdwatch_backup_${format(now, 'dd-MM-yyyy_HH-mm-ss')}.json`
-      
-      // Create a download link and trigger it
-      const url = window.URL.createObjectURL(file)
-      const link = document.createElement('a')
-      link.href = url
-      link.setAttribute('download', filename)
-      document.body.appendChild(link)
-      link.click()
-      link.remove()
-      window.URL.revokeObjectURL(url)
-      
-      return { name: filename }
+      // Non-admin backup to local file using file system access API
+      try {
+        const file = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' })
+        const filename = `birdwatch_backup_${format(now, 'dd-MM-yyyy_HH-mm-ss')}.json`
+        
+        // Show the file picker and get the file handle
+        const handle = await window.showSaveFilePicker({
+          suggestedName: filename,
+          types: [{
+            description: 'JSON Files',
+            accept: {'application/json': ['.json']},
+          }],
+        })
+        
+        // Create a writable stream
+        const writable = await handle.createWritable()
+        // Write the file content
+        await writable.write(file)
+        // Close the stream
+        await writable.close()
+        
+        return { name: filename }
+      } catch (error) {
+        if (error instanceof Error && error.name === 'AbortError') {
+          console.log('User cancelled the save dialog')
+          return null
+        }
+        throw error
+      }
     }
   } catch (error) {
     console.error('Error during backup process:', error)
