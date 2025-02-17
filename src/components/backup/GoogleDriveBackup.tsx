@@ -164,12 +164,30 @@ ${scheduleToDelete.day_of_month !== null ? `• Day of Month: ${scheduleToDelete
 
   if (!isAdmin) {
     return (
-      <Alert variant="destructive">
-        <AlertCircle className="h-4 w-4" />
-        <AlertDescription>
-          You need administrator privileges to access the backup and restore features.
-        </AlertDescription>
-      </Alert>
+      <div className="space-y-4">
+        <Alert variant="default" className="mb-4">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            You can backup and restore your own data. Please note that this will only affect your personal data.
+          </AlertDescription>
+        </Alert>
+        
+        <OneOffOperations 
+          isLoading={isLoading}
+          handleBackup={handleBackup}
+          handleRestore={handleRestore}
+          sendDiscordNotification={sendDiscordNotification}
+          setShowInstructions={setShowInstructions}
+          showInstructions={showInstructions}
+          currentDomain={currentDomain}
+          showDisclaimer={showDisclaimer}
+          setShowDisclaimer={setShowDisclaimer}
+          operationType={operationType}
+          initiateBackup={initiateBackup}
+          initiateRestore={initiateRestore}
+          isAdmin={false}
+        />
+      </div>
     )
   }
 
@@ -197,6 +215,7 @@ ${scheduleToDelete.day_of_month !== null ? `• Day of Month: ${scheduleToDelete
             operationType={operationType}
             initiateBackup={initiateBackup}
             initiateRestore={initiateRestore}
+            isAdmin={true}
           />
         </TabsContent>
         

@@ -17,6 +17,7 @@ interface OneOffOperationsProps {
   operationType: 'backup' | 'restore'
   initiateBackup: () => void
   initiateRestore: () => void
+  isAdmin: boolean
 }
 
 export const OneOffOperations = ({
@@ -31,7 +32,8 @@ export const OneOffOperations = ({
   setShowDisclaimer,
   operationType,
   initiateBackup,
-  initiateRestore
+  initiateRestore,
+  isAdmin
 }: OneOffOperationsProps) => {
   return (
     <div className="space-y-4">
@@ -44,7 +46,7 @@ export const OneOffOperations = ({
           disabled={isLoading}
           className="bg-nature-600 hover:bg-nature-700 text-white"
         >
-          Run One-off Backup
+          {isAdmin ? 'Run One-off Backup' : 'Backup My Data'}
         </Button>
         <Button 
           onClick={initiateRestore}
@@ -52,15 +54,17 @@ export const OneOffOperations = ({
           variant="outline"
           className="border-nature-600 text-nature-700 hover:bg-nature-50"
         >
-          Run One-off Restore
+          {isAdmin ? 'Run One-off Restore' : 'Restore My Data'}
         </Button>
-        <Button
-          onClick={() => sendDiscordNotification("Test notification from BirdWatch backup system")}
-          variant="secondary"
-          className="bg-gray-100 hover:bg-gray-200"
-        >
-          Test Discord Notifications
-        </Button>
+        {isAdmin && (
+          <Button
+            onClick={() => sendDiscordNotification("Test notification from BirdWatch backup system")}
+            variant="secondary"
+            className="bg-gray-100 hover:bg-gray-200"
+          >
+            Test Discord Notifications
+          </Button>
+        )}
       </div>
 
       <BackupDisclaimerDialog
