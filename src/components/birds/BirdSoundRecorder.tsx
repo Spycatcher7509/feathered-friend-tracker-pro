@@ -1,7 +1,6 @@
 
-import { Volume2, Mic } from "lucide-react"
+import { Volume2 } from "lucide-react"
 import AudioRecorder from "./AudioRecorder"
-import { Button } from "@/components/ui/button"
 
 interface BirdSoundRecorderProps {
   onRecordingComplete: (url: string) => void
@@ -16,20 +15,10 @@ export const BirdSoundRecorder = ({ onRecordingComplete, soundUrl }: BirdSoundRe
         Bird Sound
       </label>
       <div className="mt-1 space-y-4">
-        <Button 
-          variant="outline" 
-          className="w-full h-12 rounded-xl border-2 border-dashed gap-2"
-          asChild
-        >
-          <label>
-            <Mic className="h-5 w-5" />
-            Record Bird Call
-          </label>
-        </Button>
-
         <AudioRecorder
           mode="bird-call"
           onRecordingComplete={onRecordingComplete}
+          className="w-full"
         />
         
         {soundUrl && (

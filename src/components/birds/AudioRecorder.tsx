@@ -132,26 +132,28 @@ const AudioRecorder = ({ onRecordingComplete, mode = 'bird-call', className = ""
     <div className={className}>
       {!isRecording ? (
         <Button
-          variant={mode === 'description' ? 'ghost' : 'outline'}
-          size="sm"
+          variant="outline"
+          className="w-full h-12 rounded-xl border-2 border-dashed gap-2"
           onClick={startRecording}
           disabled={isUploading}
         >
-          <Mic className="h-4 w-4 mr-1" />
-          {buttonText}
+          <Mic className="h-5 w-5" />
+          {mode === 'description' ? 'Record description' : 'Record Bird Call'}
         </Button>
       ) : (
         <Button
           variant="destructive"
-          size="sm"
+          className="w-full h-12 rounded-xl gap-2"
           onClick={stopRecording}
         >
-          <Square className="h-4 w-4 mr-1" />
+          <Square className="h-5 w-5" />
           Stop Recording
         </Button>
       )}
       {isUploading && (
-        <Loader2 className="h-4 w-4 animate-spin text-nature-600 ml-2" />
+        <div className="flex justify-center mt-2">
+          <Loader2 className="h-4 w-4 animate-spin text-nature-600" />
+        </div>
       )}
     </div>
   )
