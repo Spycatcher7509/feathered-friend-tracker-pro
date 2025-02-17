@@ -161,6 +161,41 @@ export type Database = {
         }
         Relationships: []
       }
+      bird_audio_recordings: {
+        Row: {
+          bird_sighting_id: string | null
+          created_at: string
+          duration: number | null
+          id: string
+          recording_url: string
+          updated_at: string
+        }
+        Insert: {
+          bird_sighting_id?: string | null
+          created_at?: string
+          duration?: number | null
+          id?: string
+          recording_url: string
+          updated_at?: string
+        }
+        Update: {
+          bird_sighting_id?: string | null
+          created_at?: string
+          duration?: number | null
+          id?: string
+          recording_url?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bird_audio_recordings_bird_sighting_id_fkey"
+            columns: ["bird_sighting_id"]
+            isOneToOne: false
+            referencedRelation: "bird_sightings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bird_sightings: {
         Row: {
           bird_name: string

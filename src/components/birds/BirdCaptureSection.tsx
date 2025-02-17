@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { useState } from "react"
 import { supabase } from "@/integrations/supabase/client"
 import { useToast } from "@/hooks/use-toast"
+import BirdAudioPlayer from "./cards/BirdAudioPlayer"
 
 interface BirdCaptureSectionProps {
   onCameraCapture: () => Promise<void>
@@ -132,18 +133,15 @@ export function BirdCaptureSection({
           className={`w-full ${isRecording ? "bg-red-100 hover:bg-red-200" : ""}`}
         >
           <Mic className={`h-4 w-4 mr-2 ${isRecording ? "text-red-500" : ""}`} />
-          Match a Bird Song
+          {isRecording ? "Stop Recording" : "Match a Bird Song"}
         </Button>
       </div>
 
       {soundUrl && (
-        <div className="bg-gray-50 rounded-lg p-4">
-          <p className="text-sm text-gray-600 mb-2">Recorded bird call:</p>
-          <audio controls className="w-full">
-            <source src={soundUrl} type="audio/webm" />
-            Your browser does not support the audio element.
-          </audio>
-        </div>
+        <BirdAudioPlayer
+          soundUrl={soundUrl}
+          birdName="Bird Recording"
+        />
       )}
 
       {previewUrl && (
