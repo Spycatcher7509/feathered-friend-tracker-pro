@@ -808,6 +808,15 @@ export type Database = {
         }
         Returns: boolean
       }
+      schedule_backup: {
+        Args: {
+          p_frequency: string
+          p_time_of_day: string
+          p_day_of_week?: number
+          p_day_of_month?: number
+        }
+        Returns: undefined
+      }
       set_limit: {
         Args: {
           "": number
