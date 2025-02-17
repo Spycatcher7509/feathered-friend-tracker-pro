@@ -36,19 +36,27 @@ export const OneOffOperations = ({
   initiateRestore,
   isAdmin
 }: OneOffOperationsProps) => {
-  // Create a hidden file input
   const handleUploadClick = () => {
-    const input = document.createElement('input')
-    input.type = 'file'
-    input.accept = '.json'
-    input.onchange = (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0]
-      if (file) {
-        setShowInstructions(false)
-        initiateRestore()
+    setShowInstructions(false)
+    initiateRestore() // This will show the disclaimer first
+  }
+
+  const handleDisclaimerAccept = () => {
+    if (operationType === 'restore') {
+      // Create and trigger file input after disclaimer is accepted
+      const input = document.createElement('input')
+      input.type = 'file'
+      input.accept = '.json'
+      input.onchange = (e) => {
+        const file = (e.target as HTMLInputElement).files?.[0]
+        if (file) {
+          handleRestore()
+        }
       }
+      input.click()
+    } else {
+      handleBackup()
     }
-    input.click()
   }
 
   return (
@@ -97,7 +105,7 @@ export const OneOffOperations = ({
       <BackupDisclaimerDialog
         open={showDisclaimer}
         onOpenChange={setShowDisclaimer}
-        onAccept={() => operationType === 'backup' ? handleBackup() : handleRestore()}
+        onAccept={handleDisclaimerAccept}
         onCancel={() => setShowDisclaimer(false)}
         type={operationType}
       />
