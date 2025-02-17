@@ -351,30 +351,30 @@ export type Database = {
       }
       conversations: {
         Row: {
-          created_at: string
+          created_at: string | null
           id: string
           last_message_at: string | null
           status: string | null
           title: string | null
-          updated_at: string
+          updated_at: string | null
           user_id: string
         }
         Insert: {
-          created_at?: string
+          created_at?: string | null
           id?: string
           last_message_at?: string | null
           status?: string | null
           title?: string | null
-          updated_at?: string
+          updated_at?: string | null
           user_id: string
         }
         Update: {
-          created_at?: string
+          created_at?: string | null
           id?: string
           last_message_at?: string | null
           status?: string | null
           title?: string | null
-          updated_at?: string
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: []
@@ -659,34 +659,42 @@ export type Database = {
         Row: {
           content: string
           conversation_id: string
-          created_at: string
+          created_at: string | null
           id: string
           is_system_message: boolean | null
           status: string | null
-          updated_at: string
+          updated_at: string | null
           user_id: string
         }
         Insert: {
           content: string
           conversation_id: string
-          created_at?: string
+          created_at?: string | null
           id?: string
           is_system_message?: boolean | null
           status?: string | null
-          updated_at?: string
+          updated_at?: string | null
           user_id: string
         }
         Update: {
           content?: string
           conversation_id?: string
-          created_at?: string
+          created_at?: string | null
           id?: string
           is_system_message?: boolean | null
           status?: string | null
-          updated_at?: string
+          updated_at?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
