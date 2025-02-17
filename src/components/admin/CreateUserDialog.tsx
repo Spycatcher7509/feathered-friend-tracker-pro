@@ -10,6 +10,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { supabase } from "@/integrations/supabase/client"
 import { useToast } from "@/hooks/use-toast"
 import { useAdminGroups } from "@/hooks/useAdminGroups"
@@ -22,6 +29,8 @@ interface NewUserData {
   experience_level: string
   is_admin: boolean
 }
+
+const experienceLevels = ['beginner', 'intermediate', 'advanced', 'expert'] as const
 
 export function CreateUserDialog({ onUserCreated }: { onUserCreated: () => void }) {
   const [isOpen, setIsOpen] = useState(false)
@@ -123,11 +132,21 @@ export function CreateUserDialog({ onUserCreated }: { onUserCreated: () => void 
           </div>
           <div className="space-y-2">
             <Label htmlFor="experience_level">Experience Level</Label>
-            <Input
-              id="experience_level"
+            <Select
               value={userData.experience_level}
-              onChange={(e) => setUserData(prev => ({ ...prev, experience_level: e.target.value }))}
-            />
+              onValueChange={(value) => setUserData(prev => ({ ...prev, experience_level: value }))}
+            >
+              <SelectTrigger id="experience_level">
+                <SelectValue placeholder="Select experience level" />
+              </SelectTrigger>
+              <SelectContent>
+                {experienceLevels.map((level) => (
+                  <SelectItem key={level} value={level}>
+                    {level.charAt(0).toUpperCase() + level.slice(1)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="flex items-center space-x-2">
             <input

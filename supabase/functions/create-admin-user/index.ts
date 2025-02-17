@@ -11,6 +11,8 @@ interface RequestBody {
   is_admin: boolean
 }
 
+const validExperienceLevels = ['beginner', 'intermediate', 'advanced', 'expert']
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
@@ -29,6 +31,11 @@ serve(async (req) => {
     )
 
     const body: RequestBody = await req.json()
+
+    // Validate experience_level
+    if (body.experience_level && !validExperienceLevels.includes(body.experience_level)) {
+      throw new Error('Invalid experience level')
+    }
 
     // First, check if user exists
     const { data: { users }, error: listError } = await supabase.auth.admin.listUsers()
@@ -74,7 +81,7 @@ serve(async (req) => {
       .update({
         username: body.username,
         location: body.location,
-        experience_level: body.experience_level,
+        experience_level: body.experience_level || null,
         is_admin: body.is_admin
       })
       .eq('id', userId)
