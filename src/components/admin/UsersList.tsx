@@ -23,12 +23,18 @@ export function UsersList() {
 
   const fetchUsers = async () => {
     try {
+      console.log('Fetching users...')
       const { data: profiles, error } = await supabase
         .from('profiles')
-        .select('*')
+        .select('*, auth.users!inner(email)')
+        .order('username')
 
-      if (error) throw error
+      if (error) {
+        console.error('Error fetching profiles:', error)
+        throw error
+      }
 
+      console.log('Fetched profiles:', profiles)
       setUsers(profiles)
     } catch (error) {
       console.error('Error fetching users:', error)
@@ -52,6 +58,7 @@ export function UsersList() {
         <TableHeader>
           <TableRow>
             <TableHead>Username</TableHead>
+            <TableHead>Email</TableHead>
             <TableHead>Admin Status</TableHead>
             <TableHead>Location</TableHead>
             <TableHead>Experience Level</TableHead>
@@ -61,6 +68,7 @@ export function UsersList() {
           {users.map((user) => (
             <TableRow key={user.id}>
               <TableCell className="font-medium">{user.username || 'Anonymous User'}</TableCell>
+              <TableCell>{user.users?.email}</TableCell>
               <TableCell>
                 {user.is_admin ? (
                   <Badge className="bg-green-500">Admin</Badge>
