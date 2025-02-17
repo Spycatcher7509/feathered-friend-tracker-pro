@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { AuthError, AuthChangeEvent } from "@supabase/supabase-js"
+import { AuthError, AuthChangeEvent, User } from "@supabase/supabase-js"
 import { supabase } from "@/integrations/supabase/client"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import PageLayout from "@/components/layout/PageLayout"
@@ -12,12 +12,25 @@ import SupportButtons from "@/components/auth/SupportButtons"
 const Auth = () => {
   const navigate = useNavigate()
   const [errorMessage, setErrorMessage] = useState("")
+  const [user, setUser] = useState<User | null>(null)
 
   useEffect(() => {
+    // Check current session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        setUser(session.user)
+        navigate("/")
+      }
+    })
+
+    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event: AuthChangeEvent, session) => {
         if (event === "SIGNED_IN" && session) {
+          setUser(session.user)
           navigate("/")
+        } else if (event === "SIGNED_OUT") {
+          setUser(null)
         }
       }
     )
@@ -36,6 +49,11 @@ const Auth = () => {
     }
   }
 
+  // If user is already logged in, redirect to home
+  if (user) {
+    return null
+  }
+
   return (
     <PageLayout header={<Header />}>
       <div className="w-full max-w-md mx-auto space-y-6">
@@ -50,7 +68,7 @@ const Auth = () => {
           </Alert>
         )}
 
-        <AuthForm />
+        <AuthForm setErrorMessage={setErrorMessage} />
         <SupportButtons />
       </div>
     </PageLayout>

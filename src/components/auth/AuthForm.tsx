@@ -6,7 +6,11 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { supabase } from "@/integrations/supabase/client"
 
-const AuthForm = () => {
+interface AuthFormProps {
+  setErrorMessage: (message: string) => void
+}
+
+const AuthForm = ({ setErrorMessage }: AuthFormProps) => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -16,13 +20,21 @@ const AuthForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+    setErrorMessage("")
 
     try {
       const { error } = isSignUp 
-        ? await supabase.auth.signUp({ email, password })
+        ? await supabase.auth.signUp({ 
+            email, 
+            password,
+            options: {
+              emailRedirectTo: window.location.origin
+            }
+          })
         : await supabase.auth.signInWithPassword({ email, password })
 
       if (error) {
+        setErrorMessage(error.message)
         toast({
           variant: "destructive",
           title: "Authentication Error",
@@ -37,10 +49,12 @@ const AuthForm = () => {
         })
       }
     } catch (error) {
+      const message = "An unexpected error occurred. Please try again."
+      setErrorMessage(message)
       toast({
         variant: "destructive",
         title: "Error",
-        description: "An unexpected error occurred. Please try again."
+        description: message
       })
     } finally {
       setIsLoading(false)
