@@ -1,212 +1,136 @@
 import { useState } from "react"
-import { useToast } from "@/hooks/use-toast"
 import { Button } from "@/components/ui/button"
-import { Bird, MapPin, Image, Upload, Mic } from "lucide-react"
-import { supabase } from "@/integrations/supabase/client"
-import { useQuery } from "@tanstack/react-query"
+import { Card, CardContent } from "@/components/ui/card"
 import { BirdNameInput } from "./BirdNameInput"
 import { LocationInput } from "./LocationInput"
-import { BirdPhotoUpload } from "./BirdPhotoUpload"
-import { BirdSoundRecorder } from "./BirdSoundRecorder"
 import { DescriptionInput } from "./DescriptionInput"
+import { BirdCaptureSection } from "./BirdCaptureSection"
+import { supabase } from "@/integrations/supabase/client"
+import { useToast } from "@/hooks/use-toast"
 
-const AddBirdSighting = () => {
-  const [loading, setLoading] = useState(false)
-  const [birdName, setBirdName] = useState("")
-  const [location, setLocation] = useState("")
-  const [description, setDescription] = useState("")
+export default function AddBirdSighting() {
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [soundUrl, setSoundUrl] = useState<string | null>(null)
-  const [imageUrl, setImageUrl] = useState<string | null>(null)
+  const [isProcessing, setIsProcessing] = useState(false)
   const { toast } = useToast()
 
-  const { data: birdSuggestions } = useQuery({
-    queryKey: ["bird-species-suggestions", birdName],
-    queryFn: async () => {
-      if (!birdName) return []
+  const handleCameraCapture = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true })
+      const video = document.createElement('video')
+      const canvas = document.createElement('canvas')
       
-      const { data, error } = await supabase
-        .from("bird_species")
-        .select("id, name")
-        .ilike("name", `%${birdName}%`)
-        .limit(5)
+      video.srcObject = stream
+      await video.play()
+
+      canvas.width = video.videoWidth
+      canvas.height = video.videoHeight
+      canvas.getContext('2d')?.drawImage(video, 0, 0)
+
+      stream.getTracks().forEach(track => track.stop())
+
+      const blob = await new Promise<Blob>((resolve) => {
+        canvas.toBlob((blob) => {
+          if (blob) resolve(blob)
+        }, 'image/jpeg')
+      })
+
+      const filename = `capture-${Date.now()}.jpg`
+      const { data, error } = await supabase.storage
+        .from('bird-images')
+        .upload(filename, blob)
 
       if (error) throw error
-      return data
-    },
-    enabled: birdName.length > 0
-  })
 
-  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (!file) return
-
-    try {
-      setLoading(true)
-      const fileExt = file.name.split('.').pop()
-      const filePath = `${crypto.randomUUID()}.${fileExt}`
-
-      const { error: uploadError } = await supabase.storage
-        .from('bird-photos')
-        .upload(filePath, file)
-
-      if (uploadError) throw uploadError
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('bird-photos')
-        .getPublicUrl(filePath)
-
-      setImageUrl(publicUrl)
-      toast({
-        title: "Success",
-        description: "Bird photo uploaded successfully!",
-      })
+      if (data) {
+        const { data: { publicUrl } } = supabase.storage
+          .from('bird-images')
+          .getPublicUrl(filename)
+        
+        setPreviewUrl(publicUrl)
+      }
     } catch (error) {
-      console.error('Error uploading photo:', error)
+      console.error('Error capturing image:', error)
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to upload photo. Please try again.",
+        description: "Failed to capture image. Please try again.",
       })
-    } finally {
-      setLoading(false)
     }
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-
+  const handleFileInput = async (e: React.ChangeEvent<HTMLInputElement>) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      
-      if (!user) {
-        throw new Error("User not authenticated")
-      }
+      const file = e.target.files?.[0]
+      if (!file) return
 
-      const { data: species } = await supabase
-        .from("bird_species")
-        .select("id")
-        .ilike("name", birdName)
-        .maybeSingle()
+      setIsProcessing(true)
 
-      let speciesId = species?.id
-      if (!species) {
-        const { data: newSpecies, error: speciesError } = await supabase
-          .from("bird_species")
-          .insert({ name: birdName })
-          .select("id")
-          .single()
-
-        if (speciesError) throw speciesError
-        speciesId = newSpecies.id
-      }
-
-      const { error } = await supabase
-        .from("bird_sightings")
-        .insert({
-          bird_name: birdName,
-          species_id: speciesId,
-          location,
-          description,
-          sound_url: soundUrl,
-          image_url: imageUrl,
-          user_id: user.id,
-          sighting_date: new Date().toISOString()
-        })
+      const filename = `upload-${Date.now()}-${file.name}`
+      const { data, error } = await supabase.storage
+        .from('bird-images')
+        .upload(filename, file)
 
       if (error) throw error
 
-      toast({
-        title: "Success",
-        description: "Bird sighting recorded successfully!",
-      })
-
-      setBirdName("")
-      setLocation("")
-      setDescription("")
-      setSoundUrl(null)
-      setImageUrl(null)
+      if (data) {
+        const { data: { publicUrl } } = supabase.storage
+          .from('bird-images')
+          .getPublicUrl(filename)
+        
+        setPreviewUrl(publicUrl)
+      }
     } catch (error) {
-      console.error("Error:", error)
+      console.error('Error uploading image:', error)
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to record bird sighting. Please try again.",
+        description: "Failed to upload image. Please try again.",
       })
     } finally {
-      setLoading(false)
+      setIsProcessing(false)
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-3xl mx-auto space-y-8 bg-white p-6 rounded-2xl">
-      <div className="flex items-center gap-2 mb-8">
-        <Bird className="h-6 w-6 text-nature-800" />
-        <h2 className="text-2xl font-semibold text-nature-800">Record Bird Sighting</h2>
-      </div>
-
-      <div className="space-y-6">
-        <div className="space-y-6">
-          <BirdNameInput
-            value={birdName}
-            onChange={setBirdName}
-            suggestions={birdSuggestions}
+    <Card className="w-full">
+      <CardContent className="pt-6 px-6">
+        <div className="flex items-center mb-6">
+          <img
+            src="/lovable-uploads/6386f1ec-a4d5-4509-a570-cbba8009b261.png"
+            alt="Bird icon"
+            className="w-8 h-8 mr-3"
           />
-
-          <LocationInput
-            value={location}
-            onChange={setLocation}
-          />
+          <h1 className="text-3xl font-bold text-nature-800">
+            Record Bird Sighting
+          </h1>
         </div>
 
-        <div>
-          <div className="space-y-1">
+        <form className="space-y-8">
+          <BirdNameInput />
+          <LocationInput />
+          
+          <div className="space-y-4">
             <label className="text-base font-medium text-gray-700 flex items-center gap-2">
-              <Image className="h-5 w-5" />
               Bird Photo
             </label>
-            <BirdPhotoUpload
-              onUpload={handleImageUpload}
-              imageUrl={imageUrl}
-              loading={loading}
+            <BirdCaptureSection
+              onCameraCapture={handleCameraCapture}
+              onFileInput={handleFileInput}
+              isProcessing={isProcessing}
+              previewUrl={previewUrl}
+              soundUrl={soundUrl}
+              setSoundUrl={setSoundUrl}
             />
           </div>
-        </div>
 
-        <div>
-          <DescriptionInput
-            value={description}
-            onChange={setDescription}
-          />
-        </div>
+          <DescriptionInput />
 
-        <div>
-          <BirdSoundRecorder
-            onRecordingComplete={(url) => {
-              setSoundUrl(url)
-              toast({
-                title: "Success",
-                description: "Bird sound recorded successfully!",
-              })
-            }}
-            soundUrl={soundUrl}
-          />
-        </div>
-      </div>
-
-      <Button 
-        type="submit" 
-        disabled={loading}
-        className="w-full bg-nature-600 hover:bg-nature-700 text-white py-6 text-lg font-medium rounded-xl"
-      >
-        {loading ? (
-          "Recording..."
-        ) : (
-          "Record Sighting"
-        )}
-      </Button>
-    </form>
+          <Button type="submit" className="w-full bg-[#223534] hover:bg-[#2a4241]">
+            Submit Sighting
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
   )
 }
-
-export default AddBirdSighting
