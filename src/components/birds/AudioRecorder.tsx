@@ -8,9 +8,10 @@ import { supabase } from "@/integrations/supabase/client"
 interface AudioRecorderProps {
   onRecordingComplete?: (url: string) => void
   className?: string
+  buttonChildren?: React.ReactNode
 }
 
-const AudioRecorder = ({ onRecordingComplete, className = "" }: AudioRecorderProps) => {
+const AudioRecorder = ({ onRecordingComplete, className = "", buttonChildren }: AudioRecorderProps) => {
   const [isRecording, setIsRecording] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
@@ -91,20 +92,20 @@ const AudioRecorder = ({ onRecordingComplete, className = "" }: AudioRecorderPro
     <div className={`flex items-center gap-2 ${className}`}>
       {!isRecording ? (
         <Button
-          type="button" // Added to prevent form submission
+          type="button"
           onClick={startRecording}
           disabled={isUploading}
           variant="outline"
-          size="icon"
+          size="sm"
         >
-          <Mic className="h-4 w-4" />
+          {buttonChildren || <Mic className="h-4 w-4" />}
         </Button>
       ) : (
         <Button
-          type="button" // Added to prevent form submission
+          type="button"
           onClick={stopRecording}
           variant="destructive"
-          size="icon"
+          size="sm"
         >
           <Square className="h-4 w-4" />
         </Button>
