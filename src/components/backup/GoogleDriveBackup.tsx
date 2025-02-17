@@ -11,7 +11,7 @@ import { ScheduleForm } from "./ScheduleForm"
 import { ScheduleList } from "./ScheduleList"
 
 const GoogleDriveBackup = () => {
-  const { isLoading, handleBackup, handleRestore, sendDiscordNotification, pickBackupFile } = useBackupOperations()
+  const { isLoading, handleBackup, handleRestore, sendDiscordNotification } = useBackupOperations()
   const [showInstructions, setShowInstructions] = useState(false)
   const [showScheduler, setShowScheduler] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
@@ -24,13 +24,12 @@ const GoogleDriveBackup = () => {
     const checkAdmin = async () => {
       const adminStatus = await checkAdminStatus()
       setIsAdmin(adminStatus)
+      if (adminStatus) {
+        fetchSchedules()
+      }
     }
     checkAdmin()
-    
-    if (isAdmin) {
-      fetchSchedules()
-    }
-  }, [isAdmin])
+  }, [])
 
   const fetchSchedules = async () => {
     const { data, error } = await supabase
@@ -46,7 +45,7 @@ const GoogleDriveBackup = () => {
         variant: "destructive",
       })
     } else {
-      setSchedules(data)
+      setSchedules(data || [])
     }
   }
 
@@ -58,13 +57,7 @@ const GoogleDriveBackup = () => {
     operationType: "backup" | "restore"
   }) => {
     try {
-      let sourceFileId = null
-      
-      if (formData.operationType === 'restore') {
-        const file = await pickBackupFile()
-        if (!file) return
-        sourceFileId = file.id
-      }
+      console.log("Creating new schedule:", formData)
 
       const { data, error } = await supabase
         .from('custom_backup_schedules')
@@ -73,19 +66,20 @@ const GoogleDriveBackup = () => {
           time_of_day: formData.timeOfDay,
           day_of_week: formData.frequency === 'weekly' ? parseInt(formData.dayOfWeek) : null,
           day_of_month: formData.frequency === 'monthly' ? parseInt(formData.dayOfMonth) : null,
-          operation_type: formData.operationType,
-          source_file_id: sourceFileId
+          operation_type: formData.operationType
         })
         .select()
 
-      if (error) throw error
+      if (error) {
+        console.error('Error creating schedule:', error)
+        throw error
+      }
 
       await sendDiscordNotification(`🔄 New ${formData.operationType} schedule created:
 • Frequency: ${formData.frequency}
 • Time: ${formData.timeOfDay}
 ${formData.frequency === 'weekly' ? `• Day: ${['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][parseInt(formData.dayOfWeek)]}` : ''}
-${formData.frequency === 'monthly' ? `• Day of Month: ${formData.dayOfMonth}` : ''}
-${sourceFileId ? `• Source File ID: ${sourceFileId}` : ''}`)
+${formData.frequency === 'monthly' ? `• Day of Month: ${formData.dayOfMonth}` : ''}`)
 
       toast({
         title: "Success",
@@ -143,7 +137,7 @@ ${scheduleToDelete.day_of_month !== null ? `• Day of Month: ${scheduleToDelete
 
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-semibold">Backup & Restore</h2>
+      <h2 className="text-xl font-semibold mb-4">Google Drive Backup & Restore</h2>
       <div className="flex gap-4 flex-wrap">
         <Button 
           onClick={() => {
@@ -151,7 +145,7 @@ ${scheduleToDelete.day_of_month !== null ? `• Day of Month: ${scheduleToDelete
             handleBackup()
           }} 
           disabled={isLoading}
-          className="bg-nature-600 hover:bg-nature-700"
+          className="bg-nature-600 hover:bg-nature-700 text-white"
         >
           Backup to Google Drive
         </Button>
@@ -159,21 +153,16 @@ ${scheduleToDelete.day_of_month !== null ? `• Day of Month: ${scheduleToDelete
           onClick={handleRestore} 
           disabled={isLoading}
           variant="outline"
+          className="border-nature-600 text-nature-700 hover:bg-nature-50"
         >
-          Restore from Google Drive
+          Restore from Backup
         </Button>
         <Button
           onClick={() => setShowScheduler(!showScheduler)}
           variant="secondary"
-        >
-          Schedule Operation
-        </Button>
-        <Button
-          onClick={() => sendDiscordNotification("Test notification")}
-          variant="secondary"
           className="bg-gray-100 hover:bg-gray-200"
         >
-          Test Discord Notifications
+          Schedule Operation
         </Button>
       </div>
 
