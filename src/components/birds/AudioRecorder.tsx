@@ -89,31 +89,29 @@ const AudioRecorder = ({ onRecordingComplete, className = "", buttonChildren }: 
   }
 
   return (
-    <div className={`flex items-center gap-2 ${className}`}>
+    <div className={className}>
       {!isRecording ? (
         <Button
-          type="button"
-          onClick={startRecording}
-          disabled={isUploading}
           variant="outline"
           size="sm"
-          className="flex items-center gap-2"
+          onClick={startRecording}
+          disabled={isUploading}
         >
-          {buttonChildren || <Mic className="h-4 w-4" />}
+          <Mic className="h-4 w-4 mr-1" />
+          Record Call
         </Button>
       ) : (
         <Button
-          type="button"
-          onClick={stopRecording}
           variant="destructive"
           size="sm"
-          className="flex items-center gap-2"
+          onClick={stopRecording}
         >
-          <Square className="h-4 w-4" />
+          <Square className="h-4 w-4 mr-1" />
+          Stop Recording
         </Button>
       )}
       {isUploading && (
-        <Loader2 className="h-4 w-4 animate-spin text-nature-600" />
+        <Loader2 className="h-4 w-4 animate-spin text-nature-600 ml-2" />
       )}
     </div>
   )
