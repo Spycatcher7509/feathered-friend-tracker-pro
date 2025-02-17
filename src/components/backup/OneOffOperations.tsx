@@ -36,6 +36,21 @@ export const OneOffOperations = ({
   initiateRestore,
   isAdmin
 }: OneOffOperationsProps) => {
+  // Create a hidden file input
+  const handleUploadClick = () => {
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.accept = '.json'
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0]
+      if (file) {
+        setShowInstructions(false)
+        initiateRestore()
+      }
+    }
+    input.click()
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex gap-4 flex-wrap">
@@ -60,7 +75,7 @@ export const OneOffOperations = ({
           )}
         </Button>
         <Button 
-          onClick={initiateRestore}
+          onClick={handleUploadClick}
           disabled={isLoading}
           variant="outline"
           className={isAdmin ? "border-nature-600 text-nature-700 hover:bg-nature-50" : "border-blue-600 text-blue-700 hover:bg-blue-50"}
