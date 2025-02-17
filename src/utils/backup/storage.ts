@@ -8,19 +8,7 @@ export const downloadAndUploadToStorage = async (url: string, filename: string):
       return url
     }
 
-    // For external URLs, create a direct reference in our storage
-    const { data, error } = await supabase
-      .from('external_bird_sounds')
-      .update({ sound_url: url })
-      .eq('sound_url', url)
-      .select('id, bird_name, sound_url, source')
-      .single()
-
-    if (error) {
-      console.error('Error updating sound URL:', error)
-      return url
-    }
-
+    // For external URLs, just return the URL as is since we can't access it
     return url
   } catch (error) {
     console.error('Error processing sound file:', error)

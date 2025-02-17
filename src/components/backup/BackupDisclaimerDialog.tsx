@@ -45,15 +45,21 @@ export const BackupDisclaimerDialog = ({
         return
       }
 
-      const { error } = await supabase
+      const { data: existingDisclaimer } = await supabase
         .from('backup_disclaimers')
-        .insert({
-          user_id: user.id
-        })
+        .select()
+        .eq('user_id', user.id)
+        .maybeSingle()
 
-      if (error) {
-        console.error('Error saving disclaimer:', error)
-        if (error.code !== '23505') { // Ignore unique violation errors
+      if (!existingDisclaimer) {
+        const { error } = await supabase
+          .from('backup_disclaimers')
+          .insert({
+            user_id: user.id
+          })
+
+        if (error) {
+          console.error('Error saving disclaimer:', error)
           toast({
             title: "Error",
             description: "Failed to save your acknowledgment",
