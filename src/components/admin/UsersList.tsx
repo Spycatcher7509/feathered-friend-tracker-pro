@@ -42,7 +42,8 @@ export function UsersList() {
         .select()
         
       if (search) {
-        query = query.or(`username.ilike.%${search}%, location.ilike.%${search}%, experience_level.ilike.%${search}%`)
+        // Fix the search query syntax
+        query = query.or(`username.ilike.%${search}%,location.ilike.%${search}%,experience_level.ilike.%${search}%`)
       }
       
       const { data: profiles, error } = await query.order('created_at', { ascending: false })
