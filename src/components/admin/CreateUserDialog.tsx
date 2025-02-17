@@ -42,13 +42,15 @@ export function CreateUserDialog({ onUserCreated }: { onUserCreated: () => void 
     setIsLoading(true)
 
     try {
+      const { data: { session } } = await supabase.auth.getSession()
+      
       const response = await fetch(
-        `${supabase.auth.url}/functions/v1/create-admin-user`,
+        `${process.env.SUPABASE_URL}/functions/v1/create-admin-user`,
         {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${supabase.auth.session()?.access_token}`,
+            'Authorization': `Bearer ${session?.access_token}`,
           },
           body: JSON.stringify(userData),
         }
