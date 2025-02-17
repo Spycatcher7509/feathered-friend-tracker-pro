@@ -44,23 +44,11 @@ export function CreateUserDialog({ onUserCreated }: { onUserCreated: () => void 
     try {
       const { data: { session } } = await supabase.auth.getSession()
       
-      const response = await fetch(
-        `${process.env.SUPABASE_URL}/functions/v1/create-admin-user`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${session?.access_token}`,
-          },
-          body: JSON.stringify(userData),
-        }
-      )
+      const { data, error } = await supabase.functions.invoke('create-admin-user', {
+        body: userData
+      })
 
-      const data = await response.json()
-      
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to create user')
-      }
+      if (error) throw error
 
       // If user should be admin, add them to admin group
       if (userData.is_admin) {
