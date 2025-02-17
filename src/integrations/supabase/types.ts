@@ -115,6 +115,7 @@ export type Database = {
           frequency: string
           id: string
           is_active: boolean | null
+          operation_type: string
           time_of_day: string
           updated_at: string
         }
@@ -125,6 +126,7 @@ export type Database = {
           frequency: string
           id?: string
           is_active?: boolean | null
+          operation_type?: string
           time_of_day: string
           updated_at?: string
         }
@@ -135,6 +137,7 @@ export type Database = {
           frequency?: string
           id?: string
           is_active?: boolean | null
+          operation_type?: string
           time_of_day?: string
           updated_at?: string
         }

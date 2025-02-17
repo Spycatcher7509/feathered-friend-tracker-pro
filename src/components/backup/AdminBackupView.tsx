@@ -35,7 +35,7 @@ export const AdminBackupView = ({
   const fetchSchedules = async () => {
     const { data, error } = await supabase
       .from('backup_schedules')
-      .select('id, created_at, frequency, time_of_day, day_of_week, day_of_month, operation_type, is_active, source_file_id, updated_at, user_id')
+      .select('*')
       .order('created_at', { ascending: false })
 
     if (error) {
