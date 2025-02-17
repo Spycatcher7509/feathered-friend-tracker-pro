@@ -51,7 +51,7 @@ export function UsersList() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>User ID</TableHead>
+            <TableHead>Username</TableHead>
             <TableHead>Admin Status</TableHead>
             <TableHead>Location</TableHead>
             <TableHead>Experience Level</TableHead>
@@ -60,7 +60,7 @@ export function UsersList() {
         <TableBody>
           {users.map((user) => (
             <TableRow key={user.id}>
-              <TableCell className="font-medium">{user.id}</TableCell>
+              <TableCell className="font-medium">{user.username || 'Anonymous User'}</TableCell>
               <TableCell>
                 {user.is_admin ? (
                   <Badge className="bg-green-500">Admin</Badge>
