@@ -84,42 +84,33 @@ export const createBackup = async (isAdmin: boolean = false) => {
       
       return result
     } else {
-      // Non-admin backup to local file using file system access API
+      // Non-admin backup to local file
       try {
-        // Show the file picker and get the file handle
-        const handle = await window.showSaveFilePicker({
-          suggestedName: filename,
-          types: [{
-            description: 'JSON Files',
-            accept: {'application/json': ['.json']},
-          }],
-        })
-        
-        // Create a writable stream
-        const writable = await handle.createWritable()
-        // Write the file content
-        await writable.write(file)
-        // Close the stream
-        await writable.close()
+        // Create a download link
+        const url = URL.createObjectURL(file)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = filename
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        URL.revokeObjectURL(url)
 
-        // Record the backup in Supabase for non-admin (without drive_file_id)
+        // Record the backup in Supabase for non-admin
         const { error: backupError } = await supabase
           .from('backups')
           .insert({
             filename,
             size_bytes: file.size,
             user_id: user.id,
-            drive_file_id: null // explicitly set to null since it's a local backup
+            drive_file_id: null
           })
         
         if (backupError) throw backupError
         
         return { name: filename }
       } catch (error) {
-        if (error instanceof Error && error.name === 'AbortError') {
-          console.log('User cancelled the save dialog')
-          return null
-        }
+        console.error('Error saving backup:', error)
         throw error
       }
     }
