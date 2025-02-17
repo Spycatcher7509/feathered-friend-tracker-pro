@@ -11,7 +11,7 @@ import ApiUsageMonitor from "@/components/admin/ApiUsageMonitor"
 import BirdTrends from "@/components/birds/BirdTrends"
 import SupportButtons from "@/components/auth/SupportButtons"
 import { Button } from "@/components/ui/button"
-import { ChevronDown, ChevronUp, FileCode } from "lucide-react"
+import { ChevronDown, ChevronUp, FileCode, Users } from "lucide-react"
 import { useAdminGroups } from "@/hooks/useAdminGroups"
 import { BirdSpeciesManager } from "@/components/birds/BirdSpeciesManager"
 import { BirdIdentifier } from "@/components/birds/BirdIdentifier"
@@ -19,13 +19,14 @@ import { GuideViewer } from "@/components/guides/GuideViewer"
 import { DisclaimerDialog } from "@/components/auth/DisclaimerDialog"
 import GoogleDriveBackup from "@/components/backup/GoogleDriveBackup"
 import { Chat } from "@/components/chat/Chat"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { UsersList } from "@/components/admin/UsersList"
 
 const Index = () => {
   const [showBirdSounds, setShowBirdSounds] = useState(false)
   const [showTrends, setShowTrends] = useState(false)
   const [showUserGuide, setShowUserGuide] = useState(false)
   const [showAdminGuide, setShowAdminGuide] = useState(false)
+  const [showUsers, setShowUsers] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
   const { checkAdminStatus } = useAdminGroups()
 
@@ -54,14 +55,24 @@ const Index = () => {
                   User Guide (HTML)
                 </Button>
                 {isAdmin && (
-                  <Button
-                    variant="outline"
-                    className="bg-[#223534] text-white hover:bg-[#2a4241]"
-                    onClick={() => setShowAdminGuide(!showAdminGuide)}
-                  >
-                    <FileCode className="mr-2" />
-                    Admin Guide
-                  </Button>
+                  <>
+                    <Button
+                      variant="outline"
+                      className="bg-[#223534] text-white hover:bg-[#2a4241]"
+                      onClick={() => setShowAdminGuide(!showAdminGuide)}
+                    >
+                      <FileCode className="mr-2" />
+                      Admin Guide
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="bg-[#223534] text-white hover:bg-[#2a4241]"
+                      onClick={() => setShowUsers(!showUsers)}
+                    >
+                      <Users className="mr-2" />
+                      View Users
+                    </Button>
+                  </>
                 )}
               </div>
               {showUserGuide && (
@@ -72,6 +83,11 @@ const Index = () => {
               {showAdminGuide && isAdmin && (
                 <div className="mt-4">
                   <GuideViewer type="admin" />
+                </div>
+              )}
+              {showUsers && isAdmin && (
+                <div className="mt-4">
+                  <UsersList />
                 </div>
               )}
             </div>
