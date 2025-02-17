@@ -1,32 +1,14 @@
 
 project_id = "bibaxlvbkxhrkurbhxcb"
 
-[functions.import-profiles]
-verify_jwt = false
-
-[functions.import-bird-species]
-verify_jwt = false
-
-[functions.download-audio]
-verify_jwt = false
-
-[functions.import-bird-sounds]
-verify_jwt = false
-
-[functions.identify-bird]
-verify_jwt = false
-
-[functions.transcribe-audio]
-verify_jwt = false
-
-[functions.send-email]
-verify_jwt = false
-
-[functions.create-backup]
-verify_jwt = false
-
-[functions.resend-webhook]
-verify_jwt = false
-
-[functions.send-conversation]
-verify_jwt = false
+[functions]
+import-profiles.verify_jwt = false
+import-bird-species.verify_jwt = false
+download-audio.verify_jwt = false
+import-bird-sounds.verify_jwt = false
+identify-bird.verify_jwt = false
+transcribe-audio.verify_jwt = false
+send-email.verify_jwt = false
+create-backup.verify_jwt = false
+resend-webhook.verify_jwt = false
+send-conversation.verify_jwt = false
