@@ -20,6 +20,7 @@ import { DisclaimerDialog } from "@/components/auth/DisclaimerDialog"
 import GoogleDriveBackup from "@/components/backup/GoogleDriveBackup"
 import { Chat } from "@/components/chat/Chat"
 import { UsersList } from "@/components/admin/UsersList"
+import { format } from "date-fns"
 
 const Index = () => {
   const [showBirdSounds, setShowBirdSounds] = useState(false)
@@ -28,6 +29,7 @@ const Index = () => {
   const [showAdminGuide, setShowAdminGuide] = useState(false)
   const [showUsers, setShowUsers] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
+  const [currentTime, setCurrentTime] = useState(new Date())
   const { checkAdminStatus } = useAdminGroups()
 
   useEffect(() => {
@@ -38,9 +40,20 @@ const Index = () => {
     checkAdmin()
   }, [])
 
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date())
+    }, 1000)
+
+    return () => clearInterval(timer)
+  }, [])
+
   return (
     <PageLayout header={<Navigation />}>
       <div className="container mx-auto px-4 py-8 space-y-12">
+        <div className="text-center mb-4 text-xl font-semibold text-nature-800">
+          {format(currentTime, 'EEEE, MMMM do yyyy, h:mm:ss a')}
+        </div>
         <div className="space-y-6">
           <div>
             <div className="mb-6">
