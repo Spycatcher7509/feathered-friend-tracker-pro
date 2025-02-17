@@ -20,17 +20,22 @@ export const DisclaimerDialog = () => {
 
   useEffect(() => {
     const checkDisclaimer = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return
 
-      const { data: disclaimer } = await supabase
-        .from('user_disclaimers')
-        .select('accepted')
-        .eq('user_id', user.id)
-        .maybeSingle()
+        const { data: disclaimer } = await supabase
+          .from('user_disclaimers')
+          .select('accepted')
+          .eq('user_id', user.id)
+          .maybeSingle()
 
-      if (!disclaimer || !disclaimer.accepted) {
-        setOpen(true)
+        // Show disclaimer if no record exists or if it wasn't accepted
+        if (!disclaimer || !disclaimer.accepted) {
+          setOpen(true)
+        }
+      } catch (error) {
+        console.error('Error checking disclaimer:', error)
       }
     }
 
@@ -40,19 +45,25 @@ export const DisclaimerDialog = () => {
   const handleAgree = async () => {
     if (!agreed) return
 
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
 
-    const { error } = await supabase
-      .from('user_disclaimers')
-      .upsert({
-        user_id: user.id,
-        accepted: true,
-        accepted_at: new Date().toISOString()
-      })
+      const { error } = await supabase
+        .from('user_disclaimers')
+        .upsert({
+          user_id: user.id,
+          accepted: true,
+          accepted_at: new Date().toISOString()
+        })
 
-    if (!error) {
-      setOpen(false)
+      if (!error) {
+        setOpen(false)
+      } else {
+        console.error('Error saving disclaimer:', error)
+      }
+    } catch (error) {
+      console.error('Error in handleAgree:', error)
     }
   }
 

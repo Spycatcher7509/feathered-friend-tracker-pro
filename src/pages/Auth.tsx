@@ -8,19 +8,14 @@ import PageLayout from "@/components/layout/PageLayout"
 import Header from "@/components/layout/Header"
 import AuthForm from "@/components/auth/AuthForm"
 import SupportButtons from "@/components/auth/SupportButtons"
-import { DisclaimerDialog } from "@/components/auth/DisclaimerDialog"
 
 const Auth = () => {
   const navigate = useNavigate()
   const [errorMessage, setErrorMessage] = useState("")
-  const [isNewUser, setIsNewUser] = useState(false)
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event: AuthChangeEvent, session) => {
-        if (event === "SIGNED_IN" && !session?.user.email_confirmed_at) {
-          setIsNewUser(true)
-        }
         if (event === "SIGNED_IN" && session) {
           navigate("/")
         }
@@ -58,7 +53,6 @@ const Auth = () => {
         <AuthForm />
         <SupportButtons />
       </div>
-      {isNewUser && <DisclaimerDialog />}
     </PageLayout>
   )
 }
