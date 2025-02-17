@@ -116,8 +116,10 @@ export type Database = {
           id: string
           is_active: boolean | null
           operation_type: string
+          source_file_id: string | null
           time_of_day: string
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
@@ -127,8 +129,10 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           operation_type?: string
+          source_file_id?: string | null
           time_of_day: string
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
@@ -138,8 +142,10 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           operation_type?: string
+          source_file_id?: string | null
           time_of_day?: string
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }

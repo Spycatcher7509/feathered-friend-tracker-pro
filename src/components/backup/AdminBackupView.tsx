@@ -1,8 +1,6 @@
 
 import { useState, useEffect } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { AlertCircle } from "lucide-react"
 import { OneOffOperations } from "./OneOffOperations"
 import { ScheduledOperations } from "./ScheduledOperations"
 import { BackupOperationsProps, BackupSchedule } from "./types"
@@ -55,8 +53,8 @@ export const AdminBackupView = ({
       time_of_day: schedule.time_of_day,
       day_of_week: schedule.day_of_week,
       day_of_month: schedule.day_of_month,
-      operation_type: schedule.operation_type || "backup", // Default to "backup" if not specified
-      is_active: schedule.is_active,
+      operation_type: schedule.operation_type as "backup" | "restore",
+      is_active: schedule.is_active ?? true,
       source_file_id: schedule.source_file_id,
       updated_at: schedule.updated_at,
       user_id: schedule.user_id
