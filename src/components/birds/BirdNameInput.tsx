@@ -5,7 +5,7 @@ import { BirdSpeciesManager } from "./BirdSpeciesManager"
 interface BirdNameInputProps {
   value: string
   onChange: (value: string) => void
-  suggestions?: { id: number; name: string }[]
+  suggestions?: { id: string; name: string }[]
 }
 
 export const BirdNameInput = ({ value, onChange, suggestions }: BirdNameInputProps) => {
