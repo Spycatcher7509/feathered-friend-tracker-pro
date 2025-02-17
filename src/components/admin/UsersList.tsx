@@ -42,8 +42,8 @@ export function UsersList() {
         .select()
         
       if (search) {
-        // Fix the search query syntax
-        query = query.or(`username.ilike.%${search}%,location.ilike.%${search}%,experience_level.ilike.%${search}%`)
+        // Include email in the search
+        query = query.or(`email.ilike.%${search}%,username.ilike.%${search}%,location.ilike.%${search}%,experience_level.ilike.%${search}%`)
       }
       
       const { data: profiles, error } = await query.order('created_at', { ascending: false })
@@ -132,7 +132,7 @@ export function UsersList() {
     <div className="space-y-4">
       <div className="flex gap-2">
         <Input
-          placeholder="Search users..."
+          placeholder="Search by email, username, location..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -149,6 +149,7 @@ export function UsersList() {
           <TableHeader>
             <TableRow>
               <TableHead>Username</TableHead>
+              <TableHead>Email</TableHead>
               <TableHead>Admin Status</TableHead>
               <TableHead>Location</TableHead>
               <TableHead>Experience Level</TableHead>
@@ -159,6 +160,7 @@ export function UsersList() {
             {users.map((user) => (
               <TableRow key={user.id}>
                 <TableCell className="font-medium">{user.username || 'Anonymous User'}</TableCell>
+                <TableCell>{user.email || 'No email'}</TableCell>
                 <TableCell>
                   {user.is_admin ? (
                     <Badge className="bg-green-500">Admin</Badge>

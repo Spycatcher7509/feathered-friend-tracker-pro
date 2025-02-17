@@ -775,6 +775,7 @@ export type Database = {
           avatar_url: string | null
           bio: string | null
           created_at: string
+          email: string | null
           experience_level: string | null
           id: string
           is_admin: boolean | null
@@ -791,6 +792,7 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
+          email?: string | null
           experience_level?: string | null
           id: string
           is_admin?: boolean | null
@@ -807,6 +809,7 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
+          email?: string | null
           experience_level?: string | null
           id?: string
           is_admin?: boolean | null
