@@ -42,10 +42,10 @@ export function UsersList() {
         .select()
         
       if (search) {
-        query = query.ilike('username', `%${search}%`)
+        query = query.or(`username.ilike.%${search}%, location.ilike.%${search}%, experience_level.ilike.%${search}%`)
       }
       
-      const { data: profiles, error } = await query.order('username')
+      const { data: profiles, error } = await query.order('created_at', { ascending: false })
 
       if (error) {
         console.error('Error fetching profiles:', error)
@@ -131,7 +131,7 @@ export function UsersList() {
     <div className="space-y-4">
       <div className="flex gap-2">
         <Input
-          placeholder="Search by username..."
+          placeholder="Search users..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
