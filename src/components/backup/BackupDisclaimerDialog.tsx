@@ -69,8 +69,14 @@ export const BackupDisclaimerDialog = ({
         }
       }
 
+      // Call the onAccept callback first
       onAccept()
+      
+      // Then close the dialog
       onOpenChange(false)
+      
+      // Reset the checkbox
+      setAgreed(false)
     } catch (error) {
       console.error('Error in handleAgree:', error)
       toast({
@@ -82,6 +88,7 @@ export const BackupDisclaimerDialog = ({
   }
 
   const handleCancel = () => {
+    setAgreed(false)
     onCancel()
     onOpenChange(false)
   }
