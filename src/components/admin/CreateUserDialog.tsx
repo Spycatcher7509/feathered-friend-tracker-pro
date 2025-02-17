@@ -42,26 +42,23 @@ export function CreateUserDialog({ onUserCreated }: { onUserCreated: () => void 
     setIsLoading(true)
 
     try {
-      // First create the user in auth.users
-      const { error: authError } = await supabase.auth.admin.createUser({
-        email: userData.email,
-        email_confirm: true
-      })
+      const response = await fetch(
+        `${supabase.auth.url}/functions/v1/create-admin-user`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${supabase.auth.session()?.access_token}`,
+          },
+          body: JSON.stringify(userData),
+        }
+      )
 
-      if (authError) throw authError
-
-      // Update the profile with additional information
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({
-          username: userData.username,
-          location: userData.location,
-          experience_level: userData.experience_level,
-          is_admin: userData.is_admin
-        })
-        .eq('email', userData.email)
-
-      if (profileError) throw profileError
+      const data = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to create user')
+      }
 
       // If user should be admin, add them to admin group
       if (userData.is_admin) {
