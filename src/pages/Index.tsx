@@ -49,7 +49,7 @@ const Index = () => {
                   onClick={() => setShowUserGuide(!showUserGuide)}
                 >
                   <FileCode className="mr-2" />
-                  User Guide
+                  User Guide (HTML)
                 </Button>
                 {isAdmin && (
                   <Button

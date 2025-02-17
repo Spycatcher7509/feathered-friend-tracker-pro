@@ -64,7 +64,7 @@ const SupportButtons = () => {
         className="bg-[#223534] text-white hover:bg-[#2a4241]"
       >
         <BookOpenText className="mr-2" />
-        User Guide
+        User Guide (PDF)
       </Button>
       
       <IssueReportDialog userEmail={userEmail} />
