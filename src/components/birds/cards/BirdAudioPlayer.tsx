@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button"
-import { Play, VolumeOff } from "lucide-react"
+import { Play, VolumeOff, Pause } from "lucide-react"
 import { useState, useRef } from "react"
 import { useToast } from "@/hooks/use-toast"
 
@@ -77,25 +77,36 @@ const BirdAudioPlayer = ({ soundUrl, birdName }: BirdAudioPlayerProps) => {
   if (!soundUrl) return null
 
   return (
-    <>
+    <div className="flex items-center gap-4">
       <Button
         variant="outline"
         size="sm"
         onClick={toggleAudio}
-        className={audioError ? "text-destructive" : ""}
+        className={`flex items-center gap-2 px-4 py-2 rounded-xl ${
+          audioError ? "text-destructive border-destructive" : ""
+        } ${isPlaying ? "bg-gray-100" : ""}`}
       >
         {audioError ? (
           <>
-            <VolumeOff className="h-4 w-4 mr-1" />
-            Audio Unavailable
+            <VolumeOff className="h-4 w-4" />
+            <span>Audio Unavailable</span>
           </>
         ) : (
           <>
-            <Play className="h-4 w-4 mr-1" />
-            {isPlaying ? 'Stop' : 'Play Sound'}
+            {isPlaying ? (
+              <Pause className="h-4 w-4" />
+            ) : (
+              <Play className="h-4 w-4" />
+            )}
+            <span>{isPlaying ? 'Pause' : 'Play Sound'}</span>
           </>
         )}
       </Button>
+      {!audioError && (
+        <div className="text-sm text-gray-500">
+          {isPlaying ? "Playing..." : "Click to play"}
+        </div>
+      )}
       <audio
         ref={audioRef}
         src={soundUrl}
@@ -105,7 +116,7 @@ const BirdAudioPlayer = ({ soundUrl, birdName }: BirdAudioPlayerProps) => {
         onLoadedData={handleAudioLoad}
         className="hidden"
       />
-    </>
+    </div>
   )
 }
 
