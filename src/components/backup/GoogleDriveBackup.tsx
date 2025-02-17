@@ -7,6 +7,8 @@ import { useToast } from "@/hooks/use-toast"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { OneOffOperations } from "./OneOffOperations"
 import { ScheduledOperations } from "./ScheduledOperations"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { AlertCircle } from "lucide-react"
 
 interface BackupSchedule {
   id: string
@@ -161,7 +163,14 @@ ${scheduleToDelete.day_of_month !== null ? `• Day of Month: ${scheduleToDelete
   }
 
   if (!isAdmin) {
-    return null
+    return (
+      <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription>
+          You need administrator privileges to access the backup and restore features.
+        </AlertDescription>
+      </Alert>
+    )
   }
 
   return (
