@@ -11,8 +11,9 @@ import {
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Shield, Trash2 } from "lucide-react"
+import { Shield, Trash2, Search } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { Input } from "@/components/ui/input"
 
 interface Profile {
   id: string
@@ -26,19 +27,25 @@ interface Profile {
 export function UsersList() {
   const [users, setUsers] = useState<Profile[]>([])
   const [loading, setLoading] = useState(true)
+  const [searchQuery, setSearchQuery] = useState("")
   const { toast } = useToast()
 
   useEffect(() => {
     fetchUsers()
   }, [])
 
-  const fetchUsers = async () => {
+  const fetchUsers = async (search?: string) => {
     try {
-      console.log('Fetching users...')
-      const { data: profiles, error } = await supabase
+      console.log('Fetching users...', search ? `with search: ${search}` : '')
+      let query = supabase
         .from('profiles')
         .select()
-        .order('username')
+        
+      if (search) {
+        query = query.ilike('username', `%${search}%`)
+      }
+      
+      const { data: profiles, error } = await query.order('username')
 
       if (error) {
         console.error('Error fetching profiles:', error)
@@ -57,6 +64,11 @@ export function UsersList() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleSearch = () => {
+    setLoading(true)
+    fetchUsers(searchQuery)
   }
 
   const toggleAdminStatus = async (userId: string, currentStatus: boolean) => {
@@ -116,54 +128,70 @@ export function UsersList() {
   }
 
   return (
-    <div className="rounded-md border">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Username</TableHead>
-            <TableHead>Admin Status</TableHead>
-            <TableHead>Location</TableHead>
-            <TableHead>Experience Level</TableHead>
-            <TableHead>Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {users.map((user) => (
-            <TableRow key={user.id}>
-              <TableCell className="font-medium">{user.username || 'Anonymous User'}</TableCell>
-              <TableCell>
-                {user.is_admin ? (
-                  <Badge className="bg-green-500">Admin</Badge>
-                ) : (
-                  <Badge variant="secondary">User</Badge>
-                )}
-              </TableCell>
-              <TableCell>{user.location || 'Not specified'}</TableCell>
-              <TableCell>{user.experience_level || 'Not specified'}</TableCell>
-              <TableCell>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => toggleAdminStatus(user.id, user.is_admin)}
-                  >
-                    <Shield className="h-4 w-4 mr-1" />
-                    {user.is_admin ? 'Remove Admin' : 'Make Admin'}
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => deleteUser(user.id)}
-                  >
-                    <Trash2 className="h-4 w-4 mr-1" />
-                    Delete
-                  </Button>
-                </div>
-              </TableCell>
+    <div className="space-y-4">
+      <div className="flex gap-2">
+        <Input
+          placeholder="Search by username..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+          className="max-w-sm"
+        />
+        <Button onClick={handleSearch}>
+          <Search className="h-4 w-4 mr-1" />
+          Search
+        </Button>
+      </div>
+      
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Username</TableHead>
+              <TableHead>Admin Status</TableHead>
+              <TableHead>Location</TableHead>
+              <TableHead>Experience Level</TableHead>
+              <TableHead>Actions</TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody>
+            {users.map((user) => (
+              <TableRow key={user.id}>
+                <TableCell className="font-medium">{user.username || 'Anonymous User'}</TableCell>
+                <TableCell>
+                  {user.is_admin ? (
+                    <Badge className="bg-green-500">Admin</Badge>
+                  ) : (
+                    <Badge variant="secondary">User</Badge>
+                  )}
+                </TableCell>
+                <TableCell>{user.location || 'Not specified'}</TableCell>
+                <TableCell>{user.experience_level || 'Not specified'}</TableCell>
+                <TableCell>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => toggleAdminStatus(user.id, user.is_admin)}
+                    >
+                      <Shield className="h-4 w-4 mr-1" />
+                      {user.is_admin ? 'Remove Admin' : 'Make Admin'}
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => deleteUser(user.id)}
+                    >
+                      <Trash2 className="h-4 w-4 mr-1" />
+                      Delete
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   )
 }
