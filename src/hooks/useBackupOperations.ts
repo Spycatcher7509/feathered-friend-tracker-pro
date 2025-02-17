@@ -28,6 +28,8 @@ export const pickBackupFile = async () => {
 
 export const useBackupOperations = () => {
   const [isLoading, setIsLoading] = useState(false)
+  const [showDisclaimer, setShowDisclaimer] = useState(false)
+  const [operationType, setOperationType] = useState<'backup' | 'restore'>('backup')
   const { toast } = useToast()
   const { checkAdminStatus } = useAdminGroups()
 
@@ -72,6 +74,16 @@ export const useBackupOperations = () => {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const initiateBackup = () => {
+    setOperationType('backup')
+    setShowDisclaimer(true)
+  }
+
+  const initiateRestore = () => {
+    setOperationType('restore')
+    setShowDisclaimer(true)
   }
 
   const handleBackup = async () => {
@@ -146,9 +158,14 @@ export const useBackupOperations = () => {
 
   return {
     isLoading,
+    showDisclaimer,
+    setShowDisclaimer,
+    operationType,
     handleBackup,
     handleRestore,
     sendDiscordNotification,
-    pickBackupFile
+    pickBackupFile,
+    initiateBackup,
+    initiateRestore
   }
 }

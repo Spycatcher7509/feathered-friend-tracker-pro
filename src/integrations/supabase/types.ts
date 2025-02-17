@@ -92,6 +92,21 @@ export type Database = {
         }
         Relationships: []
       }
+      backup_disclaimers: {
+        Row: {
+          acknowledged_at: string | null
+          user_id: string
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          user_id: string
+        }
+        Update: {
+          acknowledged_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       backup_schedules: {
         Row: {
           created_at: string

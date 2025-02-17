@@ -2,6 +2,7 @@
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Code } from "@/components/ui/code"
+import { BackupDisclaimerDialog } from "./BackupDisclaimerDialog"
 
 interface OneOffOperationsProps {
   isLoading: boolean
@@ -11,6 +12,11 @@ interface OneOffOperationsProps {
   setShowInstructions: (show: boolean) => void
   showInstructions: boolean
   currentDomain: string
+  showDisclaimer: boolean
+  setShowDisclaimer: (show: boolean) => void
+  operationType: 'backup' | 'restore'
+  initiateBackup: () => void
+  initiateRestore: () => void
 }
 
 export const OneOffOperations = ({
@@ -20,7 +26,12 @@ export const OneOffOperations = ({
   sendDiscordNotification,
   setShowInstructions,
   showInstructions,
-  currentDomain
+  currentDomain,
+  showDisclaimer,
+  setShowDisclaimer,
+  operationType,
+  initiateBackup,
+  initiateRestore
 }: OneOffOperationsProps) => {
   return (
     <div className="space-y-4">
@@ -28,7 +39,7 @@ export const OneOffOperations = ({
         <Button 
           onClick={() => {
             setShowInstructions(true)
-            handleBackup()
+            initiateBackup()
           }} 
           disabled={isLoading}
           className="bg-nature-600 hover:bg-nature-700 text-white"
@@ -36,7 +47,7 @@ export const OneOffOperations = ({
           Run One-off Backup
         </Button>
         <Button 
-          onClick={handleRestore} 
+          onClick={initiateRestore}
           disabled={isLoading}
           variant="outline"
           className="border-nature-600 text-nature-700 hover:bg-nature-50"
@@ -51,6 +62,14 @@ export const OneOffOperations = ({
           Test Discord Notifications
         </Button>
       </div>
+
+      <BackupDisclaimerDialog
+        open={showDisclaimer}
+        onOpenChange={setShowDisclaimer}
+        onAccept={() => operationType === 'backup' ? handleBackup() : handleRestore()}
+        onCancel={() => setShowDisclaimer(false)}
+        type={operationType}
+      />
 
       {showInstructions && (
         <Alert>
