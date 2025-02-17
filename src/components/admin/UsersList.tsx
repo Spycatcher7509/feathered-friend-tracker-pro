@@ -1,19 +1,13 @@
 
 import { useState, useEffect } from "react"
 import { supabase } from "@/integrations/supabase/client"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
+import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Shield, Trash2, Search, Pencil, Check, X } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-import { Input } from "@/components/ui/input"
+import { EditableCell } from "./EditableCell"
+import { UserActions } from "./UserActions"
+import { UsersTableHeader } from "./UsersTableHeader"
+import { SearchBar } from "./SearchBar"
 
 interface Profile {
   id: string
@@ -54,10 +48,7 @@ export function UsersList() {
       
       const { data: profiles, error } = await query.order('created_at', { ascending: false })
 
-      if (error) {
-        console.error('Error fetching profiles:', error)
-        throw error
-      }
+      if (error) throw error
 
       console.log('Fetched profiles:', profiles)
       setUsers(profiles)
@@ -102,7 +93,6 @@ export function UsersList() {
         description: "User details updated successfully",
       })
       
-      // Refresh the users list
       fetchUsers()
       cancelEditing()
     } catch (error) {
@@ -165,80 +155,34 @@ export function UsersList() {
     }
   }
 
-  const renderEditableCell = (user: Profile, field: EditingState['field'], value: string | null) => {
-    const isEditing = editing.id === user.id && editing.field === field
-
-    if (isEditing) {
-      return (
-        <div className="flex items-center gap-2">
-          <Input
-            value={editing.value}
-            onChange={(e) => setEditing(prev => ({ ...prev, value: e.target.value }))}
-            className="h-8 w-[200px]"
-            autoFocus
-          />
-          <Button variant="ghost" size="sm" onClick={saveEdit} className="h-8 w-8 p-0">
-            <Check className="h-4 w-4 text-green-500" />
-          </Button>
-          <Button variant="ghost" size="sm" onClick={cancelEditing} className="h-8 w-8 p-0">
-            <X className="h-4 w-4 text-red-500" />
-          </Button>
-        </div>
-      )
-    }
-
-    return (
-      <div className="flex items-center gap-2">
-        <span className="font-medium">{value || 'Full name or Nickname'}</span>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => startEditing(user.id, field, value || '')}
-          className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-        >
-          <Pencil className="h-4 w-4" />
-        </Button>
-      </div>
-    )
-  }
-
   if (loading) {
     return <div>Loading users...</div>
   }
 
   return (
     <div className="space-y-4">
-      <div className="flex gap-2">
-        <Input
-          placeholder="Search by email, username, location..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-          className="max-w-sm"
-        />
-        <Button onClick={handleSearch}>
-          <Search className="h-4 w-4 mr-1" />
-          Search
-        </Button>
-      </div>
+      <SearchBar
+        value={searchQuery}
+        onChange={setSearchQuery}
+        onSearch={handleSearch}
+      />
       
       <div className="rounded-md border">
         <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Username</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Admin Status</TableHead>
-              <TableHead>Location</TableHead>
-              <TableHead>Experience Level</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
+          <UsersTableHeader />
           <TableBody>
             {users.map((user) => (
               <TableRow key={user.id} className="group">
                 <TableCell>
-                  {renderEditableCell(user, 'username', user.username)}
+                  <EditableCell
+                    value={user.username}
+                    isEditing={editing.id === user.id && editing.field === 'username'}
+                    onEdit={() => startEditing(user.id, 'username', user.username)}
+                    onSave={saveEdit}
+                    onCancel={cancelEditing}
+                    onChange={(value) => setEditing(prev => ({ ...prev, value }))}
+                    editValue={editing.value}
+                  />
                 </TableCell>
                 <TableCell>{user.email || 'No email'}</TableCell>
                 <TableCell>
@@ -249,30 +193,36 @@ export function UsersList() {
                   )}
                 </TableCell>
                 <TableCell>
-                  {renderEditableCell(user, 'location', user.location)}
+                  <EditableCell
+                    value={user.location}
+                    isEditing={editing.id === user.id && editing.field === 'location'}
+                    onEdit={() => startEditing(user.id, 'location', user.location || '')}
+                    onSave={saveEdit}
+                    onCancel={cancelEditing}
+                    onChange={(value) => setEditing(prev => ({ ...prev, value }))}
+                    editValue={editing.value}
+                    placeholder="Not specified"
+                  />
                 </TableCell>
                 <TableCell>
-                  {renderEditableCell(user, 'experience_level', user.experience_level)}
+                  <EditableCell
+                    value={user.experience_level}
+                    isEditing={editing.id === user.id && editing.field === 'experience_level'}
+                    onEdit={() => startEditing(user.id, 'experience_level', user.experience_level || '')}
+                    onSave={saveEdit}
+                    onCancel={cancelEditing}
+                    onChange={(value) => setEditing(prev => ({ ...prev, value }))}
+                    editValue={editing.value}
+                    placeholder="Not specified"
+                  />
                 </TableCell>
                 <TableCell>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => toggleAdminStatus(user.id, user.is_admin)}
-                    >
-                      <Shield className="h-4 w-4 mr-1" />
-                      {user.is_admin ? 'Remove Admin' : 'Make Admin'}
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => deleteUser(user.id)}
-                    >
-                      <Trash2 className="h-4 w-4 mr-1" />
-                      Delete
-                    </Button>
-                  </div>
+                  <UserActions
+                    userId={user.id}
+                    isAdmin={user.is_admin}
+                    onToggleAdmin={toggleAdminStatus}
+                    onDelete={deleteUser}
+                  />
                 </TableCell>
               </TableRow>
             ))}
