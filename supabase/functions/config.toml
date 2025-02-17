@@ -36,3 +36,7 @@ verify_jwt = false
 [[functions]]
 name = "resend-webhook"
 verify_jwt = false
+
+[[functions]]
+name = "send-conversation"
+verify_jwt = false
