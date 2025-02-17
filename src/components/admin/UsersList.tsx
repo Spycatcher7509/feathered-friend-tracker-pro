@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react"
 import { supabase } from "@/integrations/supabase/client"
 import {
@@ -124,6 +123,10 @@ export function UsersList() {
     }
   }
 
+  const getUserDisplayName = (username: string | null) => {
+    return username || 'User'
+  }
+
   if (loading) {
     return <div>Loading users...</div>
   }
@@ -159,7 +162,9 @@ export function UsersList() {
           <TableBody>
             {users.map((user) => (
               <TableRow key={user.id}>
-                <TableCell className="font-medium">{user.username || 'Anonymous User'}</TableCell>
+                <TableCell className="font-medium">
+                  {getUserDisplayName(user.username)}
+                </TableCell>
                 <TableCell>{user.email || 'No email'}</TableCell>
                 <TableCell>
                   {user.is_admin ? (
