@@ -140,49 +140,73 @@ const AddBirdSighting = () => {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 bg-white p-6 rounded-lg shadow">
-      <h2 className="text-2xl font-semibold text-nature-800 flex items-center gap-2">
-        <Bird className="h-6 w-6" />
-        Record Bird Sighting
-      </h2>
-
-      <BirdNameInput
-        value={birdName}
-        onChange={setBirdName}
-        suggestions={birdSuggestions}
-      />
-
-      <LocationInput
-        value={location}
-        onChange={setLocation}
-      />
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <BirdPhotoUpload
-          onUpload={handleImageUpload}
-          imageUrl={imageUrl}
-          loading={loading}
-        />
-
-        <BirdSoundRecorder
-          onRecordingComplete={(url) => {
-            setSoundUrl(url)
-            toast({
-              title: "Success",
-              description: "Bird sound recorded successfully!",
-            })
-          }}
-          soundUrl={soundUrl}
-        />
+    <form onSubmit={handleSubmit} className="space-y-6 bg-white p-8 rounded-xl shadow-lg border border-nature-100">
+      <div className="space-y-2">
+        <h2 className="text-2xl font-semibold text-nature-800 flex items-center gap-2">
+          <Bird className="h-7 w-7 text-nature-600" />
+          Record Bird Sighting
+        </h2>
+        <p className="text-sm text-nature-600">Document your bird observation with photos, sounds, and details.</p>
       </div>
 
-      <DescriptionInput
-        value={description}
-        onChange={setDescription}
-      />
+      <div className="space-y-6">
+        <div className="grid gap-6 md:grid-cols-2">
+          <BirdNameInput
+            value={birdName}
+            onChange={setBirdName}
+            suggestions={birdSuggestions}
+          />
 
-      <Button type="submit" disabled={loading} className="w-full">
-        {loading ? "Recording..." : "Record Sighting"}
+          <LocationInput
+            value={location}
+            onChange={setLocation}
+          />
+        </div>
+
+        <div className="grid gap-6 md:grid-cols-2">
+          <div className="space-y-6">
+            <BirdPhotoUpload
+              onUpload={handleImageUpload}
+              imageUrl={imageUrl}
+              loading={loading}
+            />
+
+            <DescriptionInput
+              value={description}
+              onChange={setDescription}
+            />
+          </div>
+
+          <div className="space-y-6">
+            <BirdSoundRecorder
+              onRecordingComplete={(url) => {
+                setSoundUrl(url)
+                toast({
+                  title: "Success",
+                  description: "Bird sound recorded successfully!",
+                })
+              }}
+              soundUrl={soundUrl}
+            />
+          </div>
+        </div>
+      </div>
+
+      <Button 
+        type="submit" 
+        disabled={loading} 
+        className="w-full bg-nature-600 hover:bg-nature-700 text-white py-6 text-lg font-medium rounded-lg transition-colors"
+      >
+        {loading ? (
+          <span className="flex items-center justify-center gap-2">
+            <span className="animate-pulse">Recording...</span>
+          </span>
+        ) : (
+          <span className="flex items-center justify-center gap-2">
+            <Bird className="h-5 w-5" />
+            Record Sighting
+          </span>
+        )}
       </Button>
     </form>
   )
