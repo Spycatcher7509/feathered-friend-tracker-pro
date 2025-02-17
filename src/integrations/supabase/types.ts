@@ -905,6 +905,12 @@ export type Database = {
         }
         Returns: unknown
       }
+      is_admin: {
+        Args: {
+          user_id: string
+        }
+        Returns: boolean
+      }
       is_user_in_admin_group: {
         Args: {
           user_id: string
