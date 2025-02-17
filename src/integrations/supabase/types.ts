@@ -171,6 +171,8 @@ export type Database = {
           latitude: number | null
           location: string
           longitude: number | null
+          media_type: string | null
+          media_url: string | null
           search_text: unknown | null
           sighting_date: string
           sound_url: string | null
@@ -187,6 +189,8 @@ export type Database = {
           latitude?: number | null
           location: string
           longitude?: number | null
+          media_type?: string | null
+          media_url?: string | null
           search_text?: unknown | null
           sighting_date?: string
           sound_url?: string | null
@@ -203,6 +207,8 @@ export type Database = {
           latitude?: number | null
           location?: string
           longitude?: number | null
+          media_type?: string | null
+          media_url?: string | null
           search_text?: unknown | null
           sighting_date?: string
           sound_url?: string | null
