@@ -18,7 +18,7 @@ const Auth = () => {
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        if (event === "USER_CREATED") {
+        if (event === "SIGNED_UP") {
           setIsNewUser(true)
         }
         if (event === "SIGNED_IN" && session) {
