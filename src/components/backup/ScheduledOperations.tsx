@@ -2,6 +2,7 @@
 import { Button } from "@/components/ui/button"
 import { ScheduleForm } from "./ScheduleForm"
 import { ScheduleList } from "./ScheduleList"
+import { Plus } from "lucide-react"
 
 interface ScheduledOperationsProps {
   showScheduler: boolean
@@ -25,19 +26,21 @@ export const ScheduledOperations = ({
   deleteSchedule
 }: ScheduledOperationsProps) => {
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="flex gap-4 flex-wrap">
         <Button
           onClick={() => setShowScheduler(!showScheduler)}
-          variant="secondary"
-          className="bg-gray-100 hover:bg-gray-200"
+          className="bg-nature-600 hover:bg-nature-700 text-white"
         >
+          <Plus className="w-4 h-4 mr-2" />
           Create New Schedule
         </Button>
       </div>
 
       {showScheduler && (
-        <ScheduleForm onSubmit={handleScheduleOperation} />
+        <div className="mt-4">
+          <ScheduleForm onSubmit={handleScheduleOperation} />
+        </div>
       )}
 
       <ScheduleList 

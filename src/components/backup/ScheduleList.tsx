@@ -1,5 +1,6 @@
 
 import { Button } from "@/components/ui/button"
+import { Trash2 } from "lucide-react"
 
 interface Schedule {
   id: string
@@ -19,14 +20,20 @@ interface ScheduleListProps {
 export const ScheduleList = ({ schedules, onDelete }: ScheduleListProps) => {
   const weekDays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 
-  if (schedules.length === 0) return null
+  if (schedules.length === 0) {
+    return (
+      <div className="text-gray-500 text-center py-4">
+        No scheduled operations yet
+      </div>
+    )
+  }
 
   return (
     <div className="mt-4">
-      <h3 className="text-lg font-semibold mb-2">Existing Schedules</h3>
-      <div className="space-y-2">
+      <h3 className="text-lg font-semibold mb-4">Existing Schedules</h3>
+      <div className="space-y-3">
         {schedules.map((schedule) => (
-          <div key={schedule.id} className="flex justify-between items-center p-3 border rounded-lg">
+          <div key={schedule.id} className="flex justify-between items-center p-4 border rounded-lg bg-white shadow-sm">
             <div>
               <span className="font-medium capitalize">{schedule.operation_type}</span>
               <span className="mx-2">•</span>
@@ -49,7 +56,9 @@ export const ScheduleList = ({ schedules, onDelete }: ScheduleListProps) => {
               variant="destructive"
               size="sm"
               onClick={() => onDelete(schedule.id)}
+              className="ml-4"
             >
+              <Trash2 className="w-4 h-4 mr-2" />
               Delete
             </Button>
           </div>
