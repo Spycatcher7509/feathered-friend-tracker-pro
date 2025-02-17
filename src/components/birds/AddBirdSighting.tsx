@@ -1,10 +1,9 @@
-
 import { useState } from "react"
 import { useToast } from "@/hooks/use-toast"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { Bird, MapPin, Mic } from "lucide-react"
+import { Bird, MapPin } from "lucide-react"
 import { supabase } from "@/integrations/supabase/client"
 import AudioRecorder from "./AudioRecorder"
 import { BirdSpeciesManager } from "./BirdSpeciesManager"
@@ -18,7 +17,6 @@ const AddBirdSighting = () => {
   const [soundUrl, setSoundUrl] = useState<string | null>(null)
   const { toast } = useToast()
 
-  // Add query for bird species suggestions
   const { data: birdSuggestions } = useQuery({
     queryKey: ["bird-species-suggestions", birdName],
     queryFn: async () => {
@@ -47,14 +45,12 @@ const AddBirdSighting = () => {
         throw new Error("User not authenticated")
       }
 
-      // First check if this bird species exists
       const { data: species } = await supabase
         .from("bird_species")
         .select("id")
         .ilike("name", birdName)
         .maybeSingle()
 
-      // If it doesn't exist, create it
       let speciesId = species?.id
       if (!species) {
         const { data: newSpecies, error: speciesError } = await supabase
@@ -86,7 +82,6 @@ const AddBirdSighting = () => {
         description: "Bird sighting recorded successfully!",
       })
 
-      // Reset form
       setBirdName("")
       setLocation("")
       setDescription("")
@@ -100,40 +95,6 @@ const AddBirdSighting = () => {
       })
     } finally {
       setLoading(false)
-    }
-  }
-
-  const handleDescriptionTranscription = async (audioUrl: string) => {
-    try {
-      // Convert audio URL to base64
-      const response = await fetch(audioUrl)
-      const blob = await response.blob()
-      const base64data = await new Promise((resolve) => {
-        const reader = new FileReader()
-        reader.onloadend = () => resolve(reader.result)
-        reader.readAsDataURL(blob)
-      })
-
-      const { data, error } = await supabase.functions.invoke('transcribe-audio', {
-        body: { audio: base64data }
-      })
-
-      if (error) throw error
-
-      if (data.text) {
-        setDescription(data.text)
-        toast({
-          title: "Success",
-          description: "Description transcribed successfully!",
-        })
-      }
-    } catch (error) {
-      console.error('Transcription error:', error)
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to transcribe audio. Please try typing instead.",
-      })
     }
   }
 
@@ -187,13 +148,11 @@ const AddBirdSighting = () => {
           <label htmlFor="description" className="text-sm font-medium text-gray-700">
             Description
           </label>
-          <div className="flex items-center gap-2">
-            <AudioRecorder
-              onRecordingComplete={handleDescriptionTranscription}
-              className="flex-shrink-0"
-            />
-            <span className="text-xs text-gray-500">Record description</span>
-          </div>
+          <AudioRecorder
+            mode="description"
+            onRecordingComplete={(text) => setDescription(text)}
+            className="flex-shrink-0"
+          />
         </div>
         <Textarea
           id="description"
@@ -205,24 +164,24 @@ const AddBirdSighting = () => {
       </div>
 
       <div className="space-y-2">
-        <div className="flex justify-between items-center">
-          <label className="text-sm font-medium text-gray-700">
-            Bird Sound
-          </label>
-          <span className="text-xs text-gray-500">Record bird call</span>
+        <label className="text-sm font-medium text-gray-700">
+          Bird Sound
+        </label>
+        <div className="mt-1">
+          <AudioRecorder
+            mode="bird-call"
+            onRecordingComplete={(url) => {
+              setSoundUrl(url)
+              toast({
+                title: "Success",
+                description: "Bird sound recorded successfully!",
+              })
+            }}
+          />
+          {soundUrl && (
+            <audio controls src={soundUrl} className="w-full mt-2" />
+          )}
         </div>
-        <AudioRecorder
-          onRecordingComplete={(url) => {
-            setSoundUrl(url)
-            toast({
-              title: "Success",
-              description: "Bird sound recorded successfully!",
-            })
-          }}
-        />
-        {soundUrl && (
-          <audio controls src={soundUrl} className="w-full mt-2" />
-        )}
       </div>
 
       <Button type="submit" disabled={loading} className="w-full">
