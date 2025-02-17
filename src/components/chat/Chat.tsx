@@ -1,13 +1,14 @@
 
 import { useState, useEffect } from "react"
-import { MessageCircle, Video, Mic, Paperclip, Send } from "lucide-react"
+import { MessageCircle } from "lucide-react"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
 import { useUserEmail } from "@/hooks/useUserEmail"
 import { supabase } from "@/integrations/supabase/client"
+import { ChatForm } from "./ChatForm"
+import { MessagesList } from "./MessagesList"
+import { MessageInput } from "./MessageInput"
 
 export const Chat = () => {
   const [messages, setMessages] = useState<any[]>([])
@@ -67,7 +68,6 @@ export const Chat = () => {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
 
-      // Create new conversation
       const { data: newConv, error: convError } = await supabase
         .from('conversations')
         .insert({
@@ -82,7 +82,6 @@ export const Chat = () => {
       if (newConv) {
         setConversationId(newConv.id)
         
-        // Save metadata
         const { error: metadataError } = await supabase
           .from('chat_metadata')
           .insert({
@@ -90,12 +89,11 @@ export const Chat = () => {
             full_name: metadata.fullName,
             email: metadata.email,
             description: metadata.description,
-            attachments: []  // We'll update this after file uploads
+            attachments: []
           })
 
         if (metadataError) throw metadataError
 
-        // Upload attachments if any
         if (metadata.attachments.length > 0) {
           const uploadPromises = metadata.attachments.map(async (file) => {
             const filename = `${newConv.id}/${file.name}`
@@ -109,7 +107,6 @@ export const Chat = () => {
 
           const uploadedFiles = await Promise.all(uploadPromises)
           
-          // Update metadata with file paths
           await supabase
             .from('chat_metadata')
             .update({ attachments: uploadedFiles })
@@ -196,7 +193,6 @@ export const Chat = () => {
         description: "A summary has been sent to your email"
       })
 
-      // Reset conversation state
       setConversationId(null)
       setMessages([])
       setShowForm(true)
@@ -213,14 +209,6 @@ export const Chat = () => {
         description: "Failed to end conversation"
       })
     }
-  }
-
-  const startVideoCall = () => {
-    window.location.href = `tel:+441992924940`
-  }
-
-  const startVoiceCall = () => {
-    window.location.href = `tel:+441992924940`
   }
 
   return (
@@ -252,111 +240,29 @@ export const Chat = () => {
           
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {showForm ? (
-              <form onSubmit={handleStartChat} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-1">Full Name or Nickname</label>
-                  <Input
-                    value={formData.fullName}
-                    onChange={(e) => setFormData(prev => ({ ...prev, fullName: e.target.value }))}
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Email Address</label>
-                  <Input
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Description</label>
-                  <Textarea
-                    value={formData.description}
-                    onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                    placeholder="Please describe your issue or question..."
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Attachments</label>
-                  <Input
-                    type="file"
-                    onChange={handleFileUpload}
-                    multiple
-                    className="cursor-pointer"
-                  />
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={startVideoCall}
-                    className="flex-1"
-                  >
-                    <Video className="w-4 h-4 mr-2" />
-                    Video Call
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={startVoiceCall}
-                    className="flex-1"
-                  >
-                    <Mic className="w-4 h-4 mr-2" />
-                    Voice Call
-                  </Button>
-                </div>
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? "Starting chat..." : "Start Chat"}
-                </Button>
-              </form>
+              <ChatForm
+                formData={formData}
+                isLoading={isLoading}
+                onSubmit={handleStartChat}
+                onFileUpload={handleFileUpload}
+                onFormDataChange={(updates) => setFormData(prev => ({ ...prev, ...updates }))}
+              />
             ) : (
-              isLoading ? (
-                <div className="flex items-center justify-center h-full">
-                  <div className="animate-pulse text-muted-foreground">
-                    Loading messages...
-                  </div>
-                </div>
-              ) : (
-                messages.map((message, index) => (
-                  <div
-                    key={index}
-                    className={`flex ${message.is_system_message ? 'justify-start' : 'justify-end'}`}
-                  >
-                    <div
-                      className={`max-w-[80%] p-3 rounded-lg ${
-                        message.is_system_message
-                          ? 'bg-gray-100'
-                          : 'bg-blue-500 text-white'
-                      }`}
-                    >
-                      {message.content}
-                    </div>
-                  </div>
-                ))
-              )
+              <MessagesList
+                messages={messages}
+                isLoading={isLoading}
+              />
             )}
           </div>
 
           {!showForm && (
             <div className="p-4 border-t">
-              <div className="flex gap-2">
-                <Input
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-                  placeholder="Type your message..."
-                  disabled={isLoading || isSending}
-                />
-                <Button 
-                  onClick={sendMessage}
-                  disabled={isLoading || isSending}
-                >
-                  <Send className="h-4 w-4" />
-                </Button>
-              </div>
+              <MessageInput
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                onSend={sendMessage}
+                disabled={isLoading || isSending}
+              />
             </div>
           )}
         </div>
