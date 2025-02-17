@@ -2,13 +2,14 @@
 import { useState } from "react"
 import { useToast } from "@/hooks/use-toast"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Bird, MapPin, Upload, Image, Volume2 } from "lucide-react"
+import { Bird } from "lucide-react"
 import { supabase } from "@/integrations/supabase/client"
-import AudioRecorder from "./AudioRecorder"
-import { BirdSpeciesManager } from "./BirdSpeciesManager"
 import { useQuery } from "@tanstack/react-query"
+import { BirdNameInput } from "./BirdNameInput"
+import { LocationInput } from "./LocationInput"
+import { BirdPhotoUpload } from "./BirdPhotoUpload"
+import { BirdSoundRecorder } from "./BirdSoundRecorder"
+import { DescriptionInput } from "./DescriptionInput"
 
 const AddBirdSighting = () => {
   const [loading, setLoading] = useState(false)
@@ -145,130 +146,40 @@ const AddBirdSighting = () => {
         Record Bird Sighting
       </h2>
 
-      <div className="space-y-2">
-        <label htmlFor="birdName" className="text-sm font-medium text-gray-700">
-          Bird Name
-        </label>
-        <div className="relative">
-          <Input
-            id="birdName"
-            value={birdName}
-            onChange={(e) => setBirdName(e.target.value)}
-            placeholder="Enter bird name"
-            required
-            list="bird-suggestions"
-          />
-          <datalist id="bird-suggestions">
-            {birdSuggestions?.map(bird => (
-              <option key={bird.id} value={bird.name} />
-            ))}
-          </datalist>
-          <div className="absolute right-0 top-0">
-            <BirdSpeciesManager />
-          </div>
-        </div>
-      </div>
+      <BirdNameInput
+        value={birdName}
+        onChange={setBirdName}
+        suggestions={birdSuggestions}
+      />
 
-      <div className="space-y-2">
-        <label htmlFor="location" className="text-sm font-medium text-gray-700 flex items-center gap-2">
-          <MapPin className="h-4 w-4" />
-          Location
-        </label>
-        <Input
-          id="location"
-          value={location}
-          onChange={(e) => setLocation(e.target.value)}
-          placeholder="Enter location"
-          required
-        />
-      </div>
+      <LocationInput
+        value={location}
+        onChange={setLocation}
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-            <Image className="h-4 w-4" />
-            Bird Photo
-          </label>
-          <div className="mt-1 space-y-2">
-            <div className="flex items-center gap-2">
-              <label className="cursor-pointer">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  className="hidden"
-                />
-                <Button type="button" variant="outline" size="sm">
-                  <Upload className="h-4 w-4 mr-2" />
-                  Upload Photo
-                </Button>
-              </label>
-            </div>
-            {imageUrl && (
-              <div className="relative w-full aspect-video">
-                <img 
-                  src={imageUrl} 
-                  alt="Bird sighting" 
-                  className="w-full h-full object-cover rounded-md"
-                />
-              </div>
-            )}
-          </div>
-        </div>
+        <BirdPhotoUpload
+          onUpload={handleImageUpload}
+          imageUrl={imageUrl}
+          loading={loading}
+        />
 
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-            <Volume2 className="h-4 w-4" />
-            Bird Sound
-          </label>
-          <div className="mt-1 space-y-2">
-            <AudioRecorder
-              mode="bird-call"
-              onRecordingComplete={(url) => {
-                setSoundUrl(url)
-                toast({
-                  title: "Success",
-                  description: "Bird sound recorded successfully!",
-                })
-              }}
-            />
-            {soundUrl && (
-              <div className="mt-4 p-4 border rounded-md bg-gray-50">
-                <h4 className="text-sm font-medium text-gray-700 mb-2">Recorded Sound</h4>
-                <audio 
-                  controls 
-                  src={soundUrl} 
-                  className="w-full focus:outline-none"
-                  style={{
-                    height: '40px',
-                    borderRadius: '8px',
-                  }}
-                />
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      <div className="space-y-2">
-        <div className="flex justify-between items-center">
-          <label htmlFor="description" className="text-sm font-medium text-gray-700">
-            Description
-          </label>
-          <AudioRecorder
-            mode="description"
-            onRecordingComplete={(text) => setDescription(text)}
-            className="flex-shrink-0"
-          />
-        </div>
-        <Textarea
-          id="description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          placeholder="Add any notes about the sighting..."
-          className="min-h-[100px]"
+        <BirdSoundRecorder
+          onRecordingComplete={(url) => {
+            setSoundUrl(url)
+            toast({
+              title: "Success",
+              description: "Bird sound recorded successfully!",
+            })
+          }}
+          soundUrl={soundUrl}
         />
       </div>
+
+      <DescriptionInput
+        value={description}
+        onChange={setDescription}
+      />
 
       <Button type="submit" disabled={loading} className="w-full">
         {loading ? "Recording..." : "Record Sighting"}
