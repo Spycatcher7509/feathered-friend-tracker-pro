@@ -6,6 +6,26 @@ import { format } from "date-fns"
 
 export const BACKUP_FOLDER_ID = "1PoIrj3akOA05QZcRP2rjjImTp0WonGdT"
 
+interface BirdSound {
+  id: string
+  bird_name: string
+  sound_url: string
+  user_id: string
+}
+
+interface Profile {
+  id: string
+  username?: string
+  bio?: string
+  avatar_url?: string
+}
+
+interface BackupData {
+  timestamp: string
+  profiles: Profile[]
+  birdSounds: BirdSound[]
+}
+
 const downloadAndUploadToStorage = async (url: string, filename: string): Promise<string> => {
   try {
     // If URL is already in our storage, return it as is
@@ -18,7 +38,7 @@ const downloadAndUploadToStorage = async (url: string, filename: string): Promis
       .from('external_bird_sounds')
       .update({ sound_url: url })
       .eq('sound_url', url)
-      .select()
+      .select('*')
       .single()
 
     if (error) {
@@ -48,21 +68,23 @@ export const createBackup = async (isAdmin: boolean = false) => {
 
     const { data: profiles, error: profilesError } = await supabase
       .from('profiles')
-      .select('*')
+      .select('id, username, bio, avatar_url')
       .eq('id', user.id)
+
     if (profilesError) throw profilesError
 
     console.log('Fetching bird sounds from Supabase...')
     const { data: birdSounds, error: birdSoundsError } = await supabase
       .from('external_bird_sounds')
-      .select('*')
+      .select('id, bird_name, sound_url, user_id')
       .eq('user_id', user.id)
+
     if (birdSoundsError) throw birdSoundsError
 
     // Process bird sounds to ensure they're in our storage
     console.log('Processing bird sounds...')
     const processedBirdSounds = await Promise.all(
-      birdSounds.map(async (sound) => {
+      (birdSounds || []).map(async (sound) => {
         const filename = `${sound.id}-${sound.bird_name.toLowerCase().replace(/\s+/g, '-')}.webm`
         const newUrl = await downloadAndUploadToStorage(sound.sound_url, filename)
         return {
@@ -73,9 +95,9 @@ export const createBackup = async (isAdmin: boolean = false) => {
     )
 
     const now = new Date()
-    const backupData = {
+    const backupData: BackupData = {
       timestamp: format(now, 'dd/MM/yyyy HH:mm:ss'),
-      profiles,
+      profiles: profiles || [],
       birdSounds: processedBirdSounds,
     }
 
@@ -131,7 +153,7 @@ export const createBackup = async (isAdmin: boolean = false) => {
   }
 }
 
-export const restoreBackup = async (backupData: any) => {
+export const restoreBackup = async (backupData: BackupData) => {
   console.log('Starting restore process...')
   
   try {
