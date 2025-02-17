@@ -1,43 +1,32 @@
 
 project_id = "bibaxlvbkxhrkurbhxcb"
 
-[[functions]]
-name = "import-profiles"
+[functions.import-profiles]
 verify_jwt = false
 
-[[functions]]
-name = "import-bird-species"
+[functions.import-bird-species]
 verify_jwt = false
 
-[[functions]]
-name = "download-audio"
+[functions.download-audio]
 verify_jwt = false
 
-[[functions]]
-name = "import-bird-sounds"
+[functions.import-bird-sounds]
 verify_jwt = false
 
-[[functions]]
-name = "identify-bird"
+[functions.identify-bird]
 verify_jwt = false
 
-[[functions]]
-name = "transcribe-audio"
+[functions.transcribe-audio]
 verify_jwt = false
 
-[[functions]]
-name = "send-email"
+[functions.send-email]
 verify_jwt = false
 
-[[functions]]
-name = "create-backup"
+[functions.create-backup]
 verify_jwt = false
 
-[[functions]]
-name = "resend-webhook"
+[functions.resend-webhook]
 verify_jwt = false
 
-[[functions]]
-name = "send-conversation"
+[functions.send-conversation]
 verify_jwt = false
-
