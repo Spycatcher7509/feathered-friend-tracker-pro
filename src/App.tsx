@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react"
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom"
 import { Session } from "@supabase/supabase-js"
