@@ -9,7 +9,17 @@ import { OneOffOperations } from "./OneOffOperations"
 import { ScheduledOperations } from "./ScheduledOperations"
 
 const GoogleDriveBackup = () => {
-  const { isLoading, handleBackup, handleRestore, sendDiscordNotification } = useBackupOperations()
+  const { 
+    isLoading, 
+    handleBackup, 
+    handleRestore, 
+    sendDiscordNotification,
+    showDisclaimer,
+    setShowDisclaimer,
+    operationType,
+    initiateBackup,
+    initiateRestore
+  } = useBackupOperations()
   const [showInstructions, setShowInstructions] = useState(false)
   const [showScheduler, setShowScheduler] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
@@ -152,6 +162,11 @@ ${scheduleToDelete.day_of_month !== null ? `• Day of Month: ${scheduleToDelete
             setShowInstructions={setShowInstructions}
             showInstructions={showInstructions}
             currentDomain={currentDomain}
+            showDisclaimer={showDisclaimer}
+            setShowDisclaimer={setShowDisclaimer}
+            operationType={operationType}
+            initiateBackup={initiateBackup}
+            initiateRestore={initiateRestore}
           />
         </TabsContent>
         
