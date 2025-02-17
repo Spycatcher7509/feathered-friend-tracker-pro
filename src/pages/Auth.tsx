@@ -18,7 +18,7 @@ const Auth = () => {
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        if (event === "SIGNED_UP") {
+        if (event === "USER_CREATED") {
           setIsNewUser(true)
         }
         if (event === "SIGNED_IN" && session) {
@@ -64,4 +64,3 @@ const Auth = () => {
 }
 
 export default Auth
-

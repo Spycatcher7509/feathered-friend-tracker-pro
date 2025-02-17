@@ -27,9 +27,9 @@ export const DisclaimerDialog = () => {
         .from('user_disclaimers')
         .select('accepted')
         .eq('user_id', user.id)
-        .single()
+        .maybeSingle()
 
-      if (!disclaimer) {
+      if (!disclaimer || !disclaimer.accepted) {
         setOpen(true)
       }
     }
@@ -45,7 +45,7 @@ export const DisclaimerDialog = () => {
 
     const { error } = await supabase
       .from('user_disclaimers')
-      .insert({
+      .upsert({
         user_id: user.id,
         accepted: true,
         accepted_at: new Date().toISOString()
@@ -114,4 +114,3 @@ export const DisclaimerDialog = () => {
     </AlertDialog>
   )
 }
-
