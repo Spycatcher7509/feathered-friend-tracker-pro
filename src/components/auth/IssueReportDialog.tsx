@@ -57,6 +57,17 @@ export const IssueReportDialog = ({ userEmail }: IssueReportDialogProps) => {
         throw new Error("User not authenticated")
       }
 
+      // Get support team email from configuration
+      const { data: supportConfig, error: configError } = await supabase
+        .from('support_team_config')
+        .select('support_email')
+        .single()
+
+      if (configError) {
+        console.error('Error fetching support team config:', configError)
+        throw new Error("Could not fetch support team configuration")
+      }
+
       // Store issue in database - status will default to 'open'
       const { error: dbError } = await supabase
         .from('issues')
@@ -72,24 +83,18 @@ export const IssueReportDialog = ({ userEmail }: IssueReportDialogProps) => {
 
       const emailContent = generateSupportEmailContent(caseNumber, userEmail, issueDescription)
 
-      // For testing bounce handling, send to bounced@resend.dev
-      const testBounce = true // Toggle this for testing
-      const supportEmail = testBounce ? 'bounced@resend.dev' : 'accounts@thewrightsupport.com'
-
       // Send issue report to support team
-      const { data, error } = await supabase.functions.invoke('send-email', {
+      const { error: supportEmailError } = await supabase.functions.invoke('send-email', {
         body: {
           ...emailContent.supportEmail,
-          to: supportEmail
+          to: supportConfig.support_email
         }
       })
 
-      if (error) {
-        console.error('Error response from send-email function:', error)
-        throw error
+      if (supportEmailError) {
+        console.error('Error sending support email:', supportEmailError)
+        throw supportEmailError
       }
-
-      console.log('Support email sent successfully:', data)
 
       // Send auto-response to user
       const { error: ackError } = await supabase.functions.invoke('send-email', {
@@ -98,6 +103,7 @@ export const IssueReportDialog = ({ userEmail }: IssueReportDialogProps) => {
 
       if (ackError) {
         console.error('Error sending acknowledgment email:', ackError)
+        throw ackError
       }
 
       try {
