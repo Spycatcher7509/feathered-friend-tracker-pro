@@ -1,3 +1,4 @@
+
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -12,6 +13,9 @@ export default function AddBirdSighting() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [soundUrl, setSoundUrl] = useState<string | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
+  const [birdName, setBirdName] = useState("")
+  const [location, setLocation] = useState("")
+  const [description, setDescription] = useState("")
   const { toast } = useToast()
 
   const handleCameraCapture = async () => {
@@ -107,8 +111,14 @@ export default function AddBirdSighting() {
         </div>
 
         <form className="space-y-8">
-          <BirdNameInput />
-          <LocationInput />
+          <BirdNameInput 
+            value={birdName}
+            onChange={setBirdName}
+          />
+          <LocationInput 
+            value={location}
+            onChange={setLocation}
+          />
           
           <div className="space-y-4">
             <label className="text-base font-medium text-gray-700 flex items-center gap-2">
@@ -124,7 +134,10 @@ export default function AddBirdSighting() {
             />
           </div>
 
-          <DescriptionInput />
+          <DescriptionInput 
+            value={description}
+            onChange={setDescription}
+          />
 
           <Button type="submit" className="w-full bg-[#223534] hover:bg-[#2a4241]">
             Submit Sighting
