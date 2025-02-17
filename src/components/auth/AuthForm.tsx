@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { supabase } from "@/integrations/supabase/client"
+import { AuthError } from '@supabase/supabase-js'
 
 interface AuthFormProps {
   setErrorMessage: (message: string) => void
@@ -17,36 +18,66 @@ const AuthForm = ({ setErrorMessage }: AuthFormProps) => {
   const [isSignUp, setIsSignUp] = useState(false)
   const { toast } = useToast()
 
+  const getErrorMessage = (error: AuthError) => {
+    switch (error.message) {
+      case "Invalid login credentials":
+        return "Invalid email or password. Please check your credentials and try again."
+      case "Email not confirmed":
+        return "Please verify your email address before signing in."
+      default:
+        return error.message
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
     setErrorMessage("")
 
     try {
-      const { error } = isSignUp 
-        ? await supabase.auth.signUp({ 
-            email, 
-            password,
-            options: {
-              emailRedirectTo: window.location.origin
-            }
-          })
-        : await supabase.auth.signInWithPassword({ email, password })
+      if (isSignUp) {
+        const { error } = await supabase.auth.signUp({ 
+          email, 
+          password,
+          options: {
+            emailRedirectTo: window.location.origin
+          }
+        })
 
-      if (error) {
-        setErrorMessage(error.message)
-        toast({
-          variant: "destructive",
-          title: "Authentication Error",
-          description: error.message
-        })
+        if (error) {
+          const message = getErrorMessage(error)
+          setErrorMessage(message)
+          toast({
+            variant: "destructive",
+            title: "Sign Up Error",
+            description: message
+          })
+        } else {
+          toast({
+            title: "Account created",
+            description: "Please check your email to verify your account."
+          })
+        }
       } else {
-        toast({
-          title: isSignUp ? "Account created" : "Welcome back!",
-          description: isSignUp 
-            ? "Please check your email to verify your account." 
-            : "You have been successfully logged in."
+        const { error } = await supabase.auth.signInWithPassword({ 
+          email, 
+          password 
         })
+
+        if (error) {
+          const message = getErrorMessage(error)
+          setErrorMessage(message)
+          toast({
+            variant: "destructive",
+            title: "Sign In Error",
+            description: message
+          })
+        } else {
+          toast({
+            title: "Welcome back!",
+            description: "You have been successfully logged in."
+          })
+        }
       }
     } catch (error) {
       const message = "An unexpected error occurred. Please try again."
