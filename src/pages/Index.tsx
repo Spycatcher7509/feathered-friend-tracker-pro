@@ -17,6 +17,7 @@ import { BirdSpeciesManager } from "@/components/birds/BirdSpeciesManager"
 import { BirdIdentifier } from "@/components/birds/BirdIdentifier"
 import { GuideViewer } from "@/components/guides/GuideViewer"
 import { DisclaimerDialog } from "@/components/auth/DisclaimerDialog"
+import GoogleDriveBackup from "@/components/backup/GoogleDriveBackup"
 
 const Index = () => {
   const [showBirdSounds, setShowBirdSounds] = useState(false)
@@ -88,9 +89,14 @@ const Index = () => {
           </div>
 
           {isAdmin && (
-            <div className="bg-white rounded-lg shadow p-6">
-              <ApiUsageMonitor />
-            </div>
+            <>
+              <div className="bg-white rounded-lg shadow p-6">
+                <ApiUsageMonitor />
+              </div>
+              <div className="bg-white rounded-lg shadow p-6">
+                <GoogleDriveBackup />
+              </div>
+            </>
           )}
 
           <BirdSightingsList />
@@ -130,4 +136,3 @@ const Index = () => {
 }
 
 export default Index
-
