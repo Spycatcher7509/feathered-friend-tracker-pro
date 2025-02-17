@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client"
 import { useToast } from "@/hooks/use-toast"
 import { ScheduleForm } from "./ScheduleForm"
 import { ScheduleList } from "./ScheduleList"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 const GoogleDriveBackup = () => {
   const { isLoading, handleBackup, handleRestore, sendDiscordNotification } = useBackupOperations()
@@ -138,49 +139,64 @@ ${scheduleToDelete.day_of_month !== null ? `• Day of Month: ${scheduleToDelete
   return (
     <div className="space-y-4">
       <h2 className="text-xl font-semibold mb-4">Google Drive Backup & Restore</h2>
-      <div className="flex gap-4 flex-wrap">
-        <Button 
-          onClick={() => {
-            setShowInstructions(true)
-            handleBackup()
-          }} 
-          disabled={isLoading}
-          className="bg-nature-600 hover:bg-nature-700 text-white"
-        >
-          Backup to Google Drive
-        </Button>
-        <Button 
-          onClick={handleRestore} 
-          disabled={isLoading}
-          variant="outline"
-          className="border-nature-600 text-nature-700 hover:bg-nature-50"
-        >
-          Restore from Backup
-        </Button>
-        <Button
-          onClick={() => setShowScheduler(!showScheduler)}
-          variant="secondary"
-          className="bg-gray-100 hover:bg-gray-200"
-        >
-          Schedule Operation
-        </Button>
-        <Button
-          onClick={() => sendDiscordNotification("Test notification from BirdWatch backup system")}
-          variant="secondary"
-          className="bg-gray-100 hover:bg-gray-200"
-        >
-          Test Discord Notifications
-        </Button>
-      </div>
+      
+      <Tabs defaultValue="one-off" className="w-full">
+        <TabsList className="mb-4">
+          <TabsTrigger value="one-off">One-off Operations</TabsTrigger>
+          <TabsTrigger value="scheduled">Scheduled Operations</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="one-off" className="space-y-4">
+          <div className="flex gap-4 flex-wrap">
+            <Button 
+              onClick={() => {
+                setShowInstructions(true)
+                handleBackup()
+              }} 
+              disabled={isLoading}
+              className="bg-nature-600 hover:bg-nature-700 text-white"
+            >
+              Run One-off Backup
+            </Button>
+            <Button 
+              onClick={handleRestore} 
+              disabled={isLoading}
+              variant="outline"
+              className="border-nature-600 text-nature-700 hover:bg-nature-50"
+            >
+              Run One-off Restore
+            </Button>
+            <Button
+              onClick={() => sendDiscordNotification("Test notification from BirdWatch backup system")}
+              variant="secondary"
+              className="bg-gray-100 hover:bg-gray-200"
+            >
+              Test Discord Notifications
+            </Button>
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="scheduled" className="space-y-4">
+          <div className="flex gap-4 flex-wrap">
+            <Button
+              onClick={() => setShowScheduler(!showScheduler)}
+              variant="secondary"
+              className="bg-gray-100 hover:bg-gray-200"
+            >
+              Create New Schedule
+            </Button>
+          </div>
 
-      {showScheduler && (
-        <ScheduleForm onSubmit={handleScheduleOperation} />
-      )}
+          {showScheduler && (
+            <ScheduleForm onSubmit={handleScheduleOperation} />
+          )}
 
-      <ScheduleList 
-        schedules={schedules} 
-        onDelete={deleteSchedule}
-      />
+          <ScheduleList 
+            schedules={schedules} 
+            onDelete={deleteSchedule}
+          />
+        </TabsContent>
+      </Tabs>
 
       {showInstructions && (
         <Alert>
@@ -208,3 +224,4 @@ ${scheduleToDelete.day_of_month !== null ? `• Day of Month: ${scheduleToDelete
 }
 
 export default GoogleDriveBackup
+
