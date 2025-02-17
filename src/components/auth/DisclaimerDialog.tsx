@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { supabase } from "@/integrations/supabase/client"
@@ -14,33 +13,9 @@ import {
 } from "@/components/ui/alert-dialog"
 
 export const DisclaimerDialog = () => {
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(true)
   const [agreed, setAgreed] = useState(false)
   const navigate = useNavigate()
-
-  useEffect(() => {
-    const checkDisclaimer = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser()
-        if (!user) return
-
-        const { data: disclaimer } = await supabase
-          .from('user_disclaimers')
-          .select('accepted')
-          .eq('user_id', user.id)
-          .maybeSingle()
-
-        // Show disclaimer if no record exists or if it wasn't accepted
-        if (!disclaimer || !disclaimer.accepted) {
-          setOpen(true)
-        }
-      } catch (error) {
-        console.error('Error checking disclaimer:', error)
-      }
-    }
-
-    checkDisclaimer()
-  }, [])
 
   const handleAgree = async () => {
     if (!agreed) return
