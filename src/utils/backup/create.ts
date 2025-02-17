@@ -56,13 +56,13 @@ export const createBackup = async (isAdmin: boolean = false) => {
       birdSounds: processedBirdSounds,
     }
 
+    // Create backup file
+    const file = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' })
+    const filename = `birdwatch_backup_${format(now, 'dd-MM-yyyy_HH-mm-ss')}.json`
+
     if (isAdmin) {
       // Admin backup to Google Drive
-      console.log('Creating backup file...')
-      const file = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' })
-      
       console.log('Uploading backup to Google Drive...')
-      const filename = `birdwatch_backup_${format(now, 'dd-MM-yyyy_HH-mm-ss')}.json`
       const result = await uploadToGoogleDrive(file, filename, BACKUP_FOLDER_ID)
       
       // Record the backup in Supabase
@@ -70,6 +70,7 @@ export const createBackup = async (isAdmin: boolean = false) => {
         filename: result.name,
         drive_file_id: result.id,
         size_bytes: file.size,
+        user_id: user.id
       })
       
       if (backupError) throw backupError
@@ -83,9 +84,6 @@ export const createBackup = async (isAdmin: boolean = false) => {
     } else {
       // Non-admin backup to local file using file system access API
       try {
-        const file = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' })
-        const filename = `birdwatch_backup_${format(now, 'dd-MM-yyyy_HH-mm-ss')}.json`
-        
         // Show the file picker and get the file handle
         const handle = await window.showSaveFilePicker({
           suggestedName: filename,
@@ -101,6 +99,15 @@ export const createBackup = async (isAdmin: boolean = false) => {
         await writable.write(file)
         // Close the stream
         await writable.close()
+
+        // Record the backup in Supabase
+        const { error: backupError } = await supabase.from('backups').insert({
+          filename: filename,
+          size_bytes: file.size,
+          user_id: user.id
+        })
+        
+        if (backupError) throw backupError
         
         return { name: filename }
       } catch (error) {
