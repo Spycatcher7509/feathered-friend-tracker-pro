@@ -97,6 +97,7 @@ const AudioRecorder = ({ onRecordingComplete, className = "", buttonChildren }: 
           disabled={isUploading}
           variant="outline"
           size="sm"
+          className="flex items-center gap-2"
         >
           {buttonChildren || <Mic className="h-4 w-4" />}
         </Button>
@@ -106,6 +107,7 @@ const AudioRecorder = ({ onRecordingComplete, className = "", buttonChildren }: 
           onClick={stopRecording}
           variant="destructive"
           size="sm"
+          className="flex items-center gap-2"
         >
           <Square className="h-4 w-4" />
         </Button>
