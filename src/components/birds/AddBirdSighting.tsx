@@ -3,7 +3,7 @@ import { useToast } from "@/hooks/use-toast"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { Bird, MapPin } from "lucide-react"
+import { Bird, MapPin, Upload, Image } from "lucide-react"
 import { supabase } from "@/integrations/supabase/client"
 import AudioRecorder from "./AudioRecorder"
 import { BirdSpeciesManager } from "./BirdSpeciesManager"
@@ -15,6 +15,7 @@ const AddBirdSighting = () => {
   const [location, setLocation] = useState("")
   const [description, setDescription] = useState("")
   const [soundUrl, setSoundUrl] = useState<string | null>(null)
+  const [imageUrl, setImageUrl] = useState<string | null>(null)
   const { toast } = useToast()
 
   const { data: birdSuggestions } = useQuery({
@@ -33,6 +34,42 @@ const AddBirdSighting = () => {
     },
     enabled: birdName.length > 0
   })
+
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    try {
+      setLoading(true)
+      const fileExt = file.name.split('.').pop()
+      const filePath = `${crypto.randomUUID()}.${fileExt}`
+
+      const { error: uploadError } = await supabase.storage
+        .from('bird-photos')
+        .upload(filePath, file)
+
+      if (uploadError) throw uploadError
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('bird-photos')
+        .getPublicUrl(filePath)
+
+      setImageUrl(publicUrl)
+      toast({
+        title: "Success",
+        description: "Bird photo uploaded successfully!",
+      })
+    } catch (error) {
+      console.error('Error uploading photo:', error)
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to upload photo. Please try again.",
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -71,6 +108,7 @@ const AddBirdSighting = () => {
           location,
           description,
           sound_url: soundUrl,
+          image_url: imageUrl,
           user_id: user.id,
           sighting_date: new Date().toISOString()
         })
@@ -86,6 +124,7 @@ const AddBirdSighting = () => {
       setLocation("")
       setDescription("")
       setSoundUrl(null)
+      setImageUrl(null)
     } catch (error) {
       console.error("Error:", error)
       toast({
@@ -141,6 +180,38 @@ const AddBirdSighting = () => {
           placeholder="Enter location"
           required
         />
+      </div>
+
+      <div className="space-y-2">
+        <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+          <Image className="h-4 w-4" />
+          Bird Photo
+        </label>
+        <div className="mt-1 space-y-2">
+          <div className="flex items-center gap-2">
+            <label className="cursor-pointer">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                className="hidden"
+              />
+              <Button type="button" variant="outline" size="sm">
+                <Upload className="h-4 w-4 mr-2" />
+                Upload Photo
+              </Button>
+            </label>
+          </div>
+          {imageUrl && (
+            <div className="relative w-full aspect-video">
+              <img 
+                src={imageUrl} 
+                alt="Bird sighting" 
+                className="w-full h-full object-cover rounded-md"
+              />
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="space-y-2">
