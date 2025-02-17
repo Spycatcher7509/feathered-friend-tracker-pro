@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react"
 import { MessageCircle } from "lucide-react"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
@@ -131,19 +130,14 @@ export const Chat = () => {
     if (!conversationId || !userEmail) return
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-conversation`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
-        },
-        body: JSON.stringify({
+      const { error } = await supabase.functions.invoke('send-conversation', {
+        body: {
           conversationId,
           userEmail
-        })
+        }
       })
 
-      if (!response.ok) throw new Error('Failed to send conversation')
+      if (error) throw error
 
       toast({
         title: "Conversation Ended",

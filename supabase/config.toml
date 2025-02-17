@@ -1,13 +1,43 @@
 
 project_id = "bibaxlvbkxhrkurbhxcb"
 
-[functions.import-bird-species]
+[[functions]]
+name = "import-profiles"
 verify_jwt = false
 
-[functions.download-audio]
+[[functions]]
+name = "import-bird-species"
 verify_jwt = false
 
-[functions.send-email]
+[[functions]]
+name = "download-audio"
 verify_jwt = false
-import_map = "./functions/send-email/import_map.json"
+
+[[functions]]
+name = "import-bird-sounds"
+verify_jwt = false
+
+[[functions]]
+name = "identify-bird"
+verify_jwt = false
+
+[[functions]]
+name = "transcribe-audio"
+verify_jwt = false
+
+[[functions]]
+name = "send-email"
+verify_jwt = false
+
+[[functions]]
+name = "create-backup"
+verify_jwt = false
+
+[[functions]]
+name = "resend-webhook"
+verify_jwt = false
+
+[[functions]]
+name = "send-conversation"
+verify_jwt = false
 
