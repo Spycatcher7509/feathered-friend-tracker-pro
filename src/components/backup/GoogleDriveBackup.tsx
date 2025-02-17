@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react"
 import { useBackupOperations } from "@/hooks/useBackupOperations"
 import { useAdminGroups } from "@/hooks/useAdminGroups"
@@ -15,6 +16,10 @@ interface BackupSchedule {
   day_of_week: number | null
   day_of_month: number | null
   operation_type: "backup" | "restore"
+  is_active?: boolean
+  source_file_id?: string
+  updated_at?: string
+  user_id?: string
 }
 
 const GoogleDriveBackup = () => {
@@ -62,7 +67,13 @@ const GoogleDriveBackup = () => {
         variant: "destructive",
       })
     } else {
-      setSchedules(data || [])
+      // Validate and transform the data to ensure operation_type is either "backup" or "restore"
+      const validSchedules = (data || []).map(schedule => ({
+        ...schedule,
+        operation_type: schedule.operation_type === "restore" ? "restore" : "backup"
+      })) as BackupSchedule[]
+      
+      setSchedules(validSchedules)
     }
   }
 
