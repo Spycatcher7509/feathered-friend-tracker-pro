@@ -30,19 +30,42 @@ serve(async (req) => {
 
     const body: RequestBody = await req.json()
 
-    // Create the user with admin API
-    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-      email: body.email,
-      email_confirm: true,
-      user_metadata: {
-        username: body.username
-      }
-    })
+    // First, check if user exists
+    const { data: { users }, error: listError } = await supabase.auth.admin.listUsers()
+    
+    if (listError) throw listError
 
-    if (authError) throw authError
+    const existingUser = users.find(u => u.email === body.email)
 
-    if (!authData.user) {
-      throw new Error('No user returned from auth create')
+    let userId: string
+
+    if (existingUser) {
+      // Update existing user
+      const { data: updateData, error: updateError } = await supabase.auth.admin.updateUserById(
+        existingUser.id,
+        {
+          email: body.email,
+          user_metadata: {
+            username: body.username
+          }
+        }
+      )
+
+      if (updateError) throw updateError
+      userId = existingUser.id
+    } else {
+      // Create new user
+      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+        email: body.email,
+        email_confirm: true,
+        user_metadata: {
+          username: body.username
+        }
+      })
+
+      if (authError) throw authError
+      if (!authData.user) throw new Error('No user returned from auth create')
+      userId = authData.user.id
     }
 
     // Update the profile
@@ -54,18 +77,19 @@ serve(async (req) => {
         experience_level: body.experience_level,
         is_admin: body.is_admin
       })
-      .eq('id', authData.user.id)
+      .eq('id', userId)
 
     if (profileError) throw profileError
 
     return new Response(
-      JSON.stringify({ user: authData.user }),
+      JSON.stringify({ success: true, userId }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,
       },
     )
   } catch (error) {
+    console.error('Error in create-admin-user:', error)
     return new Response(
       JSON.stringify({ error: error.message }),
       {
