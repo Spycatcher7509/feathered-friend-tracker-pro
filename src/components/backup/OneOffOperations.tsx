@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Code } from "@/components/ui/code"
 import { BackupDisclaimerDialog } from "./BackupDisclaimerDialog"
+import { DownloadCloud, UploadCloud } from "lucide-react"
 
 interface OneOffOperationsProps {
   isLoading: boolean
@@ -40,21 +41,41 @@ export const OneOffOperations = ({
       <div className="flex gap-4 flex-wrap">
         <Button 
           onClick={() => {
-            setShowInstructions(true)
+            setShowInstructions(false)
             initiateBackup()
           }} 
           disabled={isLoading}
-          className="bg-nature-600 hover:bg-nature-700 text-white"
+          className={isAdmin ? "bg-nature-600 hover:bg-nature-700 text-white" : "bg-blue-600 hover:bg-blue-700 text-white"}
         >
-          {isAdmin ? 'Run One-off Backup' : 'Backup My Data'}
+          {isAdmin ? (
+            <>
+              <UploadCloud className="mr-2 h-4 w-4" />
+              Run One-off Backup
+            </>
+          ) : (
+            <>
+              <DownloadCloud className="mr-2 h-4 w-4" />
+              Download My Data
+            </>
+          )}
         </Button>
         <Button 
           onClick={initiateRestore}
           disabled={isLoading}
           variant="outline"
-          className="border-nature-600 text-nature-700 hover:bg-nature-50"
+          className={isAdmin ? "border-nature-600 text-nature-700 hover:bg-nature-50" : "border-blue-600 text-blue-700 hover:bg-blue-50"}
         >
-          {isAdmin ? 'Run One-off Restore' : 'Restore My Data'}
+          {isAdmin ? (
+            <>
+              <DownloadCloud className="mr-2 h-4 w-4" />
+              Run One-off Restore
+            </>
+          ) : (
+            <>
+              <UploadCloud className="mr-2 h-4 w-4" />
+              Upload Backup File
+            </>
+          )}
         </Button>
         {isAdmin && (
           <Button
@@ -75,7 +96,7 @@ export const OneOffOperations = ({
         type={operationType}
       />
 
-      {showInstructions && (
+      {showInstructions && isAdmin && (
         <Alert>
           <AlertDescription className="space-y-4">
             <p>If you see an authentication error, follow these steps in Google Cloud Console:</p>

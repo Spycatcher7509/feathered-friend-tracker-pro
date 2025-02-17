@@ -33,19 +33,30 @@ const downloadAndUploadToStorage = async (url: string, filename: string): Promis
   }
 }
 
-export const createBackup = async () => {
+export const createBackup = async (isAdmin: boolean = false) => {
   console.log('Starting backup process...')
   
   try {
-    await sendDiscordWebhookMessage("🔄 Starting backup process...")
+    if (isAdmin) {
+      await sendDiscordWebhookMessage("🔄 Starting backup process...")
+    }
 
-    // Fetch data from Supabase
+    // Fetch data from Supabase for the current user
     console.log('Fetching profiles from Supabase...')
-    const { data: profiles, error: profilesError } = await supabase.from('profiles').select('*')
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error("User not authenticated")
+
+    const { data: profiles, error: profilesError } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
     if (profilesError) throw profilesError
 
     console.log('Fetching bird sounds from Supabase...')
-    const { data: birdSounds, error: birdSoundsError } = await supabase.from('external_bird_sounds').select('*')
+    const { data: birdSounds, error: birdSoundsError } = await supabase
+      .from('external_bird_sounds')
+      .select('*')
+      .eq('user_id', user.id)
     if (birdSoundsError) throw birdSoundsError
 
     // Process bird sounds to ensure they're in our storage
@@ -68,79 +79,54 @@ export const createBackup = async () => {
       birdSounds: processedBirdSounds,
     }
 
-    console.log('Creating backup file...')
-    const file = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' })
-    
-    console.log('Uploading backup to Google Drive...')
-    const filename = `birdwatch_backup_${format(now, 'dd-MM-yyyy_HH-mm-ss')}.json`
-    const result = await uploadToGoogleDrive(file, filename, BACKUP_FOLDER_ID)
-    
-    // Calculate tokens and cost
-    const tokensPerRecord = 100 // Estimate tokens per record
-    const costPerToken = 0.0001 // Example cost per token in USD
-    const totalTokens = (profiles.length + birdSounds.length) * tokensPerRecord
-    const totalCost = totalTokens * costPerToken
-    
-    // Record the backup in Supabase
-    const { error: backupError } = await supabase.from('backups').insert({
-      filename: result.name,
-      drive_file_id: result.id,
-      size_bytes: file.size,
-      total_tokens: totalTokens,
-      total_cost: totalCost
-    })
-    
-    if (backupError) {
-      console.error('Error recording backup:', backupError)
-      throw backupError
-    }
-    
-    const fileSizeInMB = (file.size / (1024 * 1024)).toFixed(2)
-    
-    // Get all active schedules for status report
-    const { data: schedules } = await supabase
-      .from('custom_backup_schedules')
-      .select('*')
-      .eq('is_active', true)
-      .order('created_at', { ascending: true })
-    
-    const scheduleInfo = schedules?.map(schedule => {
-      let timing = ""
-      if (schedule.frequency === 'daily') {
-        timing = `Daily at ${format(new Date(`2000-01-01T${schedule.time_of_day}`), 'HH:mm')}`
-      } else if (schedule.frequency === 'weekly') {
-        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
-        timing = `Weekly on ${days[schedule.day_of_week || 0]} at ${format(new Date(`2000-01-01T${schedule.time_of_day}`), 'HH:mm')}`
-      } else if (schedule.frequency === 'monthly') {
-        timing = `Monthly on day ${schedule.day_of_month} at ${format(new Date(`2000-01-01T${schedule.time_of_day}`), 'HH:mm')}`
-      }
-      return `• ${timing}`
-    }).join('\n')
-    
-    console.log('Sending success notification to Discord...')
-    await sendDiscordWebhookMessage(`✅ Backup completed successfully!
-
+    if (isAdmin) {
+      // Admin backup to Google Drive
+      console.log('Creating backup file...')
+      const file = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' })
+      
+      console.log('Uploading backup to Google Drive...')
+      const filename = `birdwatch_backup_${format(now, 'dd-MM-yyyy_HH-mm-ss')}.json`
+      const result = await uploadToGoogleDrive(file, filename, BACKUP_FOLDER_ID)
+      
+      // Record the backup in Supabase
+      const { error: backupError } = await supabase.from('backups').insert({
+        filename: result.name,
+        drive_file_id: result.id,
+        size_bytes: file.size,
+      })
+      
+      if (backupError) throw backupError
+      
+      await sendDiscordWebhookMessage(`✅ Backup completed successfully!
 📅 Time: ${format(now, 'dd/MM/yyyy, HH:mm:ss')}
 📁 Filename: ${result.name}
-📊 Contents:
-  • ${profiles.length} user profiles
-  • ${birdSounds.length} bird recordings
-📦 Size: ${fileSizeInMB} MB
-💰 Cost:
-  • Tokens used: ${totalTokens.toLocaleString()}
-  • Total cost: $${totalCost.toFixed(4)}
-🔗 Drive File ID: ${result.id}
-
-⏰ Active Backup Schedules:
-${scheduleInfo || 'No active schedules'}`)
-    
-    console.log('Backup process completed successfully')
-    return result
+🔗 Drive File ID: ${result.id}`)
+      
+      return result
+    } else {
+      // Non-admin backup to local file
+      const file = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' })
+      const filename = `my_birdwatch_backup_${format(now, 'dd-MM-yyyy_HH-mm-ss')}.json`
+      
+      // Create a download link and trigger it
+      const url = window.URL.createObjectURL(file)
+      const link = document.createElement('a')
+      link.href = url
+      link.setAttribute('download', filename)
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      window.URL.revokeObjectURL(url)
+      
+      return { name: filename }
+    }
   } catch (error) {
     console.error('Error during backup process:', error)
-    await sendDiscordWebhookMessage(`❌ Backup failed at ${format(new Date(), 'dd/MM/yyyy, HH:mm:ss')}
+    if (isAdmin) {
+      await sendDiscordWebhookMessage(`❌ Backup failed at ${format(new Date(), 'dd/MM/yyyy, HH:mm:ss')}
     
 ⚠️ Error: ${error instanceof Error ? error.message : String(error)}`)
+    }
     throw error
   }
 }
@@ -149,37 +135,41 @@ export const restoreBackup = async (backupData: any) => {
   console.log('Starting restore process...')
   
   try {
-    await sendDiscordWebhookMessage(`🔄 Starting data restore from backup...`)
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error("User not authenticated")
 
     if (backupData.profiles) {
       console.log(`Restoring ${backupData.profiles.length} profiles...`)
       for (const profile of backupData.profiles) {
-        const { error } = await supabase
-          .from('profiles')
-          .upsert(profile, { onConflict: 'id' })
-        if (error) throw error
+        // For non-admin users, only restore their own profile
+        if (profile.id === user.id) {
+          const { error } = await supabase
+            .from('profiles')
+            .upsert(profile, { onConflict: 'id' })
+          if (error) throw error
+        }
       }
     }
     
     if (backupData.birdSounds) {
       console.log(`Restoring ${backupData.birdSounds.length} bird sounds...`)
       for (const sound of backupData.birdSounds) {
-        // Ensure the sound file is in our storage
-        const filename = `${sound.id}-${sound.bird_name.toLowerCase().replace(/\s+/g, '-')}.webm`
-        const newUrl = await downloadAndUploadToStorage(sound.sound_url, filename)
-        
-        const { error } = await supabase
-          .from('external_bird_sounds')
-          .upsert({
-            ...sound,
-            sound_url: newUrl
-          }, { onConflict: 'id' })
-        if (error) throw error
+        // For non-admin users, only restore their own bird sounds
+        if (sound.user_id === user.id) {
+          // Ensure the sound file is in our storage
+          const filename = `${sound.id}-${sound.bird_name.toLowerCase().replace(/\s+/g, '-')}.webm`
+          const newUrl = await downloadAndUploadToStorage(sound.sound_url, filename)
+          
+          const { error } = await supabase
+            .from('external_bird_sounds')
+            .upsert({
+              ...sound,
+              sound_url: newUrl
+            }, { onConflict: 'id' })
+          if (error) throw error
+        }
       }
     }
-    
-    console.log('Sending success notification to Discord...')
-    await sendDiscordWebhookMessage(`✅ Data restore completed successfully at ${format(new Date(), 'dd/MM/yyyy, HH:mm:ss')}`)
     
     console.log('Restore process completed successfully')
   } catch (error) {
