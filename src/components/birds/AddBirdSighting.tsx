@@ -250,7 +250,18 @@ const AddBirdSighting = () => {
             }}
           />
           {soundUrl && (
-            <audio controls src={soundUrl} className="w-full mt-2" />
+            <div className="mt-4 p-4 border rounded-md bg-gray-50">
+              <h4 className="text-sm font-medium text-gray-700 mb-2">Recorded Sound</h4>
+              <audio 
+                controls 
+                src={soundUrl} 
+                className="w-full focus:outline-none"
+                style={{
+                  height: '40px',
+                  borderRadius: '8px',
+                }}
+              />
+            </div>
           )}
         </div>
       </div>
