@@ -164,6 +164,13 @@ ${scheduleToDelete.day_of_month !== null ? `• Day of Month: ${scheduleToDelete
         >
           Schedule Operation
         </Button>
+        <Button
+          onClick={() => sendDiscordNotification("Test notification from BirdWatch backup system")}
+          variant="secondary"
+          className="bg-gray-100 hover:bg-gray-200"
+        >
+          Test Discord Notifications
+        </Button>
       </div>
 
       {showScheduler && (
