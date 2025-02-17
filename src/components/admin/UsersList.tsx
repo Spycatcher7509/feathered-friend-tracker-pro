@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react"
 import { supabase } from "@/integrations/supabase/client"
 import {
@@ -124,7 +125,7 @@ export function UsersList() {
   }
 
   const getUserDisplayName = (username: string | null) => {
-    return username || 'User'
+    return username || 'Full name or Nickname'
   }
 
   if (loading) {
