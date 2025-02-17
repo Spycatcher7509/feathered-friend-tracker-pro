@@ -65,13 +65,15 @@ export const createBackup = async (isAdmin: boolean = false) => {
       console.log('Uploading backup to Google Drive...')
       const result = await uploadToGoogleDrive(file, filename, BACKUP_FOLDER_ID)
       
-      // Record the backup in Supabase
-      const { error: backupError } = await supabase.from('backups').insert({
-        filename: result.name,
-        drive_file_id: result.id,
-        size_bytes: file.size,
-        user_id: user.id
-      })
+      // Record the backup in Supabase for admin
+      const { error: backupError } = await supabase
+        .from('backups')
+        .insert({
+          filename: result.name,
+          drive_file_id: result.id,
+          size_bytes: file.size,
+          user_id: user.id
+        })
       
       if (backupError) throw backupError
       
@@ -100,12 +102,15 @@ export const createBackup = async (isAdmin: boolean = false) => {
         // Close the stream
         await writable.close()
 
-        // Record the backup in Supabase
-        const { error: backupError } = await supabase.from('backups').insert({
-          filename: filename,
-          size_bytes: file.size,
-          user_id: user.id
-        })
+        // Record the backup in Supabase for non-admin (without drive_file_id)
+        const { error: backupError } = await supabase
+          .from('backups')
+          .insert({
+            filename,
+            size_bytes: file.size,
+            user_id: user.id,
+            drive_file_id: null // explicitly set to null since it's a local backup
+          })
         
         if (backupError) throw backupError
         
