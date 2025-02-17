@@ -98,7 +98,7 @@ const AudioRecorder = ({ onRecordingComplete, className = "", buttonChildren }: 
           disabled={isUploading}
         >
           <Mic className="h-4 w-4 mr-1" />
-          Record Call
+          Record Bird Call
         </Button>
       ) : (
         <Button
