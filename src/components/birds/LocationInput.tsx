@@ -9,9 +9,9 @@ interface LocationInputProps {
 
 export const LocationInput = ({ value, onChange }: LocationInputProps) => {
   return (
-    <div className="space-y-2">
-      <label htmlFor="location" className="text-sm font-medium text-gray-700 flex items-center gap-2">
-        <MapPin className="h-4 w-4" />
+    <div className="space-y-1">
+      <label htmlFor="location" className="text-base font-medium text-gray-700 flex items-center gap-2">
+        <MapPin className="h-5 w-5" />
         Location
       </label>
       <Input
@@ -20,6 +20,7 @@ export const LocationInput = ({ value, onChange }: LocationInputProps) => {
         onChange={(e) => onChange(e.target.value)}
         placeholder="Enter location"
         required
+        className="rounded-xl h-12"
       />
     </div>
   )
