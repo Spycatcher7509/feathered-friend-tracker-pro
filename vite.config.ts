@@ -3,8 +3,8 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
+import electron from "vite-plugin-electron";
 
-// https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
@@ -12,8 +12,10 @@ export default defineConfig(({ mode }) => ({
   },
   plugins: [
     react(),
-    mode === 'development' &&
-    componentTagger(),
+    mode === 'development' && componentTagger(),
+    electron({
+      entry: 'electron/main.ts',
+    }),
   ].filter(Boolean),
   resolve: {
     alias: {
@@ -33,5 +35,9 @@ export default defineConfig(({ mode }) => ({
     '__dirname': '"browser-only"',
     'setImmediate': 'setTimeout',
     'clearImmediate': 'clearTimeout'
+  },
+  build: {
+    outDir: 'dist',
+    target: 'esnext',
   }
 }));

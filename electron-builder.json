@@ -1,0 +1,21 @@
+
+{
+  "appId": "com.birdwatching.app",
+  "productName": "Bird Watching Dashboard",
+  "directories": {
+    "output": "release/${version}"
+  },
+  "files": [
+    "dist/**/*",
+    "electron/**/*"
+  ],
+  "mac": {
+    "target": [
+      {
+        "target": "dmg",
+        "arch": ["arm64"]
+      }
+    ],
+    "artifactName": "${productName}-${version}-${arch}.${ext}"
+  }
+}
