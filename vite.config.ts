@@ -4,6 +4,7 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 import electron from "vite-plugin-electron";
+import renderer from "vite-plugin-electron-renderer";
 
 export default defineConfig(({ mode }) => ({
   server: {
@@ -16,9 +17,20 @@ export default defineConfig(({ mode }) => ({
       plugins: []
     }),
     mode === 'development' && componentTagger(),
-    electron({
-      entry: 'electron/main.ts',
-    }),
+    electron([
+      {
+        entry: 'electron/main.ts',
+        vite: {
+          build: {
+            outDir: 'dist-electron',
+            rollupOptions: {
+              external: ['electron']
+            }
+          }
+        }
+      }
+    ]),
+    renderer(),
   ].filter(Boolean),
   resolve: {
     alias: {
