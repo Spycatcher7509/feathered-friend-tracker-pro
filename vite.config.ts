@@ -11,7 +11,10 @@ export default defineConfig(({ mode }) => ({
     port: 8080,
   },
   plugins: [
-    react(),
+    react({
+      tsDecorators: true,
+      plugins: []
+    }),
     mode === 'development' && componentTagger(),
     electron({
       entry: 'electron/main.ts',
@@ -21,6 +24,7 @@ export default defineConfig(({ mode }) => ({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
+    extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json']
   },
   define: {
     'process.env': '{}',
@@ -39,8 +43,20 @@ export default defineConfig(({ mode }) => ({
   build: {
     outDir: 'dist',
     target: 'esnext',
+    sourcemap: true,
     rollupOptions: {
-      external: ['https://cdn.gpteng.co/gptengineer.js']
+      external: ['https://cdn.gpteng.co/gptengineer.js'],
+      output: {
+        manualChunks: undefined
+      }
+    }
+  },
+  optimizeDeps: {
+    esbuildOptions: {
+      target: 'esnext',
+      supported: { 
+        bigint: true 
+      },
     }
   }
 }));
