@@ -23,6 +23,7 @@ export default defineConfig(({ mode }) => ({
         vite: {
           build: {
             outDir: 'dist-electron',
+            sourcemap: true,
             rollupOptions: {
               external: ['electron']
             }
@@ -38,6 +39,7 @@ export default defineConfig(({ mode }) => ({
     },
     extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json']
   },
+  base: './', // This is important for Electron builds
   define: {
     'process.env': '{}',
     'process.version': '"v16.0.0"',
@@ -54,6 +56,7 @@ export default defineConfig(({ mode }) => ({
   },
   build: {
     outDir: 'dist',
+    emptyOutDir: true,
     target: 'esnext',
     sourcemap: true,
     rollupOptions: {
