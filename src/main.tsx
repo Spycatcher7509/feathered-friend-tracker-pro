@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import App from './App'
 import './index.css'
 
+// Initialize QueryClient with default options
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -16,27 +17,35 @@ const queryClient = new QueryClient({
   },
 })
 
+// Make sure the DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+  const rootElement = document.getElementById("root")
+  if (!rootElement) {
+    console.error("Failed to find the root element")
+    return
+  }
+
+  const root = createRoot(rootElement)
+  root.render(
+    <React.StrictMode>
+      <QueryClientProvider client={queryClient}>
+        <App />
+      </QueryClientProvider>
+    </React.StrictMode>
+  )
+
+  console.log('App rendered successfully')
+})
+
 // Register Service Worker
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js')
       .then(registration => {
-        console.log('ServiceWorker registration successful:', registration.scope);
+        console.log('ServiceWorker registration successful:', registration.scope)
       })
       .catch(error => {
-        console.log('ServiceWorker registration failed:', error);
-      });
-  });
+        console.log('ServiceWorker registration failed:', error)
+      })
+  })
 }
-
-const rootElement = document.getElementById("root");
-if (!rootElement) throw new Error("Failed to find the root element");
-
-const root = createRoot(rootElement);
-root.render(
-  <React.StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <App />
-    </QueryClientProvider>
-  </React.StrictMode>
-);
