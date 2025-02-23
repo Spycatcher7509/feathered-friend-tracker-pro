@@ -20,17 +20,16 @@
         "arch": ["x64"]
       }
     ],
-    "icon": "public/icon-512x512.png"
-  },
-  "mac": {
-    "target": ["dmg"],
-    "arch": ["arm64", "x64"]
+    "icon": "public/icon-512x512.png",
+    "artifactName": "${productName}-Setup-${version}.${ext}"
   },
   "nsis": {
     "oneClick": false,
     "perMachine": false,
     "allowToChangeInstallationDirectory": true,
-    "deleteAppDataOnUninstall": false
+    "deleteAppDataOnUninstall": false,
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true
   },
   "asar": true,
   "electronDownload": {
