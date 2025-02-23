@@ -33,9 +33,7 @@ export default defineConfig(({ mode }) => ({
         }
       }
     ]),
-    renderer({
-      nodeIntegration: true,
-    }),
+    renderer(),
   ].filter(Boolean),
   resolve: {
     alias: {
