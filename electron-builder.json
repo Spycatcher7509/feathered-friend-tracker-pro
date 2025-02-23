@@ -26,7 +26,8 @@
   "mac": {
     "target": ["dmg"],
     "arch": ["arm64", "x64"],
-    "artifactName": "${productName}-${version}-${arch}.${ext}"
+    "artifactName": "${productName}-${version}-${arch}.${ext}",
+    "icon": "public/icon-512x512.png"
   },
   "nsis": {
     "oneClick": false,
@@ -37,7 +38,7 @@
     "createStartMenuShortcut": true
   },
   "asar": true,
-  "electronDownload": {
-    "mirror": "https://github.com/electron/electron/releases/download/"
+  "extraMetadata": {
+    "main": "dist-electron/main.js"
   }
 }
