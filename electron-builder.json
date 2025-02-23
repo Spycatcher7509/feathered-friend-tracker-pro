@@ -22,10 +22,18 @@
     ],
     "icon": "public/icon-512x512.png"
   },
+  "mac": {
+    "target": ["dmg"],
+    "arch": ["arm64", "x64"]
+  },
   "nsis": {
     "oneClick": false,
     "perMachine": false,
     "allowToChangeInstallationDirectory": true,
     "deleteAppDataOnUninstall": false
+  },
+  "asar": true,
+  "electronDownload": {
+    "mirror": "https://github.com/electron/electron/releases/download/"
   }
 }
