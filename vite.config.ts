@@ -8,8 +8,9 @@ import renderer from "vite-plugin-electron-renderer";
 
 export default defineConfig(({ mode }) => ({
   server: {
-    host: "::",
+    host: "localhost",
     port: 8080,
+    strictPort: true,
   },
   plugins: [
     react({
@@ -24,6 +25,7 @@ export default defineConfig(({ mode }) => ({
           build: {
             outDir: 'dist-electron',
             sourcemap: true,
+            minify: false,
             rollupOptions: {
               external: ['electron']
             }
@@ -31,7 +33,9 @@ export default defineConfig(({ mode }) => ({
         }
       }
     ]),
-    renderer(),
+    renderer({
+      nodeIntegration: true,
+    }),
   ].filter(Boolean),
   resolve: {
     alias: {
@@ -39,39 +43,19 @@ export default defineConfig(({ mode }) => ({
     },
     extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json']
   },
-  base: './', // This is important for Electron builds
-  define: {
-    'process.env': '{}',
-    'process.version': '"v16.0.0"',
-    'process.platform': '"browser"',
-    'process.stdout': '{}',
-    'process.stderr': '{}',
-    'global': 'globalThis',
-    'process': '{"env": {}, "version": "v16.0.0", "platform": "browser", "stdout": {}, "stderr": {}}',
-    'Buffer': ['buffer', 'Buffer'],
-    '__filename': '"browser-only"',
-    '__dirname': '"browser-only"',
-    'setImmediate': 'setTimeout',
-    'clearImmediate': 'clearTimeout'
-  },
+  base: './',
   build: {
     outDir: 'dist',
     emptyOutDir: true,
-    target: 'esnext',
     sourcemap: true,
+    target: 'esnext',
     rollupOptions: {
-      external: ['https://cdn.gpteng.co/gptengineer.js'],
-      output: {
-        manualChunks: undefined
+      input: {
+        main: path.resolve(__dirname, 'index.html')
       }
     }
   },
   optimizeDeps: {
-    esbuildOptions: {
-      target: 'esnext',
-      supported: { 
-        bigint: true 
-      },
-    }
+    exclude: ['electron']
   }
 }));
