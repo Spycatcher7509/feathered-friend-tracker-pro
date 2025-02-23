@@ -19,7 +19,12 @@ async function createWindow() {
     }
   })
 
-  if (process.env.NODE_ENV === 'development') {
+  // Determine the correct path for production
+  const isDev = process.env.NODE_ENV === 'development'
+  console.log('Running in:', isDev ? 'development' : 'production')
+  console.log('Current directory:', __dirname)
+
+  if (isDev) {
     console.log('Loading development URL...')
     try {
       await mainWindow.loadURL('http://localhost:8080')
@@ -28,20 +33,38 @@ async function createWindow() {
       console.error('Failed to load development URL:', error)
     }
   } else {
-    console.log('Loading production build...')
-    // In production, load from the dist directory
-    const indexPath = path.join(__dirname, '..', 'dist', 'index.html')
-    console.log('Loading from:', indexPath)
+    // In production, load using file protocol
     try {
-      await mainWindow.loadFile(indexPath)
+      const indexPath = path.join(__dirname, '..', 'dist', 'index.html')
+      console.log('Attempting to load file:', indexPath)
+      
+      const fileUrl = new URL(`file://${indexPath}`).href
+      console.log('Loading URL:', fileUrl)
+      
+      await mainWindow.loadURL(fileUrl)
     } catch (error) {
       console.error('Failed to load production build:', error)
+      console.error('Error details:', error.message)
+      
+      // Try alternative path as fallback
+      try {
+        const altPath = path.join(process.resourcesPath, 'dist', 'index.html')
+        console.log('Trying alternative path:', altPath)
+        const altUrl = new URL(`file://${altPath}`).href
+        await mainWindow.loadURL(altUrl)
+      } catch (altError) {
+        console.error('Alternative path also failed:', altError.message)
+      }
     }
   }
 
-  // Error handling
-  mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription) => {
-    console.error('Failed to load:', errorCode, errorDescription)
+  // Error handling with more details
+  mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
+    console.error('Failed to load:', {
+      errorCode,
+      errorDescription,
+      validatedURL
+    })
   })
 
   // Handle window state
@@ -49,6 +72,15 @@ async function createWindow() {
     mainWindow.show()
   })
 }
+
+// Add error handling for the app
+app.on('render-process-gone', (event, webContents, details) => {
+  console.error('Render process gone:', details)
+})
+
+app.on('child-process-gone', (event, details) => {
+  console.error('Child process gone:', details)
+})
 
 app.whenReady().then(() => {
   createWindow()
