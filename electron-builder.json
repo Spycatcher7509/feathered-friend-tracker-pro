@@ -20,7 +20,9 @@
   },
   "mac": {
     "target": ["dmg"],
-    "icon": "public/icon-512x512.png"
+    "arch": ["arm64"],
+    "icon": "public/icon-512x512.png",
+    "artifactName": "${productName}-${version}-arm64.${ext}"
   },
   "linux": {
     "target": ["AppImage"],
@@ -32,5 +34,8 @@
     "createDesktopShortcut": true
   },
   "publish": null,
-  "asar": true
+  "asar": true,
+  "extraMetadata": {
+    "main": "dist-electron/main.js"
+  }
 }
