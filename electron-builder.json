@@ -12,19 +12,27 @@
     "target": [
       {
         "target": "nsis",
-        "arch": ["x64"]
+        "arch": [
+          "x64"
+        ]
       }
     ],
     "icon": "public/icon-512x512.png"
   },
   "mac": {
-    "target": ["dmg"],
-    "arch": ["arm64"],
+    "target": [
+      "dmg"
+    ],
+    "arch": [
+      "arm64"
+    ],
     "icon": "public/icon-512x512.png",
     "artifactName": "${productName}-${version}-arm64.${ext}"
   },
   "linux": {
-    "target": ["AppImage"],
+    "target": [
+      "AppImage"
+    ],
     "icon": "public/icon-512x512.png"
   },
   "nsis": {
