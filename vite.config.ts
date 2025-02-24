@@ -8,6 +8,7 @@ import renderer from "vite-plugin-electron-renderer";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
+  base: "./", // ensures relative asset paths for production
   server: {
     host: "localhost",
     port: 8080,
@@ -18,17 +19,17 @@ export default defineConfig(({ mode }) => ({
       tsDecorators: true,
       plugins: []
     }),
-    mode === 'development' && componentTagger(),
+    mode === "development" && componentTagger(),
     electron([
       {
-        entry: 'electron/main.ts',
+        entry: "electron/main.ts",
         vite: {
           build: {
-            outDir: 'dist-electron',
+            outDir: "dist-electron",
             sourcemap: true,
             minify: false,
             rollupOptions: {
-              external: ['electron', 'electron-devtools-installer']
+              external: ["electron", "electron-devtools-installer"]
             }
           }
         }
@@ -38,16 +39,27 @@ export default defineConfig(({ mode }) => ({
   ].filter(Boolean),
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./src"),
+      "@": path.resolve(__dirname, "./src")
     },
-    extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json']
+    extensions: [".mjs", ".js", ".ts", ".jsx", ".tsx", ".json"]
   },
-  base: process.env.NODE_ENV === 'development' ? '/' : './',
+  define: {
+    "process.env": "{}",
+    "process.version": '"v16.0.0"',
+    "process.platform": '"browser"',
+    "process.stdout": "{}",
+    "process.stderr": "{}",
+    global: "globalThis",
+    process: '{"env": {}, "version": "v16.0.0", "platform": "browser", "stdout": {}, "stderr": {}}',
+    Buffer: ["buffer", "Buffer"],
+    setImmediate: "setTimeout",
+    clearImmediate: "clearTimeout"
+  },
   build: {
-    outDir: 'dist',
+    outDir: "dist",
     emptyOutDir: true,
     sourcemap: true,
-    target: 'esnext',
+    target: "esnext",
     rollupOptions: {
       input: {
         main: path.resolve(__dirname, 'index.html')
@@ -55,6 +67,6 @@ export default defineConfig(({ mode }) => ({
     }
   },
   optimizeDeps: {
-    exclude: ['electron']
+    exclude: ["electron"]
   }
 }));
