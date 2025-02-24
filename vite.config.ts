@@ -6,6 +6,7 @@ import { componentTagger } from "lovable-tagger";
 import electron from "vite-plugin-electron";
 import renderer from "vite-plugin-electron-renderer";
 
+// https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   server: {
     host: "localhost",
@@ -27,13 +28,13 @@ export default defineConfig(({ mode }) => ({
             sourcemap: true,
             minify: false,
             rollupOptions: {
-              external: ['electron']
+              external: ['electron', 'electron-devtools-installer']
             }
           }
         }
       }
     ]),
-    renderer(),
+    renderer()
   ].filter(Boolean),
   resolve: {
     alias: {
@@ -41,7 +42,7 @@ export default defineConfig(({ mode }) => ({
     },
     extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json']
   },
-  base: './',
+  base: process.env.NODE_ENV === 'development' ? '/' : './',
   build: {
     outDir: 'dist',
     emptyOutDir: true,

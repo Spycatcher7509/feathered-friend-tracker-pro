@@ -13,32 +13,24 @@
     "target": [
       {
         "target": "nsis",
-        "arch": ["x64", "arm64"]
-      },
-      {
-        "target": "portable",
-        "arch": ["x64", "arm64"]
+        "arch": ["x64"]
       }
     ],
-    "icon": "public/icon-512x512.png",
-    "artifactName": "${productName}-Setup-${version}-${arch}.${ext}"
+    "icon": "public/icon-512x512.png"
   },
   "mac": {
     "target": ["dmg"],
-    "arch": ["arm64", "x64"],
-    "artifactName": "${productName}-${version}-${arch}.${ext}",
+    "icon": "public/icon-512x512.png"
+  },
+  "linux": {
+    "target": ["AppImage"],
     "icon": "public/icon-512x512.png"
   },
   "nsis": {
     "oneClick": false,
-    "perMachine": false,
     "allowToChangeInstallationDirectory": true,
-    "deleteAppDataOnUninstall": false,
-    "createDesktopShortcut": true,
-    "createStartMenuShortcut": true
+    "createDesktopShortcut": true
   },
-  "asar": true,
-  "extraMetadata": {
-    "main": "dist-electron/main.js"
-  }
+  "publish": null,
+  "asar": true
 }
