@@ -1,0 +1,41 @@
+
+{
+  "appId": "com.birdwatching.app",
+  "productName": "Bird Watching Dashboard",
+  "directories": {
+    "output": "release/${version}"
+  },
+  "files": [
+    "dist/**/*",
+    "dist-electron/**/*"
+  ],
+  "win": {
+    "target": [
+      {
+        "target": "nsis",
+        "arch": ["x64"]
+      }
+    ],
+    "icon": "public/icon-512x512.png"
+  },
+  "mac": {
+    "target": ["dmg"],
+    "arch": ["arm64"],
+    "icon": "public/icon-512x512.png",
+    "artifactName": "${productName}-${version}-arm64.${ext}"
+  },
+  "linux": {
+    "target": ["AppImage"],
+    "icon": "public/icon-512x512.png"
+  },
+  "nsis": {
+    "oneClick": false,
+    "allowToChangeInstallationDirectory": true,
+    "createDesktopShortcut": true
+  },
+  "publish": null,
+  "asar": true,
+  "extraMetadata": {
+    "main": "dist-electron/main.js"
+  }
+}
