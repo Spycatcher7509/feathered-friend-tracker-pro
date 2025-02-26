@@ -14,6 +14,7 @@ interface AuthFormProps {
 const AuthForm = ({ setErrorMessage }: AuthFormProps) => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [fullName, setFullName] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [isSignUp, setIsSignUp] = useState(false)
   const { toast } = useToast()
@@ -40,7 +41,10 @@ const AuthForm = ({ setErrorMessage }: AuthFormProps) => {
           email, 
           password,
           options: {
-            emailRedirectTo: window.location.origin
+            emailRedirectTo: window.location.origin,
+            data: {
+              full_name: fullName || null // Only include if provided
+            }
           }
         })
 
@@ -95,6 +99,19 @@ const AuthForm = ({ setErrorMessage }: AuthFormProps) => {
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
       <form onSubmit={handleSubmit} className="space-y-4">
+        {isSignUp && (
+          <div className="space-y-2">
+            <Label htmlFor="fullName">Full Name or Nickname (optional)</Label>
+            <Input
+              id="fullName"
+              type="text"
+              placeholder="Enter your name"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+            />
+          </div>
+        )}
+        
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>
           <Input
