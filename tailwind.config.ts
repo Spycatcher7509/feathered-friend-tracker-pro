@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -65,10 +66,29 @@ export default {
           900: "#243724",
         },
       },
-      borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+      typography: {
+        nature: {
+          css: {
+            '--tw-prose-body': '#374151',
+            '--tw-prose-headings': '#2b422a',
+            '--tw-prose-links': '#4f7f4c',
+            '--tw-prose-bold': '#2b422a',
+            '--tw-prose-counters': '#7ba178',
+            '--tw-prose-bullets': '#a7c3a5',
+            '--tw-prose-quotes': '#325231',
+            '--tw-prose-quote-borders': '#d1dfd0',
+            '--tw-prose-code': '#3d663a',
+            '--tw-prose-pre-code': '#e8efe7',
+            '--tw-prose-pre-bg': '#243724',
+            '--tw-prose-hr': '#d1dfd0',
+            maxWidth: 'none',
+          },
+        },
+      },
+      animation: {
+        "accordion-down": "accordion-down 0.2s ease-out",
+        "accordion-up": "accordion-up 0.2s ease-out",
+        fadeIn: "fadeIn 0.5s ease-out",
       },
       keyframes: {
         "accordion-down": {
@@ -84,12 +104,12 @@ export default {
           "100%": { opacity: "1" },
         },
       },
-      animation: {
-        "accordion-down": "accordion-down 0.2s ease-out",
-        "accordion-up": "accordion-up 0.2s ease-out",
-        fadeIn: "fadeIn 0.5s ease-out",
+      borderRadius: {
+        lg: "var(--radius)",
+        md: "calc(var(--radius) - 2px)",
+        sm: "calc(var(--radius) - 4px)",
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [require("tailwindcss-animate"), require("@tailwindcss/typography")],
 } satisfies Config;

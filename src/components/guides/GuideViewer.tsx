@@ -1,66 +1,93 @@
 
-import { useEffect, useState } from "react"
-import { supabase } from "@/integrations/supabase/client"
-import { useToast } from "@/hooks/use-toast"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useEffect, useState } from "react"
+import { useToast } from "@/hooks/use-toast"
+import { supabase } from "@/integrations/supabase/client"
 
-interface GuideData {
+interface GuideSection {
   title: string
   content: string
 }
 
-export const GuideViewer = ({ type }: { type: 'user' | 'admin' }) => {
-  const [guideData, setGuideData] = useState<GuideData | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+export const GuideViewer = ({ type }: { type: "user" | "admin" }) => {
+  const [sections, setSections] = useState<GuideSection[]>([])
+  const [activeTab, setActiveTab] = useState("0")
   const { toast } = useToast()
 
   useEffect(() => {
     const fetchGuide = async () => {
       try {
         const { data, error } = await supabase
-          .from('guides')
-          .select('title, content')
-          .eq('type', type)
-          .single()
+          .from("guides")
+          .select("title, content")
+          .eq("type", type)
+          .order("order", { ascending: true })
 
         if (error) throw error
-        setGuideData(data)
+        setSections(data || [])
       } catch (error) {
-        console.error('Error fetching guide:', error)
+        console.error("Error fetching guide:", error)
         toast({
           variant: "destructive",
           title: "Error",
           description: "Could not load the guide content",
         })
-      } finally {
-        setIsLoading(false)
       }
     }
 
     fetchGuide()
   }, [type, toast])
 
-  if (isLoading) {
+  if (sections.length === 0) {
     return (
-      <div className="flex items-center justify-center h-[200px]">
-        <div className="text-gray-500">Loading guide...</div>
-      </div>
-    )
-  }
-
-  if (!guideData) {
-    return (
-      <div className="flex items-center justify-center h-[200px]">
-        <div className="text-gray-500">No guide content available.</div>
-      </div>
+      <Card>
+        <CardContent className="p-6">
+          <p className="text-muted-foreground text-center">Loading guide content...</p>
+        </CardContent>
+      </Card>
     )
   }
 
   return (
-    <ScrollArea className="h-[600px] w-full rounded-md border p-6 bg-white">
-      <div className="prose max-w-none dark:prose-invert">
-        <div dangerouslySetInnerHTML={{ __html: guideData.content }} />
-      </div>
-    </ScrollArea>
+    <Card className="border-nature-200 shadow-lg animate-fadeIn">
+      <CardHeader className="bg-gradient-to-r from-nature-50 to-nature-100 border-b border-nature-200">
+        <CardTitle className="text-2xl font-playfair text-nature-800">
+          {type === "user" ? "User Guide" : "Administrator Guide"}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="p-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="w-full flex-wrap justify-start bg-nature-50 p-1">
+            {sections.map((section, index) => (
+              <TabsTrigger
+                key={index}
+                value={index.toString()}
+                className="data-[state=active]:bg-white data-[state=active]:text-nature-800"
+              >
+                {section.title}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+          <div className="mt-6">
+            {sections.map((section, index) => (
+              <TabsContent
+                key={index}
+                value={index.toString()}
+                className="bg-white rounded-lg border border-nature-100 p-6"
+              >
+                <ScrollArea className="h-[500px] pr-4">
+                  <div
+                    className="prose prose-nature max-w-none"
+                    dangerouslySetInnerHTML={{ __html: section.content }}
+                  />
+                </ScrollArea>
+              </TabsContent>
+            ))}
+          </div>
+        </Tabs>
+      </CardContent>
+    </Card>
   )
 }
