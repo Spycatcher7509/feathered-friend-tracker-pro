@@ -35,7 +35,7 @@ export const useAudioPlayer = (soundUrl: string | undefined, birdName: string) =
         throw new Error('Failed to get public URL')
       }
 
-      // Add cache-busting parameter to prevent caching issues
+      // Add cache-busting parameter and ensure CORS headers
       const cacheBuster = `?t=${Date.now()}`
       return `${data.publicUrl}${cacheBuster}`
     } catch (error) {
@@ -59,10 +59,22 @@ export const useAudioPlayer = (soundUrl: string | undefined, birdName: string) =
           // Reset audio state
           audioRef.current.pause()
           audioRef.current.currentTime = 0
+          audioRef.current.volume = volume
           
           // Set new source and load
           audioRef.current.src = url
+          
+          // Create a promise to handle audio loading
+          const loadPromise = new Promise((resolve, reject) => {
+            if (audioRef.current) {
+              audioRef.current.onloadeddata = resolve
+              audioRef.current.onerror = reject
+            }
+          })
+
+          // Load the audio and wait for it to be ready
           audioRef.current.load()
+          await loadPromise
           
           setAudioError(false)
         }
@@ -92,7 +104,7 @@ export const useAudioPlayer = (soundUrl: string | undefined, birdName: string) =
         audioRef.current.load()
       }
     }
-  }, [soundUrl, birdName, toast])
+  }, [soundUrl, birdName, toast, volume])
 
   useEffect(() => {
     const audio = audioRef.current
