@@ -22,8 +22,9 @@ const BirdAudioPlayer = ({ soundUrl, birdName }: BirdAudioPlayerProps) => {
   const { toast } = useToast()
 
   useEffect(() => {
-    if (soundUrl && audioRef.current) {
-      audioRef.current.load()
+    // Reset error state when sound URL changes
+    if (soundUrl) {
+      setAudioError(false)
     }
   }, [soundUrl])
 
@@ -44,7 +45,7 @@ const BirdAudioPlayer = ({ soundUrl, birdName }: BirdAudioPlayerProps) => {
     }
   }, [])
 
-  const toggleAudio = () => {
+  const toggleAudio = async () => {
     if (!soundUrl) {
       console.log('No sound URL provided for:', birdName)
       toast({
@@ -58,26 +59,33 @@ const BirdAudioPlayer = ({ soundUrl, birdName }: BirdAudioPlayerProps) => {
     console.log('Attempting to play audio:', soundUrl)
 
     if (audioRef.current) {
-      if (isPlaying) {
-        audioRef.current.pause()
-        setIsPlaying(false)
-      } else {
-        const playPromise = audioRef.current.play()
-        
-        if (playPromise !== undefined) {
-          playPromise.then(() => {
+      try {
+        if (isPlaying) {
+          audioRef.current.pause()
+          setIsPlaying(false)
+        } else {
+          // Check if audio is actually loadable before trying to play
+          const response = await fetch(soundUrl, { method: 'HEAD' })
+          if (!response.ok) {
+            throw new Error('Audio file not accessible')
+          }
+
+          const playPromise = audioRef.current.play()
+          if (playPromise !== undefined) {
+            await playPromise
             console.log('Audio playback started successfully')
             setIsPlaying(true)
-          }).catch(error => {
-            console.error('Error playing audio:', error)
-            setAudioError(true)
-            toast({
-              variant: "destructive",
-              title: "Audio Format Error",
-              description: "This audio format is not supported by your browser. Please try a different recording.",
-            })
-          })
+          }
         }
+      } catch (error) {
+        console.error('Error playing audio:', error)
+        setAudioError(true)
+        setIsPlaying(false)
+        toast({
+          variant: "destructive",
+          title: "Audio Error",
+          description: "Unable to play this audio file. It may be unavailable or in an unsupported format.",
+        })
       }
     }
   }
@@ -113,7 +121,7 @@ const BirdAudioPlayer = ({ soundUrl, birdName }: BirdAudioPlayerProps) => {
     toast({
       variant: "destructive",
       title: "Audio Error",
-      description: "Unable to load audio. The file may be corrupted or in an unsupported format.",
+      description: "Unable to load audio. Please check if the file exists and try again.",
     })
   }
 
