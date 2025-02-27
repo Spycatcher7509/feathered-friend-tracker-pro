@@ -29,7 +29,7 @@ const BirdAudioPlayer = ({ soundUrl, birdName }: BirdAudioPlayerProps) => {
     const filename = parts[parts.length - 1]
     console.log('Extracted filename:', filename)
     // Construct the proper URL for the audio file in the public directory
-    const finalUrl = `/audio directory/${filename}`
+    const finalUrl = `/audio-directory/${filename}`
     console.log('Final audio URL:', finalUrl)
     return finalUrl
   }
