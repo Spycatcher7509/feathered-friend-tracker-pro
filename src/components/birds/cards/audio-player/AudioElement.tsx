@@ -31,11 +31,9 @@ const AudioElement = forwardRef<HTMLAudioElement, AudioElementProps>(
         onError={onError}
         onLoadedData={onLoadedData}
       >
-        {/* Try different audio formats and fallbacks */}
         <source src={soundUrl} type="audio/mpeg" />
-        <source src={soundUrl.replace('.mp3', '.wav')} type="audio/wav" />
-        <source src={soundUrl.replace('.mp3', '.ogg')} type="audio/ogg" />
-        <source src={soundUrl} type="audio/webm" />
+        <source src={soundUrl} type="audio/wav" />
+        <source src={soundUrl} type="audio/ogg" />
         Your browser does not support the audio element.
       </audio>
     )
