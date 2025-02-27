@@ -35,7 +35,9 @@ export const useAudioPlayer = (soundUrl: string | undefined, birdName: string) =
         throw new Error('Failed to get public URL')
       }
 
-      return data.publicUrl
+      // Add cache-busting parameter to prevent caching issues
+      const cacheBuster = `?t=${Date.now()}`
+      return `${data.publicUrl}${cacheBuster}`
     } catch (error) {
       console.error('Error getting audio URL:', error)
       throw error
@@ -54,8 +56,14 @@ export const useAudioPlayer = (soundUrl: string | undefined, birdName: string) =
         if (!isMounted) return
 
         if (audioRef.current) {
+          // Reset audio state
+          audioRef.current.pause()
+          audioRef.current.currentTime = 0
+          
+          // Set new source and load
           audioRef.current.src = url
           audioRef.current.load()
+          
           setAudioError(false)
         }
       } catch (error) {
@@ -93,8 +101,8 @@ export const useAudioPlayer = (soundUrl: string | undefined, birdName: string) =
     const updateTime = () => setCurrentTime(audio.currentTime)
     const handleDurationChange = () => setDuration(audio.duration)
     const handleEnded = () => setIsPlaying(false)
-    const handleError = () => {
-      console.error('Audio error:', audio.error)
+    const handleError = (e: ErrorEvent) => {
+      console.error('Audio error:', e, audio.error)
       setAudioError(true)
       setIsPlaying(false)
       toast({
