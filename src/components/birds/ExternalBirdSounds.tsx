@@ -2,36 +2,14 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ChevronDown, ChevronUp, Play, Pause } from "lucide-react"
+import { ChevronDown, ChevronUp } from "lucide-react"
 import { useExternalBirdSounds, type ExternalBirdSound } from "@/hooks/useExternalBirdSounds"
 import BirdSoundImporter from "./BirdSoundImporter"
+import BirdAudioPlayer from "./cards/BirdAudioPlayer"
 
 const ExternalBirdSounds = () => {
   const [showSounds, setShowSounds] = useState(false)
-  const [playingId, setPlayingId] = useState<string | null>(null)
-  const [audioRef, setAudioRef] = useState<HTMLAudioElement | null>(null)
   const { data: birdSounds, isLoading } = useExternalBirdSounds()
-
-  const handlePlayPause = (sound: ExternalBirdSound) => {
-    if (playingId === sound.id) {
-      audioRef?.pause()
-      setAudioRef(null)
-      setPlayingId(null)
-    } else {
-      if (audioRef) {
-        audioRef.pause()
-      }
-      const audio = new Audio(sound.sound_url)
-      audio.play()
-      setAudioRef(audio)
-      setPlayingId(sound.id)
-      
-      audio.onended = () => {
-        setPlayingId(null)
-        setAudioRef(null)
-      }
-    }
-  }
 
   if (isLoading) {
     return <div>Loading bird sounds...</div>
@@ -59,19 +37,12 @@ const ExternalBirdSounds = () => {
                 <CardTitle className="text-lg">{sound.bird_name}</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex justify-between items-center">
+                <div className="space-y-2">
                   <span className="text-sm text-muted-foreground">{sound.source}</span>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => handlePlayPause(sound)}
-                  >
-                    {playingId === sound.id ? (
-                      <Pause className="h-4 w-4" />
-                    ) : (
-                      <Play className="h-4 w-4" />
-                    )}
-                  </Button>
+                  <BirdAudioPlayer
+                    soundUrl={sound.sound_url}
+                    birdName={sound.bird_name}
+                  />
                 </div>
               </CardContent>
             </Card>
