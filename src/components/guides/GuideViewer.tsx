@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client"
 interface GuideSection {
   title: string
   content: string
+  sort_order: number
 }
 
 export const GuideViewer = ({ type }: { type: "user" | "admin" }) => {
@@ -42,8 +43,15 @@ export const GuideViewer = ({ type }: { type: "user" | "admin" }) => {
           return
         }
 
-        console.log("Retrieved guide sections:", data.length)
-        setSections(data)
+        // Ensure the data matches our GuideSection interface
+        const guideSections: GuideSection[] = data.map(section => ({
+          title: section.title,
+          content: section.content,
+          sort_order: section.sort_order || 0
+        }))
+
+        console.log("Retrieved guide sections:", guideSections.length)
+        setSections(guideSections)
       } catch (error) {
         console.error("Error fetching guide:", error)
         setError("Could not load the guide content. Please try again later.")
