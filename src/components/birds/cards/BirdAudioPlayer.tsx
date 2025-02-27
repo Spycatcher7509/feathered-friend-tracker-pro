@@ -48,7 +48,6 @@ const BirdAudioPlayer = ({ soundUrl, birdName }: BirdAudioPlayerProps) => {
 
   const toggleAudio = async () => {
     if (!soundUrl) {
-      console.log('No sound URL provided for:', birdName)
       toast({
         variant: "destructive",
         title: "Error",
@@ -56,8 +55,6 @@ const BirdAudioPlayer = ({ soundUrl, birdName }: BirdAudioPlayerProps) => {
       })
       return
     }
-
-    console.log('Attempting to play audio:', soundUrl)
 
     if (audioRef.current) {
       try {
@@ -68,7 +65,6 @@ const BirdAudioPlayer = ({ soundUrl, birdName }: BirdAudioPlayerProps) => {
           const playPromise = audioRef.current.play()
           if (playPromise !== undefined) {
             await playPromise
-            console.log('Audio playback started successfully')
             setIsPlaying(true)
           }
         }
@@ -101,15 +97,10 @@ const BirdAudioPlayer = ({ soundUrl, birdName }: BirdAudioPlayerProps) => {
   }
 
   const handleAudioLoad = () => {
-    console.log('Audio loaded successfully for:', birdName)
     setAudioError(false)
   }
 
   const handleAudioError = (e: React.SyntheticEvent<HTMLAudioElement, Event>) => {
-    const audioElement = e.currentTarget
-    console.error('Audio load error for:', birdName)
-    console.error('Audio src:', audioElement.src)
-    console.error('Audio error:', audioElement.error)
     setAudioError(true)
     setIsPlaying(false)
     toast({
