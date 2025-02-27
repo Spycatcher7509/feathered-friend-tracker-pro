@@ -21,8 +21,16 @@ const BirdAudioPlayer = ({ soundUrl, birdName }: BirdAudioPlayerProps) => {
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const { toast } = useToast()
 
+  // Create a proxy URL for xeno-canto recordings
+  const getProxiedUrl = (url: string) => {
+    if (url.includes('xeno-canto.org')) {
+      // Use a CORS proxy to access xeno-canto
+      return `https://cors-anywhere.herokuapp.com/${url}`
+    }
+    return url
+  }
+
   useEffect(() => {
-    // Reset states when sound URL changes
     setIsPlaying(false)
     setAudioError(false)
     setCurrentTime(0)
@@ -112,6 +120,8 @@ const BirdAudioPlayer = ({ soundUrl, birdName }: BirdAudioPlayerProps) => {
 
   if (!soundUrl) return null
 
+  const proxiedUrl = getProxiedUrl(soundUrl)
+
   return (
     <div className="rounded-xl border bg-gray-50 p-4 space-y-4">
       <div className="flex items-center justify-between">
@@ -143,7 +153,7 @@ const BirdAudioPlayer = ({ soundUrl, birdName }: BirdAudioPlayerProps) => {
 
       <AudioElement
         ref={audioRef}
-        soundUrl={soundUrl}
+        soundUrl={proxiedUrl}
         onEnded={() => setIsPlaying(false)}
         onPlay={() => setIsPlaying(true)}
         onError={handleAudioError}
