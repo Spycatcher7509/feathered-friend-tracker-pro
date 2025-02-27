@@ -53,7 +53,7 @@ const BirdAudioPlayer = ({ soundUrl, birdName }: BirdAudioPlayerProps) => {
       return
     }
 
-    console.log('Attempting to play audio:', soundUrl) // Debug log
+    console.log('Attempting to play audio:', soundUrl)
 
     if (audioRef.current) {
       if (isPlaying) {
@@ -64,7 +64,7 @@ const BirdAudioPlayer = ({ soundUrl, birdName }: BirdAudioPlayerProps) => {
         
         if (playPromise !== undefined) {
           playPromise.then(() => {
-            console.log('Audio playback started successfully') // Debug log
+            console.log('Audio playback started successfully')
             setIsPlaying(true)
           }).catch(error => {
             console.error('Error playing audio:', error)
@@ -100,8 +100,8 @@ const BirdAudioPlayer = ({ soundUrl, birdName }: BirdAudioPlayerProps) => {
     setAudioError(false)
   }
 
-  const handleAudioError = (e: Event) => {
-    const audioElement = e.target as HTMLAudioElement
+  const handleAudioError = (e: React.SyntheticEvent<HTMLAudioElement, Event>) => {
+    const audioElement = e.currentTarget
     console.error('Audio load error for:', birdName)
     console.error('Audio src:', audioElement.src)
     console.error('Audio error:', audioElement.error)
@@ -116,7 +116,7 @@ const BirdAudioPlayer = ({ soundUrl, birdName }: BirdAudioPlayerProps) => {
 
   if (!soundUrl) return null
 
-  // Make sure the URL is absolute
+  // Make sure the URL is absolute and points to our Supabase storage
   const absoluteUrl = soundUrl.startsWith('http') 
     ? soundUrl 
     : `${window.location.origin}${soundUrl}`
