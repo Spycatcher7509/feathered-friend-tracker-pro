@@ -15,25 +15,29 @@ export const useAudioPlayer = (soundUrl: string | undefined, birdName: string) =
   const getAudioUrl = async (url: string) => {
     if (url.includes('supabase.co')) {
       try {
-        const filePath = url.split('bird_sounds/')[1]
-        if (!filePath) throw new Error('Invalid file path')
+        // Clean up the URL to get just the filename
+        const filename = url.split('/').pop()
+        if (!filename) throw new Error('Invalid file path')
         
-        const { data: { signedUrl }, error } = await supabase
+        // Get a direct download URL from Supabase storage
+        const { data, error } = await supabase
           .storage
           .from('bird_sounds')
-          .createSignedUrl(filePath, 3600)
+          .download(filename)
 
         if (error) throw error
-        return signedUrl
+        
+        // Create a blob URL from the downloaded data
+        const blobUrl = URL.createObjectURL(data)
+        return blobUrl
       } catch (error) {
-        console.error('Error creating signed URL:', error)
+        console.error('Error downloading audio:', error)
         throw error
       }
     }
     
-    const parts = url.split(/[\/\\]/)
-    const filename = parts[parts.length - 1]
-    return `/audio-directory/${filename}`
+    // For local files, use the URL directly
+    return url
   }
 
   useEffect(() => {
@@ -42,10 +46,13 @@ export const useAudioPlayer = (soundUrl: string | undefined, birdName: string) =
     setCurrentTime(0)
     setDuration(0)
 
+    let blobUrl: string | undefined
+
     if (soundUrl) {
       getAudioUrl(soundUrl)
         .then(url => {
           if (audioRef.current) {
+            blobUrl = url
             audioRef.current.src = url
           }
         })
@@ -58,6 +65,13 @@ export const useAudioPlayer = (soundUrl: string | undefined, birdName: string) =
             description: `Unable to load audio file for ${birdName}`,
           })
         })
+    }
+
+    // Cleanup function to revoke blob URL
+    return () => {
+      if (blobUrl && blobUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(blobUrl)
+      }
     }
   }, [soundUrl, birdName, toast])
 
