@@ -15,35 +15,29 @@ export const useAudioPlayer = (soundUrl: string | undefined, birdName: string) =
   const getAudioUrl = async (url: string) => {
     console.log('Original URL:', url)
     
-    // For full file system paths, extract just the filename
-    if (url.includes('/Users/')) {
-      const parts = url.split('/')
-      const filename = parts[parts.length - 1]
-      console.log('Extracted filename:', filename)
-      const newUrl = `/audio-directory/${filename}`
-      console.log('Converted to public path:', newUrl)
-      return newUrl
-    }
-    
-    // For Supabase URLs, handle with storage API
+    // For Supabase storage URLs, get the public URL
     if (url.includes('supabase.co')) {
       try {
-        const filename = url.split('/').pop()
-        if (!filename) throw new Error('Invalid file path')
+        const pathParts = url.split('bird_sounds/')
+        if (pathParts.length !== 2) throw new Error('Invalid Supabase storage URL')
         
-        const { data, error } = await supabase
+        const filename = pathParts[1]
+        console.log('Extracted filename from Supabase URL:', filename)
+        
+        const { data: { publicUrl } } = supabase
           .storage
           .from('bird_sounds')
-          .download(filename)
-
-        if (error) throw error
-        return URL.createObjectURL(data)
+          .getPublicUrl(filename)
+        
+        console.log('Generated public URL:', publicUrl)
+        return publicUrl
       } catch (error) {
-        console.error('Error downloading audio:', error)
+        console.error('Error processing Supabase URL:', error)
         throw error
       }
     }
     
+    // For all other URLs, return as-is
     return url
   }
 
@@ -53,17 +47,12 @@ export const useAudioPlayer = (soundUrl: string | undefined, birdName: string) =
     setCurrentTime(0)
     setDuration(0)
 
-    let blobUrl: string | undefined
-
     if (soundUrl) {
       console.log('Processing audio URL:', soundUrl)
       getAudioUrl(soundUrl)
         .then(url => {
           console.log('Setting audio source to:', url)
           if (audioRef.current) {
-            if (url.startsWith('blob:')) {
-              blobUrl = url
-            }
             audioRef.current.src = url
             audioRef.current.load() // Force reload of audio
           }
@@ -80,8 +69,8 @@ export const useAudioPlayer = (soundUrl: string | undefined, birdName: string) =
     }
 
     return () => {
-      if (blobUrl) {
-        URL.revokeObjectURL(blobUrl)
+      if (audioRef.current) {
+        audioRef.current.src = ''
       }
     }
   }, [soundUrl, birdName, toast])
@@ -96,6 +85,11 @@ export const useAudioPlayer = (soundUrl: string | undefined, birdName: string) =
         console.error('Audio error occurred:', audio.error)
         setAudioError(true)
         setIsPlaying(false)
+        toast({
+          variant: "destructive",
+          title: "Audio Error",
+          description: `Unable to play audio for ${birdName}. The file may be corrupted or unavailable.`,
+        })
       }
       
       audio.addEventListener('timeupdate', updateTime)
@@ -108,7 +102,7 @@ export const useAudioPlayer = (soundUrl: string | undefined, birdName: string) =
         audio.removeEventListener('error', handleError)
       }
     }
-  }, [])
+  }, [birdName, toast])
 
   const toggleAudio = async () => {
     if (!soundUrl) {
@@ -141,7 +135,7 @@ export const useAudioPlayer = (soundUrl: string | undefined, birdName: string) =
         toast({
           variant: "destructive",
           title: "Audio Error",
-          description: `Unable to play audio for ${birdName}. The file may be unavailable.`,
+          description: `Unable to play audio for ${birdName}. Please try again.`,
         })
       }
     }
