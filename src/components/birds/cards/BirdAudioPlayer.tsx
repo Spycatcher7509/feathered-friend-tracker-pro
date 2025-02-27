@@ -116,11 +116,6 @@ const BirdAudioPlayer = ({ soundUrl, birdName }: BirdAudioPlayerProps) => {
 
   if (!soundUrl) return null
 
-  // Make sure the URL is absolute and points to our Supabase storage
-  const absoluteUrl = soundUrl.startsWith('http') 
-    ? soundUrl 
-    : `${window.location.origin}${soundUrl}`
-
   return (
     <div className="rounded-xl border bg-gray-50 p-4 space-y-4">
       <div className="flex items-center justify-between">
@@ -180,7 +175,7 @@ const BirdAudioPlayer = ({ soundUrl, birdName }: BirdAudioPlayerProps) => {
 
       <audio
         ref={audioRef}
-        src={absoluteUrl}
+        src={soundUrl}
         onEnded={() => setIsPlaying(false)}
         onPlay={() => setIsPlaying(true)}
         onError={handleAudioError}
