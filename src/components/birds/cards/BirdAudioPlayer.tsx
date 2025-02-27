@@ -28,12 +28,13 @@ const BirdAudioPlayer = ({ soundUrl, birdName }: BirdAudioPlayerProps) => {
     // If it's a Supabase URL, get a signed URL to avoid CORB issues
     if (url.includes('supabase.co')) {
       try {
-        const bucketName = url.split('/public/')[1].split('/')[0]
-        const filePath = url.split(`${bucketName}/`)[1]
+        // Extract the file path from the URL
+        const filePath = url.split('bird_sounds/')[1]
+        if (!filePath) throw new Error('Invalid file path')
         
         const { data: { signedUrl }, error } = await supabase
           .storage
-          .from(bucketName)
+          .from('bird_sounds')
           .createSignedUrl(filePath, 3600) // 1 hour expiration
 
         if (error) throw error
@@ -42,7 +43,7 @@ const BirdAudioPlayer = ({ soundUrl, birdName }: BirdAudioPlayerProps) => {
         return signedUrl
       } catch (error) {
         console.error('Error creating signed URL:', error)
-        return url // fallback to original URL if signing fails
+        throw error
       }
     }
     
@@ -63,16 +64,23 @@ const BirdAudioPlayer = ({ soundUrl, birdName }: BirdAudioPlayerProps) => {
 
     // Initialize audio URL when soundUrl changes
     if (soundUrl) {
-      getAudioUrl(soundUrl).then(url => {
-        if (audioRef.current) {
-          audioRef.current.src = url
-        }
-      }).catch(error => {
-        console.error('Error setting audio URL:', error)
-        setAudioError(true)
-      })
+      getAudioUrl(soundUrl)
+        .then(url => {
+          if (audioRef.current) {
+            audioRef.current.src = url
+          }
+        })
+        .catch(error => {
+          console.error('Error setting audio URL:', error)
+          setAudioError(true)
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: `Unable to load audio file for ${birdName}`,
+          })
+        })
     }
-  }, [soundUrl])
+  }, [soundUrl, birdName, toast])
 
   useEffect(() => {
     if (audioRef.current) {
