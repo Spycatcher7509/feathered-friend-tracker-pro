@@ -680,6 +680,7 @@ export type Database = {
           content: string
           created_at: string | null
           id: string
+          sort_order: number | null
           title: string
           type: string
           updated_at: string | null
@@ -688,6 +689,7 @@ export type Database = {
           content: string
           created_at?: string | null
           id?: string
+          sort_order?: number | null
           title: string
           type: string
           updated_at?: string | null
@@ -696,6 +698,7 @@ export type Database = {
           content?: string
           created_at?: string | null
           id?: string
+          sort_order?: number | null
           title?: string
           type?: string
           updated_at?: string | null

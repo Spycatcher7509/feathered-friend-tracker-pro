@@ -43,13 +43,8 @@ export const GuideViewer = ({ type }: { type: "user" | "admin" }) => {
           return
         }
 
-        // Ensure the data matches our GuideSection interface
-        const guideSections: GuideSection[] = data.map(section => ({
-          title: section.title,
-          content: section.content,
-          sort_order: section.sort_order || 0
-        }))
-
+        // Type assertion to ensure the data matches our GuideSection interface
+        const guideSections = data as GuideSection[]
         console.log("Retrieved guide sections:", guideSections.length)
         setSections(guideSections)
       } catch (error) {
