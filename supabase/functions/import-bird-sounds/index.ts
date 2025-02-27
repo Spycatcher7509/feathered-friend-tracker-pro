@@ -1,6 +1,6 @@
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
-import { parse } from 'https://deno.land/std@0.181.0/encoding/csv.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -13,51 +13,33 @@ serve(async (req) => {
   }
 
   try {
-    const formData = await req.formData()
-    const file = formData.get('file') as File
-
-    if (!file) {
-      return new Response(
-        JSON.stringify({ error: 'No file uploaded' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
-      )
-    }
-
-    const text = await file.text()
-    const records = parse(text, { skipFirstRow: true }) as string[][]
-
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const birdSounds = records.map(([bird_name, sound_url, source]) => ({
-      bird_name,
-      sound_url,
-      source: source || 'CSV Import'
-    }))
-
+    // Insert Blue Jay sound data
     const { error } = await supabase
       .from('external_bird_sounds')
-      .insert(birdSounds)
+      .insert({
+        bird_name: 'Blue Jay',
+        sound_url: '/lovable-uploads/XC940085-Blue-Jay-Cyanocitta-cristata.mp3',
+        source: 'AllAboutBirds'
+      })
 
     if (error) {
-      return new Response(
-        JSON.stringify({ error: 'Failed to import bird sounds', details: error }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
-      )
+      throw error
     }
 
     return new Response(
-      JSON.stringify({ 
-        message: 'Bird sounds imported successfully', 
-        count: birdSounds.length 
-      }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+      JSON.stringify({ message: 'Bird sound added successfully' }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
+
   } catch (error) {
+    console.error('Error:', error)
     return new Response(
-      JSON.stringify({ error: 'Failed to process CSV file', details: error.message }),
+      JSON.stringify({ error: error.message }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
     )
   }
