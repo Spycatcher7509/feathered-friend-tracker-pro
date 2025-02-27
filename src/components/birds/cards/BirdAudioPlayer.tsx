@@ -21,7 +21,6 @@ const BirdAudioPlayer = ({ soundUrl, birdName }: BirdAudioPlayerProps) => {
 
   useEffect(() => {
     if (soundUrl && audioRef.current) {
-      // Preload the audio file
       audioRef.current.load()
     }
   }, [soundUrl])
@@ -78,8 +77,8 @@ const BirdAudioPlayer = ({ soundUrl, birdName }: BirdAudioPlayerProps) => {
             setAudioError(true)
             toast({
               variant: "destructive",
-              title: "Error",
-              description: `Failed to play audio: ${error.message}`,
+              title: "Audio Format Error",
+              description: "This audio format is not supported by your browser. Please try a different recording.",
             })
           })
         }
@@ -117,8 +116,8 @@ const BirdAudioPlayer = ({ soundUrl, birdName }: BirdAudioPlayerProps) => {
     setIsPlaying(false)
     toast({
       variant: "destructive",
-      title: "Error",
-      description: `Failed to load audio: ${audioElement.error?.message || 'Unknown error'}`,
+      title: "Audio Error",
+      description: "Unable to load audio. The file may be corrupted or in an unsupported format.",
     })
   }
 
@@ -191,6 +190,8 @@ const BirdAudioPlayer = ({ soundUrl, birdName }: BirdAudioPlayerProps) => {
         onLoadedData={handleAudioLoad}
       >
         <source src={soundUrl} type="audio/mpeg" />
+        <source src={soundUrl} type="audio/wav" />
+        <source src={soundUrl} type="audio/ogg" />
         Your browser does not support the audio element.
       </audio>
     </div>
