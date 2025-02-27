@@ -1,6 +1,7 @@
 
 import { useState, useRef, useEffect } from "react"
 import { useToast } from "@/hooks/use-toast"
+import { supabase } from "@/integrations/supabase/client"
 import AudioControls from "./audio-player/AudioControls"
 import TimeDisplay from "./audio-player/TimeDisplay"
 import VolumeControl from "./audio-player/VolumeControl"
@@ -21,13 +22,28 @@ const BirdAudioPlayer = ({ soundUrl, birdName }: BirdAudioPlayerProps) => {
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const { toast } = useToast()
 
-  const getAudioUrl = (url: string) => {
+  const getAudioUrl = async (url: string) => {
     console.log('Original path:', url)
     
-    // If it's already a Supabase URL, return it as is
+    // If it's a Supabase URL, get a signed URL to avoid CORB issues
     if (url.includes('supabase.co')) {
-      console.log('Using Supabase URL directly:', url)
-      return url
+      try {
+        const bucketName = url.split('/public/')[1].split('/')[0]
+        const filePath = url.split(`${bucketName}/`)[1]
+        
+        const { data: { signedUrl }, error } = await supabase
+          .storage
+          .from(bucketName)
+          .createSignedUrl(filePath, 3600) // 1 hour expiration
+
+        if (error) throw error
+        
+        console.log('Created signed URL:', signedUrl)
+        return signedUrl
+      } catch (error) {
+        console.error('Error creating signed URL:', error)
+        return url // fallback to original URL if signing fails
+      }
     }
     
     // For local files, extract filename and use local path
@@ -44,6 +60,18 @@ const BirdAudioPlayer = ({ soundUrl, birdName }: BirdAudioPlayerProps) => {
     setAudioError(false)
     setCurrentTime(0)
     setDuration(0)
+
+    // Initialize audio URL when soundUrl changes
+    if (soundUrl) {
+      getAudioUrl(soundUrl).then(url => {
+        if (audioRef.current) {
+          audioRef.current.src = url
+        }
+      }).catch(error => {
+        console.error('Error setting audio URL:', error)
+        setAudioError(true)
+      })
+    }
   }, [soundUrl])
 
   useEffect(() => {
@@ -133,8 +161,6 @@ const BirdAudioPlayer = ({ soundUrl, birdName }: BirdAudioPlayerProps) => {
 
   if (!soundUrl) return null
 
-  const audioUrl = getAudioUrl(soundUrl)
-
   return (
     <div className="rounded-xl border bg-gray-50 p-4 space-y-4">
       <div className="flex items-center justify-between">
@@ -166,7 +192,7 @@ const BirdAudioPlayer = ({ soundUrl, birdName }: BirdAudioPlayerProps) => {
 
       <AudioElement
         ref={audioRef}
-        soundUrl={audioUrl}
+        soundUrl=""
         onEnded={() => setIsPlaying(false)}
         onPlay={() => setIsPlaying(true)}
         onError={handleAudioError}
