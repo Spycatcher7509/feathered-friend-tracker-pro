@@ -10,9 +10,7 @@ interface AudioElementProps {
 }
 
 const AudioElement = forwardRef<HTMLAudioElement, AudioElementProps>(
-  ({ soundUrl, onEnded, onPlay, onError, onLoadedData }, ref) => {
-    if (!soundUrl) return null
-
+  ({ onEnded, onPlay, onError, onLoadedData }, ref) => {
     return (
       <audio
         ref={ref}
@@ -21,7 +19,6 @@ const AudioElement = forwardRef<HTMLAudioElement, AudioElementProps>(
         onPlay={onPlay}
         onError={onError}
         onLoadedData={onLoadedData}
-        src={soundUrl}
       />
     )
   }
