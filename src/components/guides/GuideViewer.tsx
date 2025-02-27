@@ -27,9 +27,9 @@ export const GuideViewer = ({ type }: { type: "user" | "admin" }) => {
         
         const { data, error } = await supabase
           .from("guides")
-          .select("title, content, order")
+          .select("title, content, sort_order")
           .eq("type", type)
-          .order("order", { ascending: true })
+          .order("sort_order", { ascending: true })
 
         if (error) {
           console.error("Error fetching guide:", error)
