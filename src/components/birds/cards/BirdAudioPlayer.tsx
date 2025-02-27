@@ -23,8 +23,12 @@ const BirdAudioPlayer = ({ soundUrl, birdName }: BirdAudioPlayerProps) => {
 
   const getLocalAudioUrl = (path: string) => {
     // Handle local file paths by extracting the filename
+    console.log('Original path:', path)
     const filename = path.split('/').pop()
-    return filename ? `/audio/${filename}` : path
+    console.log('Extracted filename:', filename)
+    const finalUrl = filename ? `/audio/${filename}` : path
+    console.log('Final audio URL:', finalUrl)
+    return finalUrl
   }
 
   useEffect(() => {
@@ -67,10 +71,12 @@ const BirdAudioPlayer = ({ soundUrl, birdName }: BirdAudioPlayerProps) => {
           audioRef.current.pause()
           setIsPlaying(false)
         } else {
+          console.log('Attempting to play audio...')
           const playPromise = audioRef.current.play()
           if (playPromise !== undefined) {
             await playPromise
             setIsPlaying(true)
+            console.log('Audio playback started successfully')
           }
         }
       } catch (error) {
@@ -102,10 +108,12 @@ const BirdAudioPlayer = ({ soundUrl, birdName }: BirdAudioPlayerProps) => {
   }
 
   const handleAudioLoad = () => {
+    console.log('Audio loaded successfully')
     setAudioError(false)
   }
 
   const handleAudioError = (e: React.SyntheticEvent<HTMLAudioElement, Event>) => {
+    console.error('Audio loading error:', e)
     setAudioError(true)
     setIsPlaying(false)
     toast({
