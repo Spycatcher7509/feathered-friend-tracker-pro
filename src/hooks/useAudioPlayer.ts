@@ -26,16 +26,16 @@ export const useAudioPlayer = (soundUrl: string | undefined, birdName: string) =
       }
 
       // Get a public URL for the file
-      const { data: { publicUrl }, error } = supabase
+      const { data } = supabase
         .storage
         .from('bird_sounds')
         .getPublicUrl(filename)
 
-      if (error || !publicUrl) {
-        throw error || new Error('Failed to get public URL')
+      if (!data.publicUrl) {
+        throw new Error('Failed to get public URL')
       }
 
-      return publicUrl
+      return data.publicUrl
     } catch (error) {
       console.error('Error getting audio URL:', error)
       throw error
