@@ -13,6 +13,18 @@ export const useAudioPlayer = (soundUrl: string | undefined, birdName: string) =
   const { toast } = useToast()
 
   const getAudioUrl = async (url: string) => {
+    console.log('Original URL:', url)
+    
+    // For full file system paths, extract just the filename
+    if (url.includes('/Users/')) {
+      const parts = url.split('/')
+      const filename = parts[parts.length - 1]
+      console.log('Extracted filename:', filename)
+      const newUrl = `/audio-directory/${filename}`
+      console.log('Converted to public path:', newUrl)
+      return newUrl
+    }
+    
     // For Supabase URLs, handle with storage API
     if (url.includes('supabase.co')) {
       try {
@@ -32,18 +44,6 @@ export const useAudioPlayer = (soundUrl: string | undefined, birdName: string) =
       }
     }
     
-    // For full file system paths, extract just the filename
-    if (url.includes('/Users/')) {
-      const filename = url.split('/').pop()
-      if (!filename) throw new Error('Invalid file path')
-      return `/audio-directory/${filename}`
-    }
-    
-    // For paths already relative to public directory
-    if (url.startsWith('/audio-directory/')) {
-      return url
-    }
-    
     return url
   }
 
@@ -59,13 +59,13 @@ export const useAudioPlayer = (soundUrl: string | undefined, birdName: string) =
       console.log('Processing audio URL:', soundUrl)
       getAudioUrl(soundUrl)
         .then(url => {
-          console.log('Resolved audio URL:', url)
+          console.log('Setting audio source to:', url)
           if (audioRef.current) {
             if (url.startsWith('blob:')) {
               blobUrl = url
             }
             audioRef.current.src = url
-            console.log('Set audio src to:', url)
+            audioRef.current.load() // Force reload of audio
           }
         })
         .catch(error => {
@@ -80,7 +80,7 @@ export const useAudioPlayer = (soundUrl: string | undefined, birdName: string) =
     }
 
     return () => {
-      if (blobUrl && blobUrl.startsWith('blob:')) {
+      if (blobUrl) {
         URL.revokeObjectURL(blobUrl)
       }
     }
@@ -92,13 +92,20 @@ export const useAudioPlayer = (soundUrl: string | undefined, birdName: string) =
       
       const updateTime = () => setCurrentTime(audio.currentTime)
       const handleDurationChange = () => setDuration(audio.duration)
+      const handleError = () => {
+        console.error('Audio error occurred:', audio.error)
+        setAudioError(true)
+        setIsPlaying(false)
+      }
       
       audio.addEventListener('timeupdate', updateTime)
       audio.addEventListener('durationchange', handleDurationChange)
+      audio.addEventListener('error', handleError)
       
       return () => {
         audio.removeEventListener('timeupdate', updateTime)
         audio.removeEventListener('durationchange', handleDurationChange)
+        audio.removeEventListener('error', handleError)
       }
     }
   }, [])

@@ -2,7 +2,6 @@
 import { forwardRef } from 'react'
 
 interface AudioElementProps {
-  soundUrl: string
   onEnded: () => void
   onPlay: () => void
   onError: (e: React.SyntheticEvent<HTMLAudioElement, Event>) => void
