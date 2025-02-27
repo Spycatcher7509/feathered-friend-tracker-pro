@@ -1,9 +1,11 @@
 
-import { Button } from "@/components/ui/button"
-import { Play, VolumeOff, Pause, Volume2 } from "lucide-react"
 import { useState, useRef, useEffect } from "react"
 import { useToast } from "@/hooks/use-toast"
-import { Slider } from "@/components/ui/slider"
+import AudioControls from "./audio-player/AudioControls"
+import TimeDisplay from "./audio-player/TimeDisplay"
+import VolumeControl from "./audio-player/VolumeControl"
+import ProgressBar from "./audio-player/ProgressBar"
+import AudioElement from "./audio-player/AudioElement"
 
 interface BirdAudioPlayerProps {
   soundUrl?: string
@@ -41,12 +43,6 @@ const BirdAudioPlayer = ({ soundUrl, birdName }: BirdAudioPlayerProps) => {
       }
     }
   }, [])
-
-  const formatTime = (time: number) => {
-    const minutes = Math.floor(time / 60)
-    const seconds = Math.floor(time % 60)
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`
-  }
 
   const toggleAudio = () => {
     if (!soundUrl) {
@@ -127,73 +123,39 @@ const BirdAudioPlayer = ({ soundUrl, birdName }: BirdAudioPlayerProps) => {
     <div className="rounded-xl border bg-gray-50 p-4 space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={toggleAudio}
-            className={`flex items-center justify-center h-10 w-10 rounded-full ${
-              audioError ? "text-destructive" : ""
-            } ${isPlaying ? "bg-gray-200" : ""}`}
-          >
-            {audioError ? (
-              <VolumeOff className="h-5 w-5" />
-            ) : (
-              <>
-                {isPlaying ? (
-                  <Pause className="h-5 w-5" />
-                ) : (
-                  <Play className="h-5 w-5" />
-                )}
-              </>
-            )}
-          </Button>
-          <div className="text-sm">
-            {audioError ? (
-              <span className="text-destructive">Audio Unavailable</span>
-            ) : (
-              <span className="text-gray-700">{formatTime(currentTime)} / {formatTime(duration)}</span>
-            )}
-          </div>
-        </div>
-        
-        <div className="flex items-center gap-2">
-          <Volume2 className="h-4 w-4 text-gray-500" />
-          <Slider
-            defaultValue={[1]}
-            max={1}
-            step={0.1}
-            value={[volume]}
-            onValueChange={handleVolumeChange}
-            className="w-20"
+          <AudioControls
+            isPlaying={isPlaying}
+            audioError={audioError}
+            onTogglePlay={toggleAudio}
+          />
+          <TimeDisplay
+            currentTime={currentTime}
+            duration={duration}
+            audioError={audioError}
           />
         </div>
+        <VolumeControl
+          volume={volume}
+          onVolumeChange={handleVolumeChange}
+        />
       </div>
 
       {!audioError && (
-        <Slider
-          defaultValue={[0]}
-          max={duration}
-          step={1}
-          value={[currentTime]}
-          onValueChange={handleTimeChange}
-          className="w-full"
+        <ProgressBar
+          currentTime={currentTime}
+          duration={duration}
+          onTimeChange={handleTimeChange}
         />
       )}
 
-      <audio
+      <AudioElement
         ref={audioRef}
-        src={soundUrl}
-        preload="metadata"
+        soundUrl={soundUrl}
         onEnded={() => setIsPlaying(false)}
         onPlay={() => setIsPlaying(true)}
         onError={handleAudioError}
         onLoadedData={handleAudioLoad}
-      >
-        <source src={soundUrl} type="audio/mpeg" />
-        <source src={soundUrl} type="audio/wav" />
-        <source src={soundUrl} type="audio/ogg" />
-        Your browser does not support the audio element.
-      </audio>
+      />
     </div>
   )
 }
