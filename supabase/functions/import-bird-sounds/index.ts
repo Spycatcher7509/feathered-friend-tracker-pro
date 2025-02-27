@@ -18,29 +18,76 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Insert Blue Jay sound data
-    const { error } = await supabase
+    // First, ensure the bird-sounds bucket exists
+    const { data: bucketData, error: bucketError } = await supabase
+      .storage.createBucket('bird-sounds', {
+        public: true,
+        allowedMimeTypes: ['audio/mpeg', 'audio/mp3']
+      })
+
+    if (bucketError && bucketError.message !== 'Bucket already exists') {
+      throw bucketError
+    }
+
+    // Upload the Blue Jay sound file
+    const audioFile = await Deno.readFile('./XC940085 - Blue Jay - Cyanocitta cristata.mp3')
+    const filename = 'blue-jay.mp3'
+
+    const { data: uploadData, error: uploadError } = await supabase
+      .storage
+      .from('bird-sounds')
+      .upload(filename, audioFile, {
+        contentType: 'audio/mpeg',
+        upsert: true
+      })
+
+    if (uploadError) {
+      throw uploadError
+    }
+
+    // Get the public URL for the uploaded file
+    const { data: { publicUrl } } = supabase
+      .storage
+      .from('bird-sounds')
+      .getPublicUrl(filename)
+
+    // Insert or update the sound in the external_bird_sounds table
+    const { data: insertData, error: insertError } = await supabase
       .from('external_bird_sounds')
-      .insert({
+      .upsert({
         bird_name: 'Blue Jay',
-        sound_url: '/lovable-uploads/XC940085-Blue-Jay-Cyanocitta-cristata.mp3',
+        sound_url: publicUrl,
         source: 'AllAboutBirds'
       })
 
-    if (error) {
-      throw error
+    if (insertError) {
+      throw insertError
     }
 
     return new Response(
-      JSON.stringify({ message: 'Bird sound added successfully' }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({ 
+        message: 'Blue Jay sound added successfully',
+        url: publicUrl
+      }),
+      { 
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json' 
+        }
+      }
     )
 
   } catch (error) {
     console.error('Error:', error)
     return new Response(
       JSON.stringify({ error: error.message }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+      { 
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json' 
+        }, 
+        status: 500 
+      }
     )
   }
 })
