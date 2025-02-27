@@ -53,20 +53,29 @@ const BirdAudioPlayer = ({ soundUrl, birdName }: BirdAudioPlayerProps) => {
       return
     }
 
+    console.log('Attempting to play audio:', soundUrl) // Debug log
+
     if (audioRef.current) {
       if (isPlaying) {
         audioRef.current.pause()
         setIsPlaying(false)
       } else {
-        audioRef.current.play().catch(error => {
-          console.error('Error playing audio:', error)
-          setAudioError(true)
-          toast({
-            variant: "destructive",
-            title: "Error",
-            description: "Failed to play audio. The recording might be unavailable.",
+        const playPromise = audioRef.current.play()
+        
+        if (playPromise !== undefined) {
+          playPromise.then(() => {
+            console.log('Audio playback started successfully') // Debug log
+            setIsPlaying(true)
+          }).catch(error => {
+            console.error('Error playing audio:', error)
+            setAudioError(true)
+            toast({
+              variant: "destructive",
+              title: "Error",
+              description: "Failed to play audio. The recording might be unavailable.",
+            })
           })
-        })
+        }
       }
     }
   }
@@ -87,22 +96,30 @@ const BirdAudioPlayer = ({ soundUrl, birdName }: BirdAudioPlayerProps) => {
   }
 
   const handleAudioLoad = () => {
-    console.log('Audio loaded successfully for:', birdName)
+    console.log('Audio loaded successfully for:', birdName, 'URL:', soundUrl)
     setAudioError(false)
   }
 
-  const handleAudioError = () => {
+  const handleAudioError = (e: Event) => {
+    const audioElement = e.target as HTMLAudioElement
     console.error('Audio load error for:', birdName)
+    console.error('Audio src:', audioElement.src)
+    console.error('Audio error:', audioElement.error)
     setAudioError(true)
     setIsPlaying(false)
     toast({
       variant: "destructive",
       title: "Error",
-      description: "Failed to load audio recording.",
+      description: "Failed to load audio recording. Please check the console for details.",
     })
   }
 
   if (!soundUrl) return null
+
+  // Make sure the URL is absolute
+  const absoluteUrl = soundUrl.startsWith('http') 
+    ? soundUrl 
+    : `${window.location.origin}${soundUrl}`
 
   return (
     <div className="rounded-xl border bg-gray-50 p-4 space-y-4">
@@ -163,7 +180,7 @@ const BirdAudioPlayer = ({ soundUrl, birdName }: BirdAudioPlayerProps) => {
 
       <audio
         ref={audioRef}
-        src={soundUrl}
+        src={absoluteUrl}
         onEnded={() => setIsPlaying(false)}
         onPlay={() => setIsPlaying(true)}
         onError={handleAudioError}
