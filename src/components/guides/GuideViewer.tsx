@@ -14,37 +14,77 @@ interface GuideSection {
 export const GuideViewer = ({ type }: { type: "user" | "admin" }) => {
   const [sections, setSections] = useState<GuideSection[]>([])
   const [activeTab, setActiveTab] = useState("0")
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const { toast } = useToast()
 
   useEffect(() => {
     const fetchGuide = async () => {
       try {
+        setIsLoading(true)
+        setError(null)
+        console.log("Fetching guide content for type:", type)
+        
         const { data, error } = await supabase
           .from("guides")
-          .select("title, content")
+          .select("title, content, order")
           .eq("type", type)
           .order("order", { ascending: true })
 
-        if (error) throw error
-        setSections(data || [])
+        if (error) {
+          console.error("Error fetching guide:", error)
+          throw error
+        }
+
+        if (!data || data.length === 0) {
+          console.log("No guide content found")
+          setError("No guide content available.")
+          return
+        }
+
+        console.log("Retrieved guide sections:", data.length)
+        setSections(data)
       } catch (error) {
         console.error("Error fetching guide:", error)
+        setError("Could not load the guide content. Please try again later.")
         toast({
           variant: "destructive",
           title: "Error",
           description: "Could not load the guide content",
         })
+      } finally {
+        setIsLoading(false)
       }
     }
 
     fetchGuide()
   }, [type, toast])
 
-  if (sections.length === 0) {
+  if (isLoading) {
     return (
       <Card>
         <CardContent className="p-6">
           <p className="text-muted-foreground text-center">Loading guide content...</p>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <p className="text-muted-foreground text-center">{error}</p>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (sections.length === 0) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <p className="text-muted-foreground text-center">No guide content available.</p>
         </CardContent>
       </Card>
     )
