@@ -13,30 +13,32 @@ export const useAudioPlayer = (soundUrl: string | undefined, birdName: string) =
   const { toast } = useToast()
 
   const getAudioUrl = async (url: string) => {
+    // For Supabase URLs, handle with storage API
     if (url.includes('supabase.co')) {
       try {
-        // Clean up the URL to get just the filename
         const filename = url.split('/').pop()
         if (!filename) throw new Error('Invalid file path')
         
-        // Get a direct download URL from Supabase storage
         const { data, error } = await supabase
           .storage
           .from('bird_sounds')
           .download(filename)
 
         if (error) throw error
-        
-        // Create a blob URL from the downloaded data
-        const blobUrl = URL.createObjectURL(data)
-        return blobUrl
+        return URL.createObjectURL(data)
       } catch (error) {
         console.error('Error downloading audio:', error)
         throw error
       }
     }
     
-    // For local files, use the URL directly
+    // For local files, ensure we use the correct path from the public directory
+    if (url.includes('audio-directory')) {
+      const filename = url.split('/').pop()
+      if (!filename) throw new Error('Invalid file path')
+      return `/audio-directory/${filename}`
+    }
+    
     return url
   }
 
@@ -49,10 +51,14 @@ export const useAudioPlayer = (soundUrl: string | undefined, birdName: string) =
     let blobUrl: string | undefined
 
     if (soundUrl) {
+      console.log('Processing audio URL:', soundUrl)
       getAudioUrl(soundUrl)
         .then(url => {
+          console.log('Resolved audio URL:', url)
           if (audioRef.current) {
-            blobUrl = url
+            if (url.startsWith('blob:')) {
+              blobUrl = url
+            }
             audioRef.current.src = url
           }
         })
@@ -67,7 +73,6 @@ export const useAudioPlayer = (soundUrl: string | undefined, birdName: string) =
         })
     }
 
-    // Cleanup function to revoke blob URL
     return () => {
       if (blobUrl && blobUrl.startsWith('blob:')) {
         URL.revokeObjectURL(blobUrl)
@@ -108,10 +113,12 @@ export const useAudioPlayer = (soundUrl: string | undefined, birdName: string) =
           audioRef.current.pause()
           setIsPlaying(false)
         } else {
+          console.log('Attempting to play:', audioRef.current.src)
           const playPromise = audioRef.current.play()
           if (playPromise !== undefined) {
             await playPromise
             setIsPlaying(true)
+            console.log('Audio playback started successfully')
           }
         }
       } catch (error) {
