@@ -14,6 +14,7 @@ const AudioElement = forwardRef<HTMLAudioElement, AudioElementProps>(
       <audio
         ref={ref}
         preload="metadata"
+        crossOrigin="anonymous"
         onEnded={onEnded}
         onPlay={onPlay}
         onError={onError}
