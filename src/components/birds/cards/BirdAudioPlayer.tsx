@@ -22,10 +22,11 @@ const BirdAudioPlayer = ({ soundUrl, birdName }: BirdAudioPlayerProps) => {
   const { toast } = useToast()
 
   useEffect(() => {
-    // Reset error state when sound URL changes
-    if (soundUrl) {
-      setAudioError(false)
-    }
+    // Reset states when sound URL changes
+    setIsPlaying(false)
+    setAudioError(false)
+    setCurrentTime(0)
+    setDuration(0)
   }, [soundUrl])
 
   useEffect(() => {
@@ -64,12 +65,6 @@ const BirdAudioPlayer = ({ soundUrl, birdName }: BirdAudioPlayerProps) => {
           audioRef.current.pause()
           setIsPlaying(false)
         } else {
-          // Check if audio is actually loadable before trying to play
-          const response = await fetch(soundUrl, { method: 'HEAD' })
-          if (!response.ok) {
-            throw new Error('Audio file not accessible')
-          }
-
           const playPromise = audioRef.current.play()
           if (playPromise !== undefined) {
             await playPromise
@@ -84,7 +79,7 @@ const BirdAudioPlayer = ({ soundUrl, birdName }: BirdAudioPlayerProps) => {
         toast({
           variant: "destructive",
           title: "Audio Error",
-          description: "Unable to play this audio file. It may be unavailable or in an unsupported format.",
+          description: `Unable to play audio for ${birdName}. The file may be unavailable.`,
         })
       }
     }
@@ -106,7 +101,7 @@ const BirdAudioPlayer = ({ soundUrl, birdName }: BirdAudioPlayerProps) => {
   }
 
   const handleAudioLoad = () => {
-    console.log('Audio loaded successfully for:', birdName, 'URL:', soundUrl)
+    console.log('Audio loaded successfully for:', birdName)
     setAudioError(false)
   }
 
@@ -114,14 +109,13 @@ const BirdAudioPlayer = ({ soundUrl, birdName }: BirdAudioPlayerProps) => {
     const audioElement = e.currentTarget
     console.error('Audio load error for:', birdName)
     console.error('Audio src:', audioElement.src)
-    console.error('Audio error code:', audioElement.error?.code)
-    console.error('Audio error message:', audioElement.error?.message)
+    console.error('Audio error:', audioElement.error)
     setAudioError(true)
     setIsPlaying(false)
     toast({
       variant: "destructive",
       title: "Audio Error",
-      description: "Unable to load audio. Please check if the file exists and try again.",
+      description: `Unable to load audio for ${birdName}. Please check if the file exists.`,
     })
   }
 
