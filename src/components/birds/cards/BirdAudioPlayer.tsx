@@ -75,7 +75,6 @@ const BirdAudioPlayer = ({ soundUrl, birdName }: BirdAudioPlayerProps) => {
 
       <AudioElement
         ref={audioRef}
-        soundUrl=""
         onEnded={() => setIsPlaying(false)}
         onPlay={() => setIsPlaying(true)}
         onError={() => setAudioError(true)}
