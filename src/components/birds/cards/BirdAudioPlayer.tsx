@@ -21,14 +21,19 @@ const BirdAudioPlayer = ({ soundUrl, birdName }: BirdAudioPlayerProps) => {
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const { toast } = useToast()
 
-  const getLocalAudioUrl = (path: string) => {
-    // Handle local file paths by extracting the filename
-    console.log('Original path:', path)
-    // Split by directory separators and get the last part (the filename)
-    const parts = path.split(/[\/\\]/)
+  const getAudioUrl = (url: string) => {
+    console.log('Original path:', url)
+    
+    // If it's already a Supabase URL, return it as is
+    if (url.includes('supabase.co')) {
+      console.log('Using Supabase URL directly:', url)
+      return url
+    }
+    
+    // For local files, extract filename and use local path
+    const parts = url.split(/[\/\\]/)
     const filename = parts[parts.length - 1]
     console.log('Extracted filename:', filename)
-    // Construct the proper URL for the audio file in the public directory
     const finalUrl = `/audio-directory/${filename}`
     console.log('Final audio URL:', finalUrl)
     return finalUrl
@@ -128,7 +133,7 @@ const BirdAudioPlayer = ({ soundUrl, birdName }: BirdAudioPlayerProps) => {
 
   if (!soundUrl) return null
 
-  const audioUrl = getLocalAudioUrl(soundUrl)
+  const audioUrl = getAudioUrl(soundUrl)
 
   return (
     <div className="rounded-xl border bg-gray-50 p-4 space-y-4">
