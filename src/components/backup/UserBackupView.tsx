@@ -23,7 +23,7 @@ export const UserBackupView = ({
       <Alert variant="default" className="mb-4">
         <AlertCircle className="h-4 w-4" />
         <AlertDescription>
-          You can backup and restore your own data. Your backups will be saved to your local computer.
+          You are responsible for backing up and restoring your own data. Backups will be saved to your local computer or mobile device.
         </AlertDescription>
       </Alert>
       
