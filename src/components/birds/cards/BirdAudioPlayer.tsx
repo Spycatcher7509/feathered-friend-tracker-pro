@@ -24,9 +24,12 @@ const BirdAudioPlayer = ({ soundUrl, birdName }: BirdAudioPlayerProps) => {
   const getLocalAudioUrl = (path: string) => {
     // Handle local file paths by extracting the filename
     console.log('Original path:', path)
-    const filename = path.split('/').pop()
+    // Split by directory separators and get the last part (the filename)
+    const parts = path.split(/[\/\\]/)
+    const filename = parts[parts.length - 1]
     console.log('Extracted filename:', filename)
-    const finalUrl = filename ? `/audio/${filename}` : path
+    // Construct the proper URL for the audio file in the public directory
+    const finalUrl = `/audio directory/${filename}`
     console.log('Final audio URL:', finalUrl)
     return finalUrl
   }
