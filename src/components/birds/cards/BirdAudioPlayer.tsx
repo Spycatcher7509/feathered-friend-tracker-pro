@@ -20,6 +20,13 @@ const BirdAudioPlayer = ({ soundUrl, birdName }: BirdAudioPlayerProps) => {
   const { toast } = useToast()
 
   useEffect(() => {
+    if (soundUrl && audioRef.current) {
+      // Preload the audio file
+      audioRef.current.load()
+    }
+  }, [soundUrl])
+
+  useEffect(() => {
     if (audioRef.current) {
       const audio = audioRef.current
       
@@ -72,7 +79,7 @@ const BirdAudioPlayer = ({ soundUrl, birdName }: BirdAudioPlayerProps) => {
             toast({
               variant: "destructive",
               title: "Error",
-              description: "Failed to play audio. The recording might be unavailable.",
+              description: `Failed to play audio: ${error.message}`,
             })
           })
         }
@@ -104,13 +111,14 @@ const BirdAudioPlayer = ({ soundUrl, birdName }: BirdAudioPlayerProps) => {
     const audioElement = e.currentTarget
     console.error('Audio load error for:', birdName)
     console.error('Audio src:', audioElement.src)
-    console.error('Audio error:', audioElement.error)
+    console.error('Audio error code:', audioElement.error?.code)
+    console.error('Audio error message:', audioElement.error?.message)
     setAudioError(true)
     setIsPlaying(false)
     toast({
       variant: "destructive",
       title: "Error",
-      description: "Failed to load audio recording. Please check the console for details.",
+      description: `Failed to load audio: ${audioElement.error?.message || 'Unknown error'}`,
     })
   }
 
@@ -176,11 +184,15 @@ const BirdAudioPlayer = ({ soundUrl, birdName }: BirdAudioPlayerProps) => {
       <audio
         ref={audioRef}
         src={soundUrl}
+        preload="metadata"
         onEnded={() => setIsPlaying(false)}
         onPlay={() => setIsPlaying(true)}
         onError={handleAudioError}
         onLoadedData={handleAudioLoad}
-      />
+      >
+        <source src={soundUrl} type="audio/mpeg" />
+        Your browser does not support the audio element.
+      </audio>
     </div>
   )
 }
