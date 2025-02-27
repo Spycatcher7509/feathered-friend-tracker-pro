@@ -32,11 +32,16 @@ export const useAudioPlayer = (soundUrl: string | undefined, birdName: string) =
       }
     }
     
-    // For local files, ensure we use the correct path from the public directory
-    if (url.includes('audio-directory')) {
+    // For full file system paths, extract just the filename
+    if (url.includes('/Users/')) {
       const filename = url.split('/').pop()
       if (!filename) throw new Error('Invalid file path')
       return `/audio-directory/${filename}`
+    }
+    
+    // For paths already relative to public directory
+    if (url.startsWith('/audio-directory/')) {
+      return url
     }
     
     return url
@@ -60,6 +65,7 @@ export const useAudioPlayer = (soundUrl: string | undefined, birdName: string) =
               blobUrl = url
             }
             audioRef.current.src = url
+            console.log('Set audio src to:', url)
           }
         })
         .catch(error => {
