@@ -4,7 +4,6 @@ import AudioControls from "./audio-player/AudioControls"
 import TimeDisplay from "./audio-player/TimeDisplay"
 import VolumeControl from "./audio-player/VolumeControl"
 import ProgressBar from "./audio-player/ProgressBar"
-import AudioElement from "./audio-player/AudioElement"
 import AudioPlayerLayout from "./audio-player/AudioPlayerLayout"
 
 interface BirdAudioPlayerProps {
@@ -19,7 +18,6 @@ const BirdAudioPlayer = ({ soundUrl, birdName }: BirdAudioPlayerProps) => {
     currentTime,
     duration,
     volume,
-    audioRef,
     setCurrentTime,
     setVolume,
     setIsPlaying,
@@ -28,18 +26,11 @@ const BirdAudioPlayer = ({ soundUrl, birdName }: BirdAudioPlayerProps) => {
   } = useAudioPlayer(soundUrl, birdName)
 
   const handleTimeChange = (value: number[]) => {
-    if (audioRef.current) {
-      audioRef.current.currentTime = value[0]
-      setCurrentTime(value[0])
-    }
+    setCurrentTime(value[0])
   }
 
   const handleVolumeChange = (value: number[]) => {
-    if (audioRef.current) {
-      const newVolume = value[0]
-      audioRef.current.volume = newVolume
-      setVolume(newVolume)
-    }
+    setVolume(value[0])
   }
 
   if (!soundUrl) return null
@@ -72,14 +63,6 @@ const BirdAudioPlayer = ({ soundUrl, birdName }: BirdAudioPlayerProps) => {
           onTimeChange={handleTimeChange}
         />
       )}
-
-      <AudioElement
-        ref={audioRef}
-        onEnded={() => setIsPlaying(false)}
-        onPlay={() => setIsPlaying(true)}
-        onError={() => setAudioError(true)}
-        onLoadedData={() => setAudioError(false)}
-      />
     </AudioPlayerLayout>
   )
 }

@@ -1,5 +1,5 @@
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useEffect } from "react"
 import { useToast } from "@/hooks/use-toast"
 import { supabase } from "@/integrations/supabase/client"
 
@@ -9,7 +9,7 @@ export const useAudioPlayer = (soundUrl: string | undefined, birdName: string) =
     const [currentTime, setCurrentTime] = useState(0)
     const [duration, setDuration] = useState(0)
     const [volume, setVolume] = useState(1)
-    const audioRef = useRef<HTMLAudioElement | null>(null)
+    const [audio] = useState(() => new Audio())
     const { toast } = useToast()
 
     const getAudioUrl = async (url: string) => {
@@ -39,68 +39,20 @@ export const useAudioPlayer = (soundUrl: string | undefined, birdName: string) =
         }
     }
 
+    // Set up event listeners once on mount
     useEffect(() => {
-        let isMounted = true
+        // Set up audio element properties
+        audio.preload = "metadata"
+        audio.crossOrigin = "anonymous"
+        audio.volume = volume
 
-        const setupAudio = async () => {
-            if (!soundUrl) return
-
-            try {
-                const url = await getAudioUrl(soundUrl)
-                if (!isMounted) return
-
-                if (audioRef.current) {
-                    // Reset audio state
-                    audioRef.current.pause()
-                    audioRef.current.currentTime = 0
-                    audioRef.current.src = url
-
-                    // Load the new audio source
-                    const loadPromise = new Promise<void>((resolve, reject) => {
-                        if (audioRef.current) {
-                            audioRef.current.onloadeddata = () => resolve()
-                            audioRef.current.onerror = () => reject(new Error("Failed to load audio"))
-                        }
-                    })
-
-                    audioRef.current.load()
-                    await loadPromise
-
-                    setAudioError(false)
-                }
-            } catch (error) {
-                console.error("Error setting up audio:", error)
-                if (isMounted) {
-                    setAudioError(true)
-                    toast({
-                        variant: "destructive",
-                        title: "Error",
-                        description: `Unable to load audio for ${birdName}`,
-                    })
-                }
-            }
-        }
-
-        setupAudio()
-
-        return () => {
-            isMounted = false
-            if (audioRef.current) {
-                audioRef.current.pause()
-                audioRef.current.src = "" // Ensure cleanup
-            }
-        }
-    }, [soundUrl, birdName, toast])
-
-    useEffect(() => {
-        const audio = audioRef.current
-        if (!audio) return
-
+        // Set up event listeners
         const updateTime = () => setCurrentTime(audio.currentTime)
         const handleDurationChange = () => setDuration(audio.duration)
         const handleEnded = () => setIsPlaying(false)
-        const handleError = (e: ErrorEvent) => {
-            console.error("Audio error:", e, audio.error)
+        const handleLoadedData = () => setAudioError(false)
+        const handleError = () => {
+            console.error("Audio error:", audio.error)
             setAudioError(true)
             setIsPlaying(false)
             toast({
@@ -113,24 +65,65 @@ export const useAudioPlayer = (soundUrl: string | undefined, birdName: string) =
         audio.addEventListener("timeupdate", updateTime)
         audio.addEventListener("durationchange", handleDurationChange)
         audio.addEventListener("ended", handleEnded)
+        audio.addEventListener("loadeddata", handleLoadedData)
         audio.addEventListener("error", handleError)
 
         return () => {
             audio.removeEventListener("timeupdate", updateTime)
             audio.removeEventListener("durationchange", handleDurationChange)
             audio.removeEventListener("ended", handleEnded)
+            audio.removeEventListener("loadeddata", handleLoadedData)
             audio.removeEventListener("error", handleError)
+            audio.pause()
+            audio.src = ""
         }
-    }, [birdName, toast])
+    }, [audio, birdName, toast, volume])
 
+    // Handle sound URL changes
     useEffect(() => {
-        if (audioRef.current) {
-            audioRef.current.volume = volume
+        if (!soundUrl) return
+
+        const setupAudio = async () => {
+            try {
+                const url = await getAudioUrl(soundUrl)
+                
+                // Reset player state
+                setIsPlaying(false)
+                setCurrentTime(0)
+                setDuration(0)
+                
+                // Reset and load audio
+                audio.pause()
+                audio.currentTime = 0
+                audio.src = url
+                audio.load()
+                
+            } catch (error) {
+                console.error("Error setting up audio:", error)
+                setAudioError(true)
+                toast({
+                    variant: "destructive",
+                    title: "Error",
+                    description: `Unable to load audio for ${birdName}`,
+                })
+            }
         }
-    }, [volume])
+
+        setupAudio()
+        
+        return () => {
+            audio.pause()
+            audio.src = ""
+        }
+    }, [soundUrl, birdName, toast, audio])
+
+    // Update volume when it changes
+    useEffect(() => {
+        audio.volume = volume
+    }, [volume, audio])
 
     const toggleAudio = async () => {
-        if (!soundUrl || !audioRef.current) {
+        if (!soundUrl) {
             toast({
                 variant: "destructive",
                 title: "Error",
@@ -141,13 +134,16 @@ export const useAudioPlayer = (soundUrl: string | undefined, birdName: string) =
 
         try {
             if (isPlaying) {
-                audioRef.current.pause()
+                audio.pause()
                 setIsPlaying(false)
             } else {
-                await audioRef.current.play().catch(() => {
-                    throw new Error("Playback failed due to browser restrictions")
-                })
-                setIsPlaying(true)
+                try {
+                    await audio.play()
+                    setIsPlaying(true)
+                } catch (error) {
+                    console.error("Play error:", error)
+                    throw error
+                }
             }
         } catch (error) {
             console.error("Error playing audio:", error)
@@ -161,15 +157,24 @@ export const useAudioPlayer = (soundUrl: string | undefined, birdName: string) =
         }
     }
 
+    const setAudioTime = (time: number) => {
+        audio.currentTime = time
+        setCurrentTime(time)
+    }
+
+    const setAudioVolume = (newVolume: number) => {
+        audio.volume = newVolume
+        setVolume(newVolume)
+    }
+
     return {
         isPlaying,
         audioError,
         currentTime,
         duration,
         volume,
-        audioRef,
-        setCurrentTime,
-        setVolume,
+        setCurrentTime: setAudioTime,
+        setVolume: setAudioVolume,
         setIsPlaying,
         setAudioError,
         toggleAudio,
