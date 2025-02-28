@@ -4,180 +4,174 @@ import { useToast } from "@/hooks/use-toast"
 import { supabase } from "@/integrations/supabase/client"
 
 export const useAudioPlayer = (soundUrl: string | undefined, birdName: string) => {
-  const [isPlaying, setIsPlaying] = useState(false)
-  const [audioError, setAudioError] = useState(false)
-  const [currentTime, setCurrentTime] = useState(0)
-  const [duration, setDuration] = useState(0)
-  const [volume, setVolume] = useState(1)
-  const audioRef = useRef<HTMLAudioElement | null>(null)
-  const { toast } = useToast()
+    const [isPlaying, setIsPlaying] = useState(false)
+    const [audioError, setAudioError] = useState(false)
+    const [currentTime, setCurrentTime] = useState(0)
+    const [duration, setDuration] = useState(0)
+    const [volume, setVolume] = useState(1)
+    const audioRef = useRef<HTMLAudioElement | null>(null)
+    const { toast } = useToast()
 
-  const getAudioUrl = async (url: string) => {
-    try {
-      // If it's not a Supabase URL, return as-is
-      if (!url.includes('supabase.co')) {
-        return url
-      }
-
-      // Get the filename from the URL
-      const filename = url.split('/').pop()
-      if (!filename) {
-        throw new Error('Invalid URL format')
-      }
-
-      // Get a public URL for the file
-      const { data } = supabase
-        .storage
-        .from('bird_sounds')
-        .getPublicUrl(filename)
-
-      if (!data.publicUrl) {
-        throw new Error('Failed to get public URL')
-      }
-
-      // Add cache-busting parameter and ensure CORS headers
-      const cacheBuster = `?t=${Date.now()}`
-      return `${data.publicUrl}${cacheBuster}`
-    } catch (error) {
-      console.error('Error getting audio URL:', error)
-      throw error
-    }
-  }
-
-  useEffect(() => {
-    let isMounted = true
-
-    const setupAudio = async () => {
-      if (!soundUrl) return
-
-      try {
-        const url = await getAudioUrl(soundUrl)
-        
-        if (!isMounted) return
-
-        if (audioRef.current) {
-          // Reset audio state
-          audioRef.current.pause()
-          audioRef.current.currentTime = 0
-          audioRef.current.volume = volume
-          
-          // Set new source and load
-          audioRef.current.src = url
-          
-          // Create a promise to handle audio loading
-          const loadPromise = new Promise((resolve, reject) => {
-            if (audioRef.current) {
-              audioRef.current.onloadeddata = resolve
-              audioRef.current.onerror = reject
+    const getAudioUrl = async (url: string) => {
+        try {
+            if (!url.includes("supabase.co")) {
+                return url // Return as-is if not a Supabase URL
             }
-          })
 
-          // Load the audio and wait for it to be ready
-          audioRef.current.load()
-          await loadPromise
-          
-          setAudioError(false)
+            // Extract filename
+            const filename = url.split("/").pop()
+            if (!filename) {
+                throw new Error("Invalid URL format")
+            }
+
+            // Get public URL from Supabase
+            const { data } = supabase.storage.from("bird_sounds").getPublicUrl(filename)
+            const publicUrl = data?.publicUrl
+
+            if (!publicUrl) {
+                throw new Error("Failed to get public URL")
+            }
+
+            return `${publicUrl}?t=${Date.now()}` // Add cache-busting parameter
+        } catch (error) {
+            console.error("Error getting audio URL:", error)
+            throw error
         }
-      } catch (error) {
-        console.error('Error setting up audio:', error)
-        if (isMounted) {
-          setAudioError(true)
-          toast({
-            variant: "destructive",
-            title: "Error",
-            description: `Unable to load audio for ${birdName}`,
-          })
+    }
+
+    useEffect(() => {
+        let isMounted = true
+
+        const setupAudio = async () => {
+            if (!soundUrl) return
+
+            try {
+                const url = await getAudioUrl(soundUrl)
+                if (!isMounted) return
+
+                if (audioRef.current) {
+                    // Reset audio state
+                    audioRef.current.pause()
+                    audioRef.current.currentTime = 0
+                    audioRef.current.src = url
+
+                    // Load the new audio source
+                    const loadPromise = new Promise<void>((resolve, reject) => {
+                        if (audioRef.current) {
+                            audioRef.current.onloadeddata = () => resolve()
+                            audioRef.current.onerror = () => reject(new Error("Failed to load audio"))
+                        }
+                    })
+
+                    audioRef.current.load()
+                    await loadPromise
+
+                    setAudioError(false)
+                }
+            } catch (error) {
+                console.error("Error setting up audio:", error)
+                if (isMounted) {
+                    setAudioError(true)
+                    toast({
+                        variant: "destructive",
+                        title: "Error",
+                        description: `Unable to load audio for ${birdName}`,
+                    })
+                }
+            }
         }
-      }
+
+        setupAudio()
+
+        return () => {
+            isMounted = false
+            if (audioRef.current) {
+                audioRef.current.pause()
+                audioRef.current.src = "" // Ensure cleanup
+            }
+        }
+    }, [soundUrl, birdName, toast])
+
+    useEffect(() => {
+        const audio = audioRef.current
+        if (!audio) return
+
+        const updateTime = () => setCurrentTime(audio.currentTime)
+        const handleDurationChange = () => setDuration(audio.duration)
+        const handleEnded = () => setIsPlaying(false)
+        const handleError = (e: ErrorEvent) => {
+            console.error("Audio error:", e, audio.error)
+            setAudioError(true)
+            setIsPlaying(false)
+            toast({
+                variant: "destructive",
+                title: "Audio Error",
+                description: `Unable to play audio for ${birdName}`,
+            })
+        }
+
+        audio.addEventListener("timeupdate", updateTime)
+        audio.addEventListener("durationchange", handleDurationChange)
+        audio.addEventListener("ended", handleEnded)
+        audio.addEventListener("error", handleError)
+
+        return () => {
+            audio.removeEventListener("timeupdate", updateTime)
+            audio.removeEventListener("durationchange", handleDurationChange)
+            audio.removeEventListener("ended", handleEnded)
+            audio.removeEventListener("error", handleError)
+        }
+    }, [birdName, toast])
+
+    useEffect(() => {
+        if (audioRef.current) {
+            audioRef.current.volume = volume
+        }
+    }, [volume])
+
+    const toggleAudio = async () => {
+        if (!soundUrl || !audioRef.current) {
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "No audio recording available",
+            })
+            return
+        }
+
+        try {
+            if (isPlaying) {
+                audioRef.current.pause()
+                setIsPlaying(false)
+            } else {
+                await audioRef.current.play().catch(() => {
+                    throw new Error("Playback failed due to browser restrictions")
+                })
+                setIsPlaying(true)
+            }
+        } catch (error) {
+            console.error("Error playing audio:", error)
+            setAudioError(true)
+            setIsPlaying(false)
+            toast({
+                variant: "destructive",
+                title: "Audio Error",
+                description: `Unable to play audio for ${birdName}`,
+            })
+        }
     }
 
-    setupAudio()
-    setIsPlaying(false)
-    setCurrentTime(0)
-    setDuration(0)
-
-    return () => {
-      isMounted = false
-      if (audioRef.current) {
-        audioRef.current.pause()
-        audioRef.current.src = ''
-        audioRef.current.load()
-      }
+    return {
+        isPlaying,
+        audioError,
+        currentTime,
+        duration,
+        volume,
+        audioRef,
+        setCurrentTime,
+        setVolume,
+        setIsPlaying,
+        setAudioError,
+        toggleAudio,
     }
-  }, [soundUrl, birdName, toast, volume])
-
-  useEffect(() => {
-    const audio = audioRef.current
-    if (!audio) return
-
-    const updateTime = () => setCurrentTime(audio.currentTime)
-    const handleDurationChange = () => setDuration(audio.duration)
-    const handleEnded = () => setIsPlaying(false)
-    const handleError = (e: ErrorEvent) => {
-      console.error('Audio error:', e, audio.error)
-      setAudioError(true)
-      setIsPlaying(false)
-      toast({
-        variant: "destructive",
-        title: "Audio Error",
-        description: `Unable to play audio for ${birdName}`,
-      })
-    }
-
-    audio.addEventListener('timeupdate', updateTime)
-    audio.addEventListener('durationchange', handleDurationChange)
-    audio.addEventListener('ended', handleEnded)
-    audio.addEventListener('error', handleError)
-
-    return () => {
-      audio.removeEventListener('timeupdate', updateTime)
-      audio.removeEventListener('durationchange', handleDurationChange)
-      audio.removeEventListener('ended', handleEnded)
-      audio.removeEventListener('error', handleError)
-    }
-  }, [audioRef, birdName, toast])
-
-  const toggleAudio = async () => {
-    if (!soundUrl || !audioRef.current) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "No audio recording available",
-      })
-      return
-    }
-
-    try {
-      if (isPlaying) {
-        audioRef.current.pause()
-        setIsPlaying(false)
-      } else {
-        await audioRef.current.play()
-        setIsPlaying(true)
-      }
-    } catch (error) {
-      console.error('Error playing audio:', error)
-      setAudioError(true)
-      setIsPlaying(false)
-      toast({
-        variant: "destructive",
-        title: "Audio Error",
-        description: `Unable to play audio for ${birdName}`,
-      })
-    }
-  }
-
-  return {
-    isPlaying,
-    audioError,
-    currentTime,
-    duration,
-    volume,
-    audioRef,
-    setCurrentTime,
-    setVolume,
-    setIsPlaying,
-    setAudioError,
-    toggleAudio,
-  }
 }
