@@ -9,7 +9,12 @@ export const useAudioPlayer = (soundUrl: string | undefined, birdName: string) =
     const [currentTime, setCurrentTime] = useState(0)
     const [duration, setDuration] = useState(0)
     const [volume, setVolume] = useState(1)
-    const [audio] = useState(() => new Audio())
+    const [audio] = useState<HTMLAudioElement>(() => {
+        const element = new Audio()
+        element.preload = "metadata"
+        element.crossOrigin = "anonymous"
+        return element
+    })
     const { toast } = useToast()
 
     const getAudioUrl = async (url: string) => {
@@ -42,8 +47,6 @@ export const useAudioPlayer = (soundUrl: string | undefined, birdName: string) =
     // Set up event listeners once on mount
     useEffect(() => {
         // Set up audio element properties
-        audio.preload = "metadata"
-        audio.crossOrigin = "anonymous"
         audio.volume = volume
 
         // Set up event listeners
