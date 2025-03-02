@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react"
+import { useEffect, useReducer } from "react"
 import Navigation from "@/components/Navigation"
 import PageLayout from "@/components/layout/PageLayout"
 import ProfileImporter from "@/components/auth/ProfileImporter"
@@ -22,27 +22,56 @@ import { Chat } from "@/components/chat/Chat"
 import { UsersList } from "@/components/admin/UsersList"
 import { format } from "date-fns"
 
+// Define initial state for reducer
+const initialState = {
+  showBirdSounds: false,
+  showTrends: false,
+  showUserGuide: false,
+  showAdminGuide: false,
+  showUsers: false,
+  isAdmin: false,
+  currentTime: new Date(),
+}
+
+// Reducer function to manage state changes
+const dashboardReducer = (state, action) => {
+  switch (action.type) {
+    case 'TOGGLE_BIRD_SOUNDS':
+      return { ...state, showBirdSounds: !state.showBirdSounds }
+    case 'TOGGLE_TRENDS':
+      return { ...state, showTrends: !state.showTrends }
+    case 'TOGGLE_USER_GUIDE':
+      return { ...state, showUserGuide: !state.showUserGuide }
+    case 'TOGGLE_ADMIN_GUIDE':
+      return { ...state, showAdminGuide: !state.showAdminGuide }
+    case 'TOGGLE_USERS':
+      return { ...state, showUsers: !state.showUsers }
+    case 'SET_ADMIN_STATUS':
+      return { ...state, isAdmin: action.payload }
+    case 'SET_TIME':
+      return { ...state, currentTime: action.payload }
+    default:
+      return state
+  }
+}
+
 const Index = () => {
-  const [showBirdSounds, setShowBirdSounds] = useState(false)
-  const [showTrends, setShowTrends] = useState(false)
-  const [showUserGuide, setShowUserGuide] = useState(false)
-  const [showAdminGuide, setShowAdminGuide] = useState(false)
-  const [showUsers, setShowUsers] = useState(false)
-  const [isAdmin, setIsAdmin] = useState(false)
-  const [currentTime, setCurrentTime] = useState(new Date())
+  const [state, dispatch] = useReducer(dashboardReducer, initialState)
   const { checkAdminStatus } = useAdminGroups()
 
+  // Check for admin status
   useEffect(() => {
     const checkAdmin = async () => {
       const adminStatus = await checkAdminStatus()
-      setIsAdmin(adminStatus)
+      dispatch({ type: 'SET_ADMIN_STATUS', payload: adminStatus })
     }
     checkAdmin()
-  }, [])
+  }, [checkAdminStatus])
 
+  // Update current time every second
   useEffect(() => {
     const timer = setInterval(() => {
-      setCurrentTime(new Date())
+      dispatch({ type: 'SET_TIME', payload: new Date() })
     }, 1000)
 
     return () => clearInterval(timer)
@@ -52,8 +81,9 @@ const Index = () => {
     <PageLayout header={<Navigation />}>
       <div className="container mx-auto px-4 py-8 space-y-12">
         <div className="text-center mb-4 text-xl font-semibold text-nature-800">
-          {format(currentTime, 'EEEE, MMMM do yyyy, h:mm:ss a')}
+          {format(state.currentTime, 'EEEE, MMMM do yyyy, h:mm:ss a')}
         </div>
+
         <div className="space-y-6">
           <div>
             <div className="mb-6">
@@ -62,17 +92,17 @@ const Index = () => {
                 <Button
                   variant="outline"
                   className="bg-[#223534] text-white hover:bg-[#2a4241]"
-                  onClick={() => setShowUserGuide(!showUserGuide)}
+                  onClick={() => dispatch({ type: 'TOGGLE_USER_GUIDE' })}
                 >
                   <FileCode className="mr-2" />
                   User Guide (HTML)
                 </Button>
-                {isAdmin && (
+                {state.isAdmin && (
                   <>
                     <Button
                       variant="outline"
                       className="bg-[#223534] text-white hover:bg-[#2a4241]"
-                      onClick={() => setShowAdminGuide(!showAdminGuide)}
+                      onClick={() => dispatch({ type: 'TOGGLE_ADMIN_GUIDE' })}
                     >
                       <FileCode className="mr-2" />
                       Admin Guide
@@ -80,7 +110,7 @@ const Index = () => {
                     <Button
                       variant="outline"
                       className="bg-[#223534] text-white hover:bg-[#2a4241]"
-                      onClick={() => setShowUsers(!showUsers)}
+                      onClick={() => dispatch({ type: 'TOGGLE_USERS' })}
                     >
                       <Users className="mr-2" />
                       View Users
@@ -88,23 +118,23 @@ const Index = () => {
                   </>
                 )}
               </div>
-              {showUserGuide && (
+              {state.showUserGuide && (
                 <div className="mt-4">
                   <GuideViewer type="user" />
                 </div>
               )}
-              {showAdminGuide && isAdmin && (
+              {state.showAdminGuide && state.isAdmin && (
                 <div className="mt-4">
                   <GuideViewer type="admin" />
                 </div>
               )}
-              {showUsers && isAdmin && (
+              {state.showUsers && state.isAdmin && (
                 <div className="mt-4">
                   <UsersList />
                 </div>
               )}
             </div>
-            
+
             <div className="grid md:grid-cols-2 gap-6">
               <AddBirdSighting />
               <div className="space-y-6">
@@ -122,7 +152,7 @@ const Index = () => {
             </div>
           </div>
 
-          {isAdmin && (
+          {state.isAdmin && (
             <div className="space-y-6">
               <div className="bg-white rounded-lg shadow p-6">
                 <ApiUsageMonitor />
@@ -138,31 +168,32 @@ const Index = () => {
         <div className="space-y-4">
           <Button
             variant="outline"
-            onClick={() => setShowTrends(!showTrends)}
+            onClick={() => dispatch({ type: 'TOGGLE_TRENDS' })}
             className="w-full flex justify-between items-center py-6"
           >
             <span className="text-xl font-semibold">View Bird Population Trends</span>
-            {showTrends ? <ChevronUp className="h-6 w-6" /> : <ChevronDown className="h-6 w-6" />}
+            {state.showTrends ? <ChevronUp className="h-6 w-6" /> : <ChevronDown className="h-6 w-6" />}
           </Button>
-          
-          {showTrends && (
+
+          {state.showTrends && (
             <div className="bg-white rounded-lg shadow p-6">
-              <BirdTrends isAdmin={isAdmin} />
+              <BirdTrends isAdmin={state.isAdmin} />
             </div>
           )}
 
           <Button
             variant="outline"
-            onClick={() => setShowBirdSounds(!showBirdSounds)}
+            onClick={() => dispatch({ type: 'TOGGLE_BIRD_SOUNDS' })}
             className="w-full flex justify-between items-center py-6"
           >
             <span className="text-xl font-semibold">Listen to Bird Sounds</span>
-            {showBirdSounds ? <ChevronUp className="h-6 w-6" /> : <ChevronDown className="h-6 w-6" />}
+            {state.showBirdSounds ? <ChevronUp className="h-6 w-6" /> : <ChevronDown className="h-6 w-6" />}
           </Button>
-          
-          {showBirdSounds && <ExternalBirdSounds />}
+
+          {state.showBirdSounds && <ExternalBirdSounds />}
         </div>
       </div>
+
       <Chat />
       <DisclaimerDialog />
     </PageLayout>
