@@ -2,7 +2,7 @@
 import { useQuery } from "@tanstack/react-query"
 import { supabase } from "@/integrations/supabase/client"
 
-interface ExternalBirdSound {
+export interface ExternalBirdSound {
   id: string
   bird_name: string
   sound_url: string
@@ -14,20 +14,24 @@ export const useExternalBirdSounds = () => {
     queryKey: ["externalBirdSounds"],
     queryFn: async () => {
       console.log("Fetching external bird sounds...")
-      const { data, error } = await supabase
-        .from("external_bird_sounds")
-        .select("*")
-        .order("bird_name")
+      try {
+        const { data, error } = await supabase
+          .from("external_bird_sounds")
+          .select("*")
+          .order("bird_name")
 
-      if (error) {
-        console.error("Error fetching bird sounds:", error)
-        throw error
+        if (error) {
+          console.error("Error fetching bird sounds:", error)
+          throw error
+        }
+        
+        console.log("Fetched bird sounds:", data)
+        return data as ExternalBirdSound[]
+      } catch (err) {
+        console.error("Failed to fetch bird sounds:", err)
+        throw err
       }
-      
-      console.log("Fetched bird sounds:", data)
-      return data as ExternalBirdSound[]
-    }
+    },
+    retry: 3
   })
 }
-
-export type { ExternalBirdSound }

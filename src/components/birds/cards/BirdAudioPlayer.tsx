@@ -5,6 +5,7 @@ import TimeDisplay from "./audio-player/TimeDisplay"
 import VolumeControl from "./audio-player/VolumeControl"
 import ProgressBar from "./audio-player/ProgressBar"
 import AudioPlayerLayout from "./audio-player/AudioPlayerLayout"
+import { useEffect } from "react"
 
 interface BirdAudioPlayerProps {
   soundUrl?: string
@@ -20,8 +21,6 @@ const BirdAudioPlayer = ({ soundUrl, birdName }: BirdAudioPlayerProps) => {
     volume,
     setCurrentTime,
     setVolume,
-    setIsPlaying,
-    setAudioError,
     toggleAudio,
   } = useAudioPlayer(soundUrl, birdName)
 
@@ -32,6 +31,13 @@ const BirdAudioPlayer = ({ soundUrl, birdName }: BirdAudioPlayerProps) => {
   const handleVolumeChange = (value: number[]) => {
     setVolume(value[0])
   }
+
+  // Log for debugging
+  useEffect(() => {
+    if (soundUrl) {
+      console.log(`BirdAudioPlayer for ${birdName} initialized with soundUrl:`, soundUrl)
+    }
+  }, [soundUrl, birdName])
 
   if (!soundUrl) return null
 

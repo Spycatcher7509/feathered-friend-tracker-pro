@@ -46,37 +46,53 @@ export const useAudioPlayer = (soundUrl: string | undefined, birdName: string) =
 
     // Set up event listeners once on mount
     useEffect(() => {
-        // Set up audio element properties
-        audio.volume = volume
-
-        // Set up event listeners
+        const handleCanPlayThrough = () => {
+            console.log("Audio can play through", audio.src)
+            setAudioError(false)
+        }
+        
         const updateTime = () => setCurrentTime(audio.currentTime)
-        const handleDurationChange = () => setDuration(audio.duration)
-        const handleEnded = () => setIsPlaying(false)
-        const handleLoadedData = () => setAudioError(false)
-        const handleError = () => {
-            console.error("Audio error:", audio.error)
+        const handleDurationChange = () => {
+            console.log("Duration changed:", audio.duration)
+            setDuration(audio.duration)
+        }
+        const handleEnded = () => {
+            console.log("Audio ended")
+            setIsPlaying(false)
+        }
+        const handleLoadedData = () => {
+            console.log("Audio loaded", audio.src)
+            setAudioError(false)
+        }
+        const handleError = (e: ErrorEvent) => {
+            console.error("Audio error:", e, audio.error)
             setAudioError(true)
             setIsPlaying(false)
             toast({
                 variant: "destructive",
                 title: "Audio Error",
-                description: `Unable to play audio for ${birdName}`,
+                description: `Unable to play audio for ${birdName}: ${audio.error?.message || 'Unknown error'}`,
             })
         }
 
+        // Set up audio element properties
+        audio.volume = volume
+
+        // Add event listeners
+        audio.addEventListener("canplaythrough", handleCanPlayThrough)
         audio.addEventListener("timeupdate", updateTime)
         audio.addEventListener("durationchange", handleDurationChange)
         audio.addEventListener("ended", handleEnded)
         audio.addEventListener("loadeddata", handleLoadedData)
-        audio.addEventListener("error", handleError)
+        audio.addEventListener("error", handleError as EventListener)
 
         return () => {
+            audio.removeEventListener("canplaythrough", handleCanPlayThrough)
             audio.removeEventListener("timeupdate", updateTime)
             audio.removeEventListener("durationchange", handleDurationChange)
             audio.removeEventListener("ended", handleEnded)
             audio.removeEventListener("loadeddata", handleLoadedData)
-            audio.removeEventListener("error", handleError)
+            audio.removeEventListener("error", handleError as EventListener)
             audio.pause()
             audio.src = ""
         }
@@ -88,18 +104,23 @@ export const useAudioPlayer = (soundUrl: string | undefined, birdName: string) =
 
         const setupAudio = async () => {
             try {
-                const url = await getAudioUrl(soundUrl)
+                setAudioError(false)
                 
                 // Reset player state
                 setIsPlaying(false)
                 setCurrentTime(0)
                 setDuration(0)
                 
-                // Reset and load audio
+                // Reset and unload audio
                 audio.pause()
-                audio.currentTime = 0
+                audio.src = ""
+                
+                const url = await getAudioUrl(soundUrl)
+                console.log("Setting audio source to:", url)
+                
+                // Set new source and attempt to load
                 audio.src = url
-                audio.load()
+                await audio.load()
                 
             } catch (error) {
                 console.error("Error setting up audio:", error)
@@ -137,12 +158,22 @@ export const useAudioPlayer = (soundUrl: string | undefined, birdName: string) =
 
         try {
             if (isPlaying) {
+                console.log("Pausing audio")
                 audio.pause()
                 setIsPlaying(false)
             } else {
+                console.log("Playing audio")
                 try {
+                    // Make sure we have a valid src before trying to play
+                    if (!audio.src || audio.src === 'null' || audio.src === 'undefined' || audio.src === window.location.href) {
+                        const url = await getAudioUrl(soundUrl)
+                        audio.src = url
+                        await audio.load()
+                    }
+                    
                     await audio.play()
                     setIsPlaying(true)
+                    setAudioError(false)
                 } catch (error) {
                     console.error("Play error:", error)
                     throw error

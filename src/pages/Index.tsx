@@ -1,5 +1,5 @@
 
-import { useEffect, useReducer } from "react"
+import { useState, useEffect, useReducer } from "react"
 import Navigation from "@/components/Navigation"
 import PageLayout from "@/components/layout/PageLayout"
 import ProfileImporter from "@/components/auth/ProfileImporter"
@@ -22,8 +22,29 @@ import { Chat } from "@/components/chat/Chat"
 import { UsersList } from "@/components/admin/UsersList"
 import { format } from "date-fns"
 
+// Define the state type
+interface DashboardState {
+  showBirdSounds: boolean;
+  showTrends: boolean;
+  showUserGuide: boolean;
+  showAdminGuide: boolean;
+  showUsers: boolean;
+  isAdmin: boolean;
+  currentTime: Date;
+}
+
+// Define action types
+type DashboardAction =
+  | { type: 'TOGGLE_BIRD_SOUNDS' }
+  | { type: 'TOGGLE_TRENDS' }
+  | { type: 'TOGGLE_USER_GUIDE' }
+  | { type: 'TOGGLE_ADMIN_GUIDE' }
+  | { type: 'TOGGLE_USERS' }
+  | { type: 'SET_ADMIN_STATUS'; payload: boolean }
+  | { type: 'SET_TIME'; payload: Date };
+
 // Define initial state for reducer
-const initialState = {
+const initialState: DashboardState = {
   showBirdSounds: false,
   showTrends: false,
   showUserGuide: false,
@@ -34,7 +55,7 @@ const initialState = {
 }
 
 // Reducer function to manage state changes
-const dashboardReducer = (state, action) => {
+const dashboardReducer = (state: DashboardState, action: DashboardAction): DashboardState => {
   switch (action.type) {
     case 'TOGGLE_BIRD_SOUNDS':
       return { ...state, showBirdSounds: !state.showBirdSounds }
