@@ -101,8 +101,8 @@ export function useBirdIdentification() {
     }))
   }
 
-  const handleSave = async () => {
-    if (!predictions || predictions.length === 0) return
+  const handleSave = async (): Promise<boolean> => {
+    if (!predictions || predictions.length === 0) return false
 
     try {
       const topPrediction = predictions[0]

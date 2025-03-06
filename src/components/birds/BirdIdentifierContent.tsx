@@ -16,7 +16,7 @@ interface BirdIdentifierContentProps {
   onCameraCapture: () => Promise<void>
   onFileInput: (e: React.ChangeEvent<HTMLInputElement>) => Promise<void>
   onMetadataChange: (field: keyof BirdMetadata, value: string) => void
-  onSave: () => Promise<boolean>
+  onSave: () => Promise<void>
   onCancel: () => void
   setSoundUrl: (url: string | null) => void
 }
