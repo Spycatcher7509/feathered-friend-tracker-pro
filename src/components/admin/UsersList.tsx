@@ -21,6 +21,8 @@ export function UsersList() {
   const fetchUsers = async (search?: string) => {
     try {
       console.log('Fetching users with search:', search)
+      setLoading(true)
+      
       let query = supabase
         .from('profiles')
         .select('*')
@@ -34,7 +36,7 @@ export function UsersList() {
       if (error) throw error
 
       console.log('Fetched profiles:', profiles)
-      setUsers(profiles)
+      setUsers(profiles || [])
     } catch (error) {
       console.error('Error fetching users:', error)
       toast({
@@ -48,7 +50,6 @@ export function UsersList() {
   }
 
   const handleSearch = () => {
-    setLoading(true)
     fetchUsers(searchQuery)
   }
 
@@ -138,10 +139,6 @@ export function UsersList() {
     }
   }
 
-  if (loading) {
-    return <div>Loading users...</div>
-  }
-
   return (
     <div className="space-y-4">
       <div className="flex justify-between">
@@ -153,16 +150,25 @@ export function UsersList() {
         <CreateUserDialog onUserCreated={fetchUsers} />
       </div>
       
-      <UsersTable
-        users={users}
-        editing={editing}
-        onStartEditing={startEditing}
-        onSaveEdit={saveEdit}
-        onCancelEditing={cancelEditing}
-        onEditingChange={(value) => setEditing(prev => ({ ...prev, value }))}
-        onToggleAdmin={toggleAdminStatus}
-        onDelete={deleteUser}
-      />
+      {loading ? (
+        <div className="flex justify-center py-8">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-900 mx-auto mb-4"></div>
+            <p>Loading users...</p>
+          </div>
+        </div>
+      ) : (
+        <UsersTable
+          users={users}
+          editing={editing}
+          onStartEditing={startEditing}
+          onSaveEdit={saveEdit}
+          onCancelEditing={cancelEditing}
+          onEditingChange={(value) => setEditing(prev => ({ ...prev, value }))}
+          onToggleAdmin={toggleAdminStatus}
+          onDelete={deleteUser}
+        />
+      )}
     </div>
   )
 }
