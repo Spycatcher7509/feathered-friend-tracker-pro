@@ -6,17 +6,50 @@ import { SearchBar } from "./SearchBar"
 import { CreateUserDialog } from "./CreateUserDialog"
 import { UsersTable } from "./UsersTable"
 import { Profile, EditingState } from "./types"
+import { Bell } from "lucide-react"
+import { Button } from "@/components/ui/button"
 
 export function UsersList() {
   const [users, setUsers] = useState<Profile[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
   const [editing, setEditing] = useState<EditingState>({ id: null, field: null, value: "" })
+  const [hasPendingSupport, setHasPendingSupport] = useState(false)
   const { toast } = useToast()
 
   useEffect(() => {
     fetchUsers()
+    subscribeToSupportRequests()
   }, [])
+
+  const subscribeToSupportRequests = () => {
+    const channel = supabase
+      .channel('chat')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'conversations'
+        },
+        (payload) => {
+          if (payload.new) {
+            // New conversation started
+            setHasPendingSupport(true)
+            toast({
+              title: "Support Request",
+              description: "A user is requesting support",
+              variant: "default",
+            })
+          }
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }
 
   const fetchUsers = async (search?: string) => {
     try {
@@ -37,6 +70,17 @@ export function UsersList() {
 
       console.log('Fetched profiles:', profiles)
       setUsers(profiles || [])
+      
+      // Check if there are any active support requests
+      const { data: conversations, error: convError } = await supabase
+        .from('conversations')
+        .select('status')
+        .eq('status', 'active')
+        .limit(1)
+      
+      if (!convError && conversations && conversations.length > 0) {
+        setHasPendingSupport(true)
+      }
     } catch (error) {
       console.error('Error fetching users:', error)
       toast({
@@ -139,15 +183,32 @@ export function UsersList() {
     }
   }
 
+  const checkForSupportRequests = () => {
+    window.open('/support-chat', '_blank')
+    setHasPendingSupport(false)
+  }
+
   return (
     <div className="space-y-4">
-      <div className="flex justify-between">
+      <div className="flex justify-between items-center">
         <SearchBar
           value={searchQuery}
           onChange={setSearchQuery}
           onSearch={handleSearch}
         />
-        <CreateUserDialog onUserCreated={fetchUsers} />
+        <div className="flex items-center gap-2">
+          {hasPendingSupport && (
+            <Button 
+              variant="outline" 
+              className="flex items-center gap-2 bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100"
+              onClick={checkForSupportRequests}
+            >
+              <Bell className="h-4 w-4 text-amber-500 animate-pulse" />
+              <span>Support Requests</span>
+            </Button>
+          )}
+          <CreateUserDialog onUserCreated={fetchUsers} />
+        </div>
       </div>
       
       {loading ? (

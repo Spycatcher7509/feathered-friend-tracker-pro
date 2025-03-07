@@ -7,6 +7,7 @@ export interface Profile {
   location?: string
   experience_level?: string
   logged_on?: string
+  has_pending_support?: boolean
 }
 
 export interface EditingState {
