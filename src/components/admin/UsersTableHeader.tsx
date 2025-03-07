@@ -5,7 +5,7 @@ export function UsersTableHeader() {
   return (
     <TableHeader>
       <TableRow>
-        <TableHead>Logged On</TableHead>
+        <TableHead className="w-[180px]">Logged On</TableHead>
         <TableHead>Username</TableHead>
         <TableHead>Email</TableHead>
         <TableHead>Admin Status</TableHead>
