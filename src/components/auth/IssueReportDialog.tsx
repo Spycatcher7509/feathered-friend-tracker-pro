@@ -1,11 +1,12 @@
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { AlertCircle } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { Input } from "@/components/ui/input"
 import { supabase } from "@/integrations/supabase/client"
 import { generateCaseNumber, generateSupportEmailContent } from "@/utils/support"
 import { sendDiscordWebhookMessage } from "@/utils/discord"
@@ -20,6 +21,15 @@ export const IssueReportDialog = ({ userEmail }: IssueReportDialogProps) => {
   const [issueDescription, setIssueDescription] = useState("")
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isSending, setIsSending] = useState(false)
+  const [isAuthenticated, setIsAuthenticated] = useState(!!userEmail)
+  const [netlifyFormData, setNetlifyFormData] = useState({
+    name: "",
+    email: ""
+  })
+
+  useEffect(() => {
+    setIsAuthenticated(!!userEmail)
+  }, [userEmail])
 
   const handleReportIssue = async () => {
     try {
@@ -152,7 +162,10 @@ Our support team will get back to you within 48 hours.`,
       onOpenChange={(open) => {
         setIsDialogOpen(open)
         if (!open) {
-          setTimeout(() => setIssueDescription(""), 100)
+          setTimeout(() => {
+            setIssueDescription("")
+            setNetlifyFormData({ name: "", email: "" })
+          }, 100)
         }
       }}
     >
@@ -162,32 +175,95 @@ Our support team will get back to you within 48 hours.`,
           className="bg-[#223534] text-white hover:bg-[#2a4241]"
         >
           <AlertCircle className="mr-2" />
-          Report an Issue
+          {isAuthenticated ? "Report an Issue" : "Contact Support"}
         </Button>
       </DialogTrigger>
       <DialogContent className="bg-white">
         <DialogHeader>
-          <DialogTitle className="text-gray-900">Report an Issue</DialogTitle>
+          <DialogTitle className="text-gray-900">
+            {isAuthenticated ? "Report an Issue" : "Contact Support"}
+          </DialogTitle>
         </DialogHeader>
-        <div className="space-y-4 mt-4">
-          <div className="space-y-2">
-            <Label htmlFor="issue" className="text-gray-700">Issue Description</Label>
-            <Textarea
-              id="issue"
-              placeholder="Please describe the issue you're experiencing..."
-              value={issueDescription}
-              onChange={(e) => setIssueDescription(e.target.value)}
-              className="min-h-[100px] w-full bg-white border-gray-300 text-gray-900 placeholder:text-gray-500 resize-none"
-            />
+        
+        {isAuthenticated ? (
+          <div className="space-y-4 mt-4">
+            <div className="space-y-2">
+              <Label htmlFor="issue" className="text-gray-700">Issue Description</Label>
+              <Textarea
+                id="issue"
+                placeholder="Please describe the issue you're experiencing..."
+                value={issueDescription}
+                onChange={(e) => setIssueDescription(e.target.value)}
+                className="min-h-[100px] w-full bg-white border-gray-300 text-gray-900 placeholder:text-gray-500 resize-none"
+              />
+            </div>
+            <Button 
+              onClick={handleReportIssue} 
+              className="w-full"
+              disabled={isSending}
+            >
+              {isSending ? "Sending..." : "Submit Report"}
+            </Button>
           </div>
-          <Button 
-            onClick={handleReportIssue} 
-            className="w-full"
-            disabled={isSending}
+        ) : (
+          <form 
+            name="contact" 
+            method="POST" 
+            data-netlify="true"
+            className="space-y-4 mt-4"
+            onSubmit={() => {
+              toast({
+                title: "Form Submitted",
+                description: "Thank you for contacting us. We will get back to you soon.",
+              })
+              setIsDialogOpen(false)
+            }}
           >
-            {isSending ? "Sending..." : "Submit Report"}
-          </Button>
-        </div>
+            <input type="hidden" name="form-name" value="contact" />
+            <div className="space-y-2">
+              <Label htmlFor="name" className="text-gray-700">Name</Label>
+              <Input
+                id="name"
+                name="name"
+                type="text"
+                required
+                value={netlifyFormData.name}
+                onChange={(e) => setNetlifyFormData(prev => ({ ...prev, name: e.target.value }))}
+                className="w-full bg-white border-gray-300 text-gray-900"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-gray-700">Email</Label>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                required
+                value={netlifyFormData.email}
+                onChange={(e) => setNetlifyFormData(prev => ({ ...prev, email: e.target.value }))}
+                className="w-full bg-white border-gray-300 text-gray-900"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="message" className="text-gray-700">Message</Label>
+              <Textarea
+                id="message"
+                name="message"
+                placeholder="Please describe your issue or question..."
+                required
+                value={issueDescription}
+                onChange={(e) => setIssueDescription(e.target.value)}
+                className="min-h-[100px] w-full bg-white border-gray-300 text-gray-900 placeholder:text-gray-500 resize-none"
+              />
+            </div>
+            <Button 
+              type="submit"
+              className="w-full"
+            >
+              Send
+            </Button>
+          </form>
+        )}
       </DialogContent>
     </Dialog>
   )
