@@ -5,6 +5,7 @@ import { FileCode, Users } from "lucide-react"
 import { GuideViewer } from "@/components/guides/GuideViewer"
 import { UsersList } from "@/components/admin/UsersList"
 import { DashboardState } from "./dashboardReducer"
+import { useEffect, useState } from "react"
 
 interface DashboardHeaderProps {
   state: DashboardState;
@@ -19,10 +20,21 @@ const DashboardHeader = ({
   onToggleAdminGuide, 
   onToggleUsers 
 }: DashboardHeaderProps) => {
+  const [currentTime, setCurrentTime] = useState(new Date())
+
+  // Update the time every second
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date())
+    }, 1000)
+
+    return () => clearInterval(timer)
+  }, [])
+
   return (
     <div className="mb-6">
       <div className="text-center mb-4 text-xl font-semibold text-nature-800">
-        {format(state.currentTime, 'EEEE, MMMM do yyyy, h:mm:ss a')}
+        {format(currentTime, 'EEEE, d MMMM yyyy, HH:mm:ss')}
       </div>
       
       <h1 className="text-3xl font-bold text-nature-800">Bird Watching Dashboard</h1>
