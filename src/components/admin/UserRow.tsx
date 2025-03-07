@@ -1,6 +1,7 @@
 
 import { TableCell, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
+import { format } from "date-fns"
 import { EditableCell } from "./EditableCell"
 import { UserActions } from "./UserActions"
 import { Profile, EditingState } from "./types"
@@ -28,6 +29,11 @@ export function UserRow({
 }: UserRowProps) {
   return (
     <TableRow className="group">
+      <TableCell>
+        {user.logged_on 
+          ? format(new Date(user.logged_on), 'dd MMM yyyy HH:mm') 
+          : 'Never logged in'}
+      </TableCell>
       <TableCell>
         <EditableCell
           value={user.username}

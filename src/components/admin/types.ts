@@ -6,6 +6,7 @@ export interface Profile {
   is_admin: boolean
   location?: string
   experience_level?: string
+  logged_on?: string
 }
 
 export interface EditingState {

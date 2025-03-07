@@ -783,6 +783,7 @@ export type Database = {
           id: string
           is_admin: boolean | null
           location: string | null
+          logged_on: string | null
           notification_preferences: Json | null
           preferred_birds: string[] | null
           privacy_settings: Json | null
@@ -800,6 +801,7 @@ export type Database = {
           id: string
           is_admin?: boolean | null
           location?: string | null
+          logged_on?: string | null
           notification_preferences?: Json | null
           preferred_birds?: string[] | null
           privacy_settings?: Json | null
@@ -817,6 +819,7 @@ export type Database = {
           id?: string
           is_admin?: boolean | null
           location?: string | null
+          logged_on?: string | null
           notification_preferences?: Json | null
           preferred_birds?: string[] | null
           privacy_settings?: Json | null
