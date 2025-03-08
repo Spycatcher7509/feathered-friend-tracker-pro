@@ -33,26 +33,10 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route
-          path="/"
-          element={
-            session ? (
-              <Index />
-            ) : (
-              <Navigate to="/auth" replace />
-            )
-          }
-        />
-        <Route
-          path="/auth"
-          element={
-            !session ? (
-              <Auth />
-            ) : (
-              <Navigate to="/" replace />
-            )
-          }
-        />
+        <Route path="/" element={session ? <Index /> : <Navigate to="/auth" replace />} />
+        <Route path="/auth" element={!session ? <Auth /> : <Navigate to="/" replace />} />
+        {/* Catch all route - redirect to auth page if not authenticated, home page if authenticated */}
+        <Route path="*" element={session ? <Navigate to="/" replace /> : <Navigate to="/auth" replace />} />
       </Routes>
     </Router>
   )
