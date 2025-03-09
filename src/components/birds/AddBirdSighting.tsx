@@ -96,6 +96,71 @@ export default function AddBirdSighting() {
     }
   }
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!birdName || !location) {
+      toast({
+        variant: "destructive",
+        title: "Missing Information",
+        description: "Please provide at least the bird name and location.",
+      });
+      return;
+    }
+
+    try {
+      setIsProcessing(true);
+      
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast({
+          variant: "destructive",
+          title: "Authentication Error",
+          description: "You must be logged in to submit a sighting.",
+        });
+        return;
+      }
+      
+      const { data, error } = await supabase
+        .from('bird_sightings')
+        .insert({
+          bird_name: birdName,
+          location,
+          description,
+          image_url: previewUrl,
+          sound_url: soundUrl,
+          user_id: user.id,
+        })
+        .select();
+
+      if (error) throw error;
+      
+      toast({
+        title: "Success",
+        description: "Bird sighting recorded successfully!",
+      });
+      
+      // Reset form
+      setBirdName("");
+      setLocation("");
+      setDescription("");
+      setPreviewUrl(null);
+      setSoundUrl(null);
+      
+    } catch (error) {
+      console.error('Error recording bird sighting:', error);
+      toast({
+        variant: "destructive",
+        title: "Submission Error",
+        description: "Failed to record your bird sighting. Please try again.",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   return (
     <Card className="w-full">
       <CardContent className="pt-6 px-6">
@@ -110,7 +175,7 @@ export default function AddBirdSighting() {
           </h1>
         </div>
 
-        <form className="space-y-8">
+        <form onSubmit={handleSubmit} className="space-y-8">
           <BirdNameInput 
             value={birdName}
             onChange={setBirdName}
@@ -139,8 +204,12 @@ export default function AddBirdSighting() {
             onChange={setDescription}
           />
 
-          <Button type="submit" className="w-full bg-[#223534] hover:bg-[#2a4241]">
-            Submit Sighting
+          <Button 
+            type="submit" 
+            className="w-full bg-[#223534] hover:bg-[#2a4241]"
+            disabled={isProcessing}
+          >
+            {isProcessing ? "Processing..." : "Submit Sighting"}
           </Button>
         </form>
       </CardContent>

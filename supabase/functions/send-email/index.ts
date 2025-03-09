@@ -24,8 +24,8 @@ const supabaseClient = createClient(
 )
 
 const resend = new Resend(Deno.env.get('RESEND_API_KEY'))
-// Use verified domain email
-const VERIFIED_FROM_EMAIL = 'accounts@thewrightsupport.com'
+// Use verified domain email - featheredfriendtracker.co.uk
+const VERIFIED_FROM_EMAIL = 'support@featheredfriendtracker.co.uk'
 
 serve(async (req) => {
   // Handle CORS preflight requests

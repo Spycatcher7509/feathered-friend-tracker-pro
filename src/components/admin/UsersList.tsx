@@ -1,11 +1,10 @@
-
 import { useState, useEffect } from "react"
 import { supabase } from "@/integrations/supabase/client"
 import { useToast } from "@/hooks/use-toast"
 import { SearchBar } from "./SearchBar"
 import { CreateUserDialog } from "./CreateUserDialog"
 import { UsersTable } from "./UsersTable"
-import { Profile, EditingState } from "./types"
+import { Profile, EditingState, formatDateTimeGB } from "./types"
 import { Bell } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
@@ -68,10 +67,14 @@ export function UsersList() {
 
       if (error) throw error
 
-      console.log('Fetched profiles:', profiles)
-      setUsers(profiles || [])
+      const formattedProfiles = profiles?.map(profile => ({
+        ...profile,
+        logged_on_formatted: formatDateTimeGB(profile.logged_on)
+      })) || []
+
+      console.log('Fetched profiles:', formattedProfiles)
+      setUsers(formattedProfiles)
       
-      // Check if there are any active support requests
       const { data: conversations, error: convError } = await supabase
         .from('conversations')
         .select('status')

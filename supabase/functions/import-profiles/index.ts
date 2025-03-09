@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
 import { parse } from 'https://deno.land/std@0.181.0/encoding/csv.ts'
@@ -33,36 +34,22 @@ serve(async (req) => {
 
     const profiles = records.map(([
       username,
+      datetime,  // New date and time field
       bio,
       location,
       experience_level,
       preferred_birds,
-      website,
-      twitter,
-      instagram,
-      email_notif,
-      push_notif,
-      profile_privacy,
-      observations_privacy
+      picture,  // New picture field
+      bird_song, // New bird song field
+      comment    // New comment field
     ]) => ({
       username,
       bio,
       location,
       experience_level,
-      preferred_birds: preferred_birds ? JSON.parse(preferred_birds.replace(/'/g, '"')) : [],
-      website,
-      social_media: {
-        twitter: twitter || null,
-        instagram: instagram || null
-      },
-      notification_preferences: {
-        email: email_notif === 'true',
-        push: push_notif === 'true'
-      },
-      privacy_settings: {
-        profile: profile_privacy || 'public',
-        observations: observations_privacy || 'public'
-      }
+      preferred_birds: preferred_birds ? preferred_birds.replace(/'/g, '"') : '[]',
+      // We don't handle picture or bird_song uploads in this basic implementation
+      // but we could extend this to handle file uploads if needed
     }))
 
     const { error } = await supabase

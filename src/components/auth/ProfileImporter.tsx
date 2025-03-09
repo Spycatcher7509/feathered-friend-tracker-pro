@@ -1,3 +1,4 @@
+
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Upload, Download } from "lucide-react"
@@ -58,23 +59,20 @@ const ProfileImporter = () => {
   const handleDownloadTemplate = () => {
     const headers = [
       'username',
+      'Date and Time',
       'bio',
       'location',
       'experience_level',
       'preferred_birds',
-      'website',
-      'social_media.twitter',
-      'social_media.instagram',
-      'notification_preferences.email',
-      'notification_preferences.push',
-      'privacy_settings.profile',
-      'privacy_settings.observations'
+      'Picture',
+      'Bird Song',
+      'Comment'
     ].join(',')
 
     const sampleData = [
-      'JohnBirder,"Passionate bird watcher from Oregon",Portland,Expert,"[\'Eagle\',\'Hawk\',\'Owl\']",www.johnbirder.com,@johnbirder,@john_birds,true,true,public,public',
-      'AliceWatcher,"Nature photographer and bird enthusiast",Seattle,Intermediate,"[\'Sparrow\',\'Robin\']",www.alicephotos.com,@alicew,@alice_nature,true,false,private,public',
-      'BobNature,"Beginning bird watcher",Chicago,Beginner,"[\'Cardinal\',\'Blue Jay\']",,@bobnature,,false,true,public,private'
+      'JohnBirder,,"Passionate bird watcher from Oregon",Portland,Expert,"[\'Eagle\',\'Hawk\',\'Owl\']",,,',
+      'AliceWatcher,,"Nature photographer and bird enthusiast",Seattle,Intermediate,"[\'Sparrow\',\'Robin\']",,,',
+      'BobNature,,"Beginning bird watcher",Chicago,Beginner,"[\'Cardinal\',\'Blue Jay\']",,,',
     ].join('\n')
 
     const csvContent = `${headers}\n${sampleData}`
