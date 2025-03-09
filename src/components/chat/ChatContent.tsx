@@ -2,9 +2,10 @@
 import { ChatForm } from "./ChatForm"
 import { MessagesList } from "./MessagesList"
 import { MessageInput } from "./MessageInput"
+import { useChat } from "@/hooks/chat"
 
 interface ChatContentProps {
-  chat: ReturnType<typeof import("@/hooks/useChat").useChat>
+  chat: ReturnType<typeof useChat>
 }
 
 export const ChatContent = ({ chat }: ChatContentProps) => {
