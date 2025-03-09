@@ -1,6 +1,8 @@
 
 import { Button } from "@/components/ui/button"
 import { Bell } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
+import { useEffect, useState } from "react"
 
 interface SupportNotificationProps {
   hasPendingSupport: boolean
@@ -8,6 +10,30 @@ interface SupportNotificationProps {
 }
 
 export function SupportNotification({ hasPendingSupport, onCheckSupport }: SupportNotificationProps) {
+  const { toast } = useToast()
+  const [notified, setNotified] = useState(false)
+  
+  useEffect(() => {
+    if (hasPendingSupport && !notified) {
+      // Notify with sound
+      const audio = new Audio('/notification.mp3')
+      audio.play().catch(error => console.error('Error playing notification sound:', error))
+      
+      // Show toast
+      toast({
+        title: "New Support Request",
+        description: "A user is requesting technical support",
+        variant: "default",
+      })
+      
+      setNotified(true)
+    }
+    
+    if (!hasPendingSupport) {
+      setNotified(false)
+    }
+  }, [hasPendingSupport, notified, toast])
+  
   if (!hasPendingSupport) return null
   
   return (

@@ -1,5 +1,4 @@
-
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { supabase } from "@/integrations/supabase/client"
 import { useToast } from "@/hooks/use-toast"
 import { Profile, formatDateTimeGB } from "../types"
@@ -11,8 +10,11 @@ export function useUsers() {
   const { toast } = useToast()
 
   const subscribeToSupportRequests = () => {
-    const channel = supabase
-      .channel('chat')
+    console.log('Setting up support request subscription')
+    
+    // Listen for new conversations
+    const conversationsChannel = supabase
+      .channel('new_conversations')
       .on(
         'postgres_changes',
         {
@@ -21,12 +23,36 @@ export function useUsers() {
           table: 'conversations'
         },
         (payload) => {
+          console.log('New conversation detected:', payload)
           if (payload.new) {
-            // New conversation started
             setHasPendingSupport(true)
             toast({
-              title: "Support Request",
-              description: "A user is requesting support",
+              title: "New Support Request",
+              description: "A user is requesting technical support",
+              variant: "default",
+            })
+          }
+        }
+      )
+      .subscribe()
+    
+    // Listen for new messages
+    const messagesChannel = supabase
+      .channel('new_messages')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages'
+        },
+        (payload) => {
+          console.log('New message detected:', payload)
+          if (payload.new && !payload.new.is_system_message) {
+            setHasPendingSupport(true)
+            toast({
+              title: "New Support Message",
+              description: "A user has sent a new message in support chat",
               variant: "default",
             })
           }
@@ -35,7 +61,9 @@ export function useUsers() {
       .subscribe()
 
     return () => {
-      supabase.removeChannel(channel)
+      console.log('Cleaning up support request subscriptions')
+      supabase.removeChannel(conversationsChannel)
+      supabase.removeChannel(messagesChannel)
     }
   }
 
@@ -64,14 +92,17 @@ export function useUsers() {
       console.log('Fetched profiles:', formattedProfiles)
       setUsers(formattedProfiles)
       
+      // Check for active support conversations
       const { data: conversations, error: convError } = await supabase
         .from('conversations')
         .select('status')
         .eq('status', 'active')
-        .limit(1)
       
       if (!convError && conversations && conversations.length > 0) {
+        console.log('Found active support conversations:', conversations.length)
         setHasPendingSupport(true)
+      } else {
+        console.log('No active support conversations found')
       }
     } catch (error) {
       console.error('Error fetching users:', error)
@@ -134,6 +165,30 @@ export function useUsers() {
       })
     }
   }
+
+  // Run once on component mount to check for existing support requests
+  useEffect(() => {
+    const checkExistingRequests = async () => {
+      try {
+        console.log('Checking for existing support conversations')
+        const { data, error } = await supabase
+          .from('conversations')
+          .select('id')
+          .eq('status', 'active')
+        
+        if (error) throw error
+        
+        if (data && data.length > 0) {
+          console.log('Found existing support conversations:', data.length)
+          setHasPendingSupport(true)
+        }
+      } catch (error) {
+        console.error('Error checking for support conversations:', error)
+      }
+    }
+    
+    checkExistingRequests()
+  }, [])
 
   return { 
     users, 

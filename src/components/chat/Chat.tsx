@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { MessageCircle } from "lucide-react"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
@@ -27,31 +27,65 @@ export const Chat = () => {
   const userEmail = useUserEmail()
   const { toast } = useToast()
 
+  // Setup subscription to receive messages
+  const setupMessageSubscription = useCallback((convId: string) => {
+    console.log('Setting up message subscription for conversation:', convId)
+    
+    const channel = supabase
+      .channel(`chat_${convId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: `conversation_id=eq.${convId}`
+        },
+        (payload) => {
+          console.log('Received new message in subscription:', payload)
+          if (payload.new) {
+            setMessages(prev => [...prev, payload.new])
+          }
+        }
+      )
+      .subscribe()
+
+    return () => {
+      console.log('Cleaning up message subscription')
+      supabase.removeChannel(channel)
+    }
+  }, [])
+
   useEffect(() => {
     if (conversationId) {
-      const channel = supabase
-        .channel('chat')
-        .on(
-          'postgres_changes',
-          {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'messages',
-            filter: `conversation_id=eq.${conversationId}`
-          },
-          (payload) => {
-            if (payload.new && payload.new.is_system_message) {
-              setMessages(prev => [...prev, payload.new])
-            }
+      const cleanupFn = setupMessageSubscription(conversationId)
+      
+      // Fetch existing messages
+      const fetchMessages = async () => {
+        try {
+          console.log('Fetching existing messages for conversation:', conversationId)
+          const { data, error } = await supabase
+            .from('messages')
+            .select('*')
+            .eq('conversation_id', conversationId)
+            .order('created_at', { ascending: true })
+          
+          if (error) throw error
+          
+          if (data) {
+            console.log('Fetched messages:', data.length)
+            setMessages(data)
           }
-        )
-        .subscribe()
-
-      return () => {
-        supabase.removeChannel(channel)
+        } catch (error) {
+          console.error('Error fetching messages:', error)
+        }
       }
+      
+      fetchMessages()
+      
+      return cleanupFn
     }
-  }, [conversationId])
+  }, [conversationId, setupMessageSubscription])
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -65,13 +99,16 @@ export const Chat = () => {
   const initializeConversation = async (metadata: typeof formData) => {
     setIsLoading(true)
     try {
+      console.log('Initializing conversation with metadata:', metadata)
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
+      
+      const userId = user?.id || 'anonymous'
+      console.log('User ID for conversation:', userId)
 
       const { data: newConv, error: convError } = await supabase
         .from('conversations')
         .insert({
-          user_id: user.id,
+          user_id: userId,
           status: 'active'
         })
         .select()
@@ -80,6 +117,7 @@ export const Chat = () => {
       if (convError) throw convError
 
       if (newConv) {
+        console.log('Created new conversation:', newConv.id)
         setConversationId(newConv.id)
         
         const { error: metadataError } = await supabase
@@ -95,6 +133,7 @@ export const Chat = () => {
         if (metadataError) throw metadataError
 
         if (metadata.attachments.length > 0) {
+          console.log('Uploading attachments:', metadata.attachments.length)
           const uploadPromises = metadata.attachments.map(async (file) => {
             const filename = `${newConv.id}/${file.name}`
             const { error: uploadError } = await supabase.storage
@@ -113,13 +152,24 @@ export const Chat = () => {
             .eq('conversation_id', newConv.id)
         }
 
+        // Send system welcome message
+        await supabase
+          .from('messages')
+          .insert({
+            content: `Welcome ${metadata.fullName}! Our support team will respond as soon as possible.`,
+            conversation_id: newConv.id,
+            is_system_message: true,
+            user_id: userId
+          })
+
         setShowForm(false)
       }
     } catch (error) {
+      console.error('Error initializing conversation:', error)
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to start conversation"
+        description: "Failed to start conversation. Please try again."
       })
     } finally {
       setIsLoading(false)
@@ -143,14 +193,15 @@ export const Chat = () => {
     if (!newMessage.trim() || !conversationId || isSending) return
 
     setIsSending(true)
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
-
     try {
+      console.log('Sending message to conversation:', conversationId)
+      const { data: { user } } = await supabase.auth.getUser()
+      const userId = user?.id || 'anonymous'
+
       const { data: message, error } = await supabase
         .from('messages')
         .insert({
-          user_id: user.id,
+          user_id: userId,
           content: newMessage,
           conversation_id: conversationId,
           is_system_message: false
@@ -161,14 +212,15 @@ export const Chat = () => {
       if (error) throw error
 
       if (message) {
-        setMessages(prev => [...prev, message])
+        console.log('Message sent successfully:', message.id)
         setNewMessage("")
       }
     } catch (error) {
+      console.error('Error sending message:', error)
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to send message"
+        description: "Failed to send message. Please try again."
       })
     } finally {
       setIsSending(false)
@@ -176,22 +228,39 @@ export const Chat = () => {
   }
 
   const endConversation = async () => {
-    if (!conversationId || !userEmail) return
+    if (!conversationId) return
 
     try {
-      const { error } = await supabase.functions.invoke('send-conversation', {
-        body: {
-          conversationId,
-          userEmail
-        }
-      })
+      console.log('Ending conversation:', conversationId)
+      // First update the conversation status
+      const { error: statusError } = await supabase
+        .from('conversations')
+        .update({ status: 'closed' })
+        .eq('id', conversationId)
+      
+      if (statusError) throw statusError
 
-      if (error) throw error
+      if (userEmail) {
+        console.log('Sending conversation summary to email:', userEmail)
+        const { error } = await supabase.functions.invoke('send-conversation', {
+          body: {
+            conversationId,
+            userEmail
+          }
+        })
 
-      toast({
-        title: "Conversation Ended",
-        description: "A summary has been sent to your email"
-      })
+        if (error) throw error
+
+        toast({
+          title: "Conversation Ended",
+          description: "A summary has been sent to your email"
+        })
+      } else {
+        toast({
+          title: "Conversation Ended",
+          description: "Thank you for contacting us"
+        })
+      }
 
       setConversationId(null)
       setMessages([])
@@ -203,10 +272,11 @@ export const Chat = () => {
         attachments: []
       })
     } catch (error) {
+      console.error('Error ending conversation:', error)
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to end conversation"
+        description: "Failed to end conversation. Please try again."
       })
     }
   }
