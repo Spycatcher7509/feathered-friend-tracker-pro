@@ -3,3 +3,17 @@
   from = "/*"
   to = "/index.html"
   status = 200
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+# Add a specific redirect for success pages
+[[redirects]]
+  from = "/success"
+  to = "/"
+  status = 302
+
+# Handling form submissions
+[build.processing.html]
+  pretty_urls = true
