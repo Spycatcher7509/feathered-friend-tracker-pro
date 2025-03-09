@@ -1,5 +1,5 @@
 
-import { useEffect, useReducer } from "react"
+import { useEffect, useReducer, useRef } from "react"
 import Navigation from "@/components/Navigation"
 import PageLayout from "@/components/layout/PageLayout"
 import { useAdminGroups } from "@/hooks/useAdminGroups"
@@ -17,6 +17,27 @@ const Index = () => {
   const { checkAdminStatus } = useAdminGroups()
   const actions = useDashboardActions(dispatch)
   const { toast } = useToast()
+  const notificationSound = useRef<HTMLAudioElement | null>(null)
+
+  // Initialize notification sound
+  useEffect(() => {
+    notificationSound.current = new Audio('/notification.mp3')
+    return () => {
+      if (notificationSound.current) {
+        notificationSound.current.pause()
+        notificationSound.current.src = ""
+      }
+    }
+  }, [])
+
+  // Play notification sound
+  const playNotificationSound = () => {
+    if (notificationSound.current) {
+      notificationSound.current.currentTime = 0
+      notificationSound.current.play()
+        .catch(err => console.error("Error playing notification sound:", err))
+    }
+  }
 
   // Check for admin status
   useEffect(() => {
@@ -59,10 +80,13 @@ const Index = () => {
                 description: "A user is requesting technical support",
                 variant: "default",
               })
+              playNotificationSound()
             }
           }
         )
-        .subscribe()
+        .subscribe((status) => {
+          console.log('Conversation subscription status:', status)
+        })
       
       // Listen for new messages
       const messagesChannel = supabase
@@ -82,10 +106,13 @@ const Index = () => {
                 description: "A user has sent a new message in support chat",
                 variant: "default",
               })
+              playNotificationSound()
             }
           }
         )
-        .subscribe()
+        .subscribe((status) => {
+          console.log('Messages subscription status:', status)
+        })
 
       return () => {
         console.log('Cleaning up support chat subscriptions')

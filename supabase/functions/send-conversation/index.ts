@@ -22,12 +22,15 @@ serve(async (req) => {
   }
 
   try {
+    console.log('Received request to send conversation summary')
+    
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
     const { conversationId, userEmail }: ChatRequest = await req.json()
+    console.log(`Processing conversation ${conversationId} for user ${userEmail}`)
 
     // Get support team email
     const { data: supportConfig, error: supportConfigError } = await supabaseClient
@@ -60,6 +63,8 @@ serve(async (req) => {
       throw new Error('Could not fetch chat data')
     }
 
+    console.log(`Retrieved ${chatData.length} messages for conversation`)
+
     const metadata = chatData[0]?.chat_metadata
     if (!metadata) {
       throw new Error('Chat metadata not found')
@@ -79,9 +84,11 @@ serve(async (req) => {
       </div>
     `).join('')
 
+    console.log('Sending email to support team')
+    
     // Send email to support team
-    await resend.emails.send({
-      from: "BirdWatch Support <accounts@thewrightsupport.com>",
+    const supportEmailResult = await resend.emails.send({
+      from: "BirdWatch Support <support@featheredfriendtracker.co.uk>",
       to: supportConfig.support_email,
       subject: `New Support Chat Transcript - ${metadata.full_name}`,
       text: `
@@ -106,10 +113,14 @@ ${transcript}
       `,
       reply_to: userEmail
     })
+    
+    console.log('Support team email result:', supportEmailResult)
 
+    console.log('Sending confirmation to user')
+    
     // Send confirmation to user
-    await resend.emails.send({
-      from: "BirdWatch Support <accounts@thewrightsupport.com>",
+    const userEmailResult = await resend.emails.send({
+      from: "BirdWatch Support <support@featheredfriendtracker.co.uk>",
       to: userEmail,
       subject: "BirdWatch Support - Chat Transcript",
       text: `
@@ -137,11 +148,17 @@ The BirdWatch Support Team
         
         <p>Best regards,<br>The BirdWatch Support Team</p>
       `,
-      reply_to: "accounts@thewrightsupport.com"
+      reply_to: "support@featheredfriendtracker.co.uk"
     })
+    
+    console.log('User confirmation email result:', userEmailResult)
 
     return new Response(
-      JSON.stringify({ success: true }), 
+      JSON.stringify({ 
+        success: true,
+        supportEmail: supportEmailResult,
+        userEmail: userEmailResult
+      }), 
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200 
@@ -151,7 +168,10 @@ The BirdWatch Support Team
   } catch (error) {
     console.error('Error in send-conversation function:', error)
     return new Response(
-      JSON.stringify({ error: error.message }), 
+      JSON.stringify({ 
+        error: error.message,
+        stack: error.stack
+      }), 
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 500 

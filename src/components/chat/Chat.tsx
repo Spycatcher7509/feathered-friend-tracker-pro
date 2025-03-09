@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { MessageCircle } from "lucide-react"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
@@ -26,10 +26,16 @@ export const Chat = () => {
   
   const userEmail = useUserEmail()
   const { toast } = useToast()
+  const messageSubscription = useRef<any>(null)
 
   // Setup subscription to receive messages
   const setupMessageSubscription = useCallback((convId: string) => {
     console.log('Setting up message subscription for conversation:', convId)
+    
+    if (messageSubscription.current) {
+      console.log('Removing existing message subscription')
+      supabase.removeChannel(messageSubscription.current)
+    }
     
     const channel = supabase
       .channel(`chat_${convId}`)
@@ -48,11 +54,18 @@ export const Chat = () => {
           }
         }
       )
-      .subscribe()
+      .subscribe((status) => {
+        console.log(`Message subscription status for conversation ${convId}:`, status)
+      })
+      
+    messageSubscription.current = channel
 
     return () => {
       console.log('Cleaning up message subscription')
-      supabase.removeChannel(channel)
+      if (messageSubscription.current) {
+        supabase.removeChannel(messageSubscription.current)
+        messageSubscription.current = null
+      }
     }
   }, [])
 
@@ -64,6 +77,7 @@ export const Chat = () => {
       const fetchMessages = async () => {
         try {
           console.log('Fetching existing messages for conversation:', conversationId)
+          setIsLoading(true)
           const { data, error } = await supabase
             .from('messages')
             .select('*')
@@ -78,6 +92,13 @@ export const Chat = () => {
           }
         } catch (error) {
           console.error('Error fetching messages:', error)
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Failed to load messages. Please try again."
+          })
+        } finally {
+          setIsLoading(false)
         }
       }
       
@@ -85,7 +106,7 @@ export const Chat = () => {
       
       return cleanupFn
     }
-  }, [conversationId, setupMessageSubscription])
+  }, [conversationId, setupMessageSubscription, toast])
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -100,11 +121,13 @@ export const Chat = () => {
     setIsLoading(true)
     try {
       console.log('Initializing conversation with metadata:', metadata)
+      // Get user information
       const { data: { user } } = await supabase.auth.getUser()
       
       const userId = user?.id || 'anonymous'
       console.log('User ID for conversation:', userId)
 
+      // Create new conversation
       const { data: newConv, error: convError } = await supabase
         .from('conversations')
         .insert({
@@ -120,6 +143,7 @@ export const Chat = () => {
         console.log('Created new conversation:', newConv.id)
         setConversationId(newConv.id)
         
+        // Store metadata for the conversation
         const { error: metadataError } = await supabase
           .from('chat_metadata')
           .insert({
@@ -132,6 +156,7 @@ export const Chat = () => {
 
         if (metadataError) throw metadataError
 
+        // Handle file attachments if any
         if (metadata.attachments.length > 0) {
           console.log('Uploading attachments:', metadata.attachments.length)
           const uploadPromises = metadata.attachments.map(async (file) => {
@@ -146,6 +171,7 @@ export const Chat = () => {
 
           const uploadedFiles = await Promise.all(uploadPromises)
           
+          // Update metadata with file paths
           await supabase
             .from('chat_metadata')
             .update({ attachments: uploadedFiles })
@@ -163,6 +189,10 @@ export const Chat = () => {
           })
 
         setShowForm(false)
+        toast({
+          title: "Chat Started",
+          description: "Your support chat session has been initiated."
+        })
       }
     } catch (error) {
       console.error('Error initializing conversation:', error)
@@ -178,6 +208,7 @@ export const Chat = () => {
 
   const handleStartChat = async (e: React.FormEvent) => {
     e.preventDefault()
+    // Validate form data
     if (!formData.fullName || !formData.email || !formData.description) {
       toast({
         variant: "destructive",
@@ -262,6 +293,12 @@ export const Chat = () => {
         })
       }
 
+      // Reset chat state
+      if (messageSubscription.current) {
+        supabase.removeChannel(messageSubscription.current)
+        messageSubscription.current = null
+      }
+      
       setConversationId(null)
       setMessages([])
       setShowForm(true)
