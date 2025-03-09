@@ -7,6 +7,7 @@ export interface Profile {
   location?: string
   experience_level?: string
   logged_on?: string
+  logged_on_formatted?: string
   has_pending_support?: boolean
 }
 
