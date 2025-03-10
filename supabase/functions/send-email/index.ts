@@ -34,13 +34,13 @@ serve(async (req) => {
 
   try {
     const requestData = await req.json()
-    console.log('Received request data:', requestData)
+    console.log('Received request data:', JSON.stringify(requestData))
 
     const { to, subject, text, html } = requestData as EmailRequest
     
     if (!to || !subject || !text) {
       console.error('Missing required fields:', { to, subject, text })
-      throw new Error('Missing required fields')
+      throw new Error('Missing required fields: to, subject, and text are required')
     }
 
     // Validate email format
@@ -51,8 +51,12 @@ serve(async (req) => {
 
     // Check daily email count
     const { data: { count }, error: countError } = await supabaseClient.rpc('get_daily_email_count')
-    if (countError) throw countError
+    if (countError) {
+      console.error('Error checking email count:', countError)
+      throw countError
+    }
     
+    console.log('Daily email count:', count)
     if (count >= 2000) {
       throw new Error('Daily email limit reached (2000 emails/day)')
     }
@@ -74,7 +78,10 @@ serve(async (req) => {
       .select()
       .single()
 
-    if (queueError) throw queueError
+    if (queueError) {
+      console.error('Error queuing email:', queueError)
+      throw queueError
+    }
 
     // Send email via Resend using verified domain
     console.log('Attempting to send email with the following configuration:', {
@@ -98,7 +105,7 @@ serve(async (req) => {
         }
       })
 
-      console.log('Raw Resend API Response:', response)
+      console.log('Raw Resend API Response:', JSON.stringify(response))
 
       // Updated validation to check response.data.id instead of response.id
       if (!response?.data?.id) {
@@ -129,7 +136,7 @@ serve(async (req) => {
         status: 200,
       })
 
-    } catch (sendError: any) {
+    } catch (sendError) {
       console.error('Resend API Error:', sendError)
       
       // Update email status to failed
@@ -148,7 +155,7 @@ serve(async (req) => {
       throw new Error(`Resend API Error: ${sendError.message}`)
     }
 
-  } catch (error: any) {
+  } catch (error) {
     console.error('Detailed error in send-email function:', {
       message: error.message,
       stack: error.stack,

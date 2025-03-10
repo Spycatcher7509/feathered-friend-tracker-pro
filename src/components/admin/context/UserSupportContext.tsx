@@ -54,11 +54,28 @@ export const UserSupportProvider = ({ children }: { children: React.ReactNode })
         .select('id')
         .eq('status', 'active');
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error checking for support conversations:', error);
+        throw error;
+      }
       
+      console.log('Active conversations found:', data?.length || 0);
       if (data && data.length > 0) {
         console.log('Found existing support conversations:', data.length);
         setHasPendingSupport(true);
+      } else {
+        // Check for unresolved issues
+        const { data: issues, error: issuesError } = await supabase
+          .from('issues')
+          .select('id')
+          .eq('status', 'open');
+          
+        if (issuesError) {
+          console.error('Error checking for open issues:', issuesError);
+        } else if (issues && issues.length > 0) {
+          console.log('Found open issues:', issues.length);
+          setHasPendingSupport(true);
+        }
       }
     } catch (error) {
       console.error('Error checking for support conversations:', error);
@@ -126,6 +143,31 @@ export const UserSupportProvider = ({ children }: { children: React.ReactNode })
       )
       .subscribe();
 
+    // Listen for new issues
+    const issuesChannel = supabase
+      .channel('new_issues')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'issues'
+        },
+        (payload) => {
+          console.log('New issue detected:', payload);
+          if (payload.new) {
+            setHasPendingSupport(true);
+            playNotificationSound();
+            toast({
+              title: "New Issue Report",
+              description: "A user has reported a new issue",
+              variant: "default",
+            });
+          }
+        }
+      )
+      .subscribe();
+
     // Check for existing requests on initial load
     checkExistingRequests();
 
@@ -133,6 +175,7 @@ export const UserSupportProvider = ({ children }: { children: React.ReactNode })
       console.log('Cleaning up support request subscriptions');
       supabase.removeChannel(conversationsChannel);
       supabase.removeChannel(messagesChannel);
+      supabase.removeChannel(issuesChannel);
     };
   }, [toast]);
 

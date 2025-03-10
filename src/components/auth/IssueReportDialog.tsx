@@ -78,7 +78,7 @@ export const IssueReportDialog = ({ userEmail }: IssueReportDialogProps) => {
         throw new Error("Could not fetch support team configuration")
       }
 
-      const supportEmail = supportConfig?.support_email || 'accounts@thewrightsupport.com'
+      const supportEmail = supportConfig?.support_email || 'support@featheredfriendtracker.co.uk'
 
       // Store issue in database - status will default to 'open'
       const { error: dbError } = await supabase
@@ -95,8 +95,9 @@ export const IssueReportDialog = ({ userEmail }: IssueReportDialogProps) => {
 
       const emailContent = generateSupportEmailContent(caseNumber, userEmail, issueDescription)
 
-      // Send issue report to support team
-      const { error: supportEmailError } = await supabase.functions.invoke('send-email', {
+      // Send issue report to support team with improved error handling
+      console.log('Sending email to support team:', supportEmail, emailContent.supportEmail)
+      const { data: supportEmailData, error: supportEmailError } = await supabase.functions.invoke('send-email', {
         body: {
           ...emailContent.supportEmail,
           to: supportEmail
@@ -107,9 +108,12 @@ export const IssueReportDialog = ({ userEmail }: IssueReportDialogProps) => {
         console.error('Error sending support email:', supportEmailError)
         throw supportEmailError
       }
+      
+      console.log('Support email response:', supportEmailData)
 
-      // Send auto-response to user
-      const { error: ackError } = await supabase.functions.invoke('send-email', {
+      // Send auto-response to user with improved error handling
+      console.log('Sending confirmation to user:', userEmail, emailContent.userEmail)
+      const { data: userEmailData, error: ackError } = await supabase.functions.invoke('send-email', {
         body: emailContent.userEmail
       })
 
@@ -117,6 +121,8 @@ export const IssueReportDialog = ({ userEmail }: IssueReportDialogProps) => {
         console.error('Error sending acknowledgment email:', ackError)
         throw ackError
       }
+      
+      console.log('User email response:', userEmailData)
 
       try {
         // Send Discord notification
