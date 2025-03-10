@@ -85,16 +85,36 @@ export function useUsers() {
 
       if (error) throw error
 
-      // Fix: Properly format the logged_on timestamps
+      // Debug logging for timestamp data
+      if (profiles && profiles.length > 0) {
+        console.log('Sample profile data:', profiles[0])
+        console.log('Sample logged_on value:', profiles[0].logged_on)
+      }
+
+      // Format the logged_on timestamps with detailed error checking
       const formattedProfiles = profiles?.map(profile => {
-        console.log('Profile logged_on before formatting:', profile.logged_on)
+        console.log(`Processing profile for ${profile.username || 'unknown'}, logged_on:`, profile.logged_on)
+        
+        let formattedDate = 'Never logged in'
+        if (profile.logged_on) {
+          try {
+            formattedDate = formatDateTimeGB(profile.logged_on)
+            console.log(`Successfully formatted date for ${profile.username}:`, formattedDate)
+          } catch (e) {
+            console.error(`Error formatting date for ${profile.username}:`, e)
+            formattedDate = 'Invalid date'
+          }
+        } else {
+          console.log(`No logged_on value for ${profile.username}`)
+        }
+        
         return {
           ...profile,
-          logged_on_formatted: profile.logged_on ? formatDateTimeGB(profile.logged_on) : 'Never logged in'
-        };
+          logged_on_formatted: formattedDate
+        }
       }) || []
 
-      console.log('Fetched profiles with formatted timestamps:', formattedProfiles)
+      console.log('Profiles after formatting:', formattedProfiles)
       setUsers(formattedProfiles)
       
       // Check for active support conversations
