@@ -11,7 +11,7 @@ export function useUsers() {
   const [users, setUsers] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
-  const { hasPendingSupport, checkExistingRequests } = useUserSupport();
+  const { checkExistingRequests } = useUserSupport();
   
   // Import user operations
   const { toggleAdminStatus, deleteUser } = useUserOperations(
@@ -56,7 +56,6 @@ export function useUsers() {
   return { 
     users, 
     loading, 
-    hasPendingSupport,
     fetchUsers, 
     toggleAdminStatus, 
     deleteUser

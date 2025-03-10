@@ -6,19 +6,19 @@ import { UsersTable } from "./UsersTable"
 import { SupportNotification } from "./SupportNotification"
 import { useUsers } from "./hooks/useUsers"
 import { useUserEditing } from "./hooks/useUserEditing"
+import { useUserSupport } from "./context/UserSupportContext"
 
 export function UsersList() {
   const [searchQuery, setSearchQuery] = useState("")
   const { 
     users, 
     loading, 
-    hasPendingSupport, 
-    setHasPendingSupport,
     fetchUsers, 
     toggleAdminStatus, 
-    deleteUser, 
-    subscribeToSupportRequests 
+    deleteUser 
   } = useUsers()
+  
+  const { setHasPendingSupport } = useUserSupport()
   
   const { 
     editing,
@@ -30,7 +30,6 @@ export function UsersList() {
 
   useEffect(() => {
     fetchUsers()
-    subscribeToSupportRequests()
   }, [])
 
   const handleSearch = () => {
@@ -51,10 +50,7 @@ export function UsersList() {
           onSearch={handleSearch}
         />
         <div className="flex items-center gap-2">
-          <SupportNotification 
-            hasPendingSupport={hasPendingSupport} 
-            onCheckSupport={checkForSupportRequests} 
-          />
+          <SupportNotification onCheckSupport={checkForSupportRequests} />
           <CreateUserDialog onUserCreated={fetchUsers} />
         </div>
       </div>
