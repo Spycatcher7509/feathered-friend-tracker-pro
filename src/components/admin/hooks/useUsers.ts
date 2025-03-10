@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react"
 import { supabase } from "@/integrations/supabase/client"
 import { useToast } from "@/hooks/use-toast"
@@ -84,12 +85,16 @@ export function useUsers() {
 
       if (error) throw error
 
-      const formattedProfiles = profiles?.map(profile => ({
-        ...profile,
-        logged_on_formatted: formatDateTimeGB(profile.logged_on)
-      })) || []
+      // Fix: Properly format the logged_on timestamps
+      const formattedProfiles = profiles?.map(profile => {
+        console.log('Profile logged_on before formatting:', profile.logged_on)
+        return {
+          ...profile,
+          logged_on_formatted: profile.logged_on ? formatDateTimeGB(profile.logged_on) : 'Never logged in'
+        };
+      }) || []
 
-      console.log('Fetched profiles:', formattedProfiles)
+      console.log('Fetched profiles with formatted timestamps:', formattedProfiles)
       setUsers(formattedProfiles)
       
       // Check for active support conversations

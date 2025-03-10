@@ -17,20 +17,31 @@ export interface EditingState {
   value: string
 }
 
-// Add this for GB time format display
+// Improved formatter for GB time format display
 export const formatDateTimeGB = (isoString?: string): string => {
-  if (!isoString) return 'Never';
+  if (!isoString) return 'Never logged in';
   
-  // Create a date object from the ISO string
-  const date = new Date(isoString);
-  
-  // Format the date in GB format (day/month/year hour:minute)
-  return date.toLocaleString('en-GB', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: true
-  });
+  try {
+    // Create a date object from the ISO string
+    const date = new Date(isoString);
+    
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+      console.error('Invalid date string:', isoString);
+      return 'Invalid date';
+    }
+    
+    // Format the date in GB format (day/month/year hour:minute)
+    return date.toLocaleString('en-GB', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return 'Invalid date';
+  }
 };

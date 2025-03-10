@@ -29,9 +29,7 @@ export function UserRow({
   return (
     <TableRow className="group">
       <TableCell>
-        {user.logged_on 
-          ? user.logged_on_formatted || 'Invalid date'
-          : 'Never logged in'}
+        {user.logged_on_formatted || 'Never logged in'}
       </TableCell>
       <TableCell>
         <EditableCell
