@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react"
 import { AlertCircle } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
@@ -79,6 +78,7 @@ export const IssueReportDialog = ({ userEmail }: IssueReportDialogProps) => {
       }
 
       const supportEmail = supportConfig?.support_email || 'support@featheredfriendtracker.co.uk'
+      console.log('Using support email address:', supportEmail)
 
       // Store issue in database - status will default to 'open'
       const { error: dbError } = await supabase
@@ -96,11 +96,13 @@ export const IssueReportDialog = ({ userEmail }: IssueReportDialogProps) => {
       const emailContent = generateSupportEmailContent(caseNumber, userEmail, issueDescription)
 
       // Send issue report to support team with improved error handling
-      console.log('Sending email to support team:', supportEmail, emailContent.supportEmail)
+      console.log('Sending email to support team:', supportEmail)
       const { data: supportEmailData, error: supportEmailError } = await supabase.functions.invoke('send-email', {
         body: {
-          ...emailContent.supportEmail,
-          to: supportEmail
+          to: supportEmail,
+          subject: emailContent.supportEmail.subject,
+          text: emailContent.supportEmail.text,
+          html: emailContent.supportEmail.html
         }
       })
 
@@ -112,9 +114,14 @@ export const IssueReportDialog = ({ userEmail }: IssueReportDialogProps) => {
       console.log('Support email response:', supportEmailData)
 
       // Send auto-response to user with improved error handling
-      console.log('Sending confirmation to user:', userEmail, emailContent.userEmail)
+      console.log('Sending confirmation to user:', userEmail)
       const { data: userEmailData, error: ackError } = await supabase.functions.invoke('send-email', {
-        body: emailContent.userEmail
+        body: {
+          to: userEmail,
+          subject: emailContent.userEmail.subject,
+          text: emailContent.userEmail.text,
+          html: emailContent.userEmail.html
+        }
       })
 
       if (ackError) {

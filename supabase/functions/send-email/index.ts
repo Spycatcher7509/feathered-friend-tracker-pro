@@ -107,6 +107,11 @@ serve(async (req) => {
 
       console.log('Raw Resend API Response:', JSON.stringify(response))
 
+      // Check for errors in the response
+      if (response.error) {
+        throw new Error(`Resend API Error: ${response.error.message || JSON.stringify(response.error)}`)
+      }
+
       // Updated validation to check response.data.id instead of response.id
       if (!response?.data?.id) {
         throw new Error('Invalid response from Resend API: ' + JSON.stringify(response))
