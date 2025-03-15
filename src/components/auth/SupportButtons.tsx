@@ -3,7 +3,7 @@ import { BookOpenText, AlertCircle } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { Button } from "@/components/ui/button"
 import { useUserEmail } from "@/hooks/useUserEmail"
-import { IssueReportDialog } from "./IssueReportDialog"
+import { IssueReportDialog } from "./issue-report/IssueReportDialog"
 import { supabase } from "@/integrations/supabase/client"
 
 const SupportButtons = () => {
