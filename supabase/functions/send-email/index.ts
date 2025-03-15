@@ -23,8 +23,10 @@ const supabaseClient = createClient(
 )
 
 const resend = new Resend(Deno.env.get('RESEND_API_KEY'))
-// Use verified domain email
-const VERIFIED_FROM_EMAIL = 'support@featheredfriendtracker.co.uk'
+// Use onboarding email which is guaranteed to work if API key is valid
+const FALLBACK_FROM_EMAIL = 'onboarding@resend.dev'
+// API key linked verified domain - retrieve from environment
+const VERIFIED_DOMAIN_EMAIL = Deno.env.get('resend-thewrightsupport-email') || FALLBACK_FROM_EMAIL
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -83,9 +85,17 @@ serve(async (req) => {
       throw queueError
     }
 
-    // Send email via Resend using verified domain
+    // Determine the best "from" address to use
+    // If sending to the support email, use the fallback email to avoid sending from/to the same address
+    const fromEmail = to.includes('support@featheredfriendtracker.co.uk') 
+      ? FALLBACK_FROM_EMAIL 
+      : VERIFIED_DOMAIN_EMAIL
+
+    const fromName = 'BirdWatch'
+    const fromAddress = `${fromName} <${fromEmail}>`
+
     console.log('Attempting to send email with the following configuration:', {
-      from: `BirdWatch <${VERIFIED_FROM_EMAIL}>`,
+      from: fromAddress,
       to,
       subject,
       text: text?.substring(0, 100) + '...',
@@ -94,12 +104,12 @@ serve(async (req) => {
 
     try {
       const response = await resend.emails.send({
-        from: `BirdWatch <${VERIFIED_FROM_EMAIL}>`,
+        from: fromAddress,
         to: [to],
         subject,
         text,
         html: html || undefined,
-        reply_to: VERIFIED_FROM_EMAIL,
+        reply_to: 'support@featheredfriendtracker.co.uk',
         headers: {
           'X-Entity-Ref-ID': queuedEmail.id
         }
