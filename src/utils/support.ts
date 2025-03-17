@@ -22,9 +22,11 @@ export const generateSupportEmailContent = (caseNumber: string, userEmail: strin
   },
   userEmail: {
     to: userEmail,
-    subject: `BirdWatch Support - Case ${caseNumber} Received`,
+    subject: `Welcome to BirdWatch – Your Ultimate Bird-Watching Companion!`,
     text: `
-Dear BirdWatch User,
+Dear Bird Enthusiast,
+
+Welcome to BirdWatch! We're thrilled to have you on board. Get ready to explore, track, and enjoy the beauty of birdwatching like never before. Stay tuned for exciting updates, features, and community insights.
 
 Thank you for contacting BirdWatch Support. This email confirms that we have received your issue report.
 
@@ -35,12 +37,15 @@ ${issueDescription}
 
 We will review your case and respond as soon as possible. Please keep this case number for future reference.
 
-Best regards,
+Happy birdwatching!
+
 The BirdWatch Support Team
     `,
     html: `
-      <h2>BirdWatch Support Confirmation</h2>
-      <p>Dear BirdWatch User,</p>
+      <h2>Welcome to BirdWatch – Your Ultimate Bird-Watching Companion!</h2>
+      <p>Dear Bird Enthusiast,</p>
+      <p><strong>Welcome to BirdWatch!</strong> We're thrilled to have you on board. Get ready to explore, track, and enjoy the beauty of birdwatching like never before. Stay tuned for exciting updates, features, and community insights.</p>
+      
       <p>Thank you for contacting BirdWatch Support. This email confirms that we have received your issue report.</p>
       <p><strong>Case Number:</strong> ${caseNumber}</p>
       <p><strong>Your reported issue:</strong></p>
@@ -48,7 +53,8 @@ The BirdWatch Support Team
         ${issueDescription}
       </blockquote>
       <p>We will review your case and respond as soon as possible. Please keep this case number for future reference.</p>
-      <p>Best regards,<br>The BirdWatch Support Team</p>
+      <p>Happy birdwatching!</p>
+      <p><strong>The BirdWatch Support Team</strong></p>
     `
   }
 })
