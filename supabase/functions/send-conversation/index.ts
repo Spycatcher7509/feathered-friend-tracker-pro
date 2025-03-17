@@ -13,7 +13,15 @@ interface ChatRequest {
   userEmail: string
 }
 
-const resend = new Resend(Deno.env.get('RESEND_API_KEY'))
+// Initialize Resend with the API key
+const resendApiKey = Deno.env.get('RESEND_API_KEY')
+if (!resendApiKey) {
+  console.error('RESEND_API_KEY is not set')
+}
+const resend = new Resend(resendApiKey)
+
+// Use verified domain email
+const VERIFIED_DOMAIN_EMAIL = "support@featheredfriendtracker.co.uk"
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -80,7 +88,7 @@ serve(async (req) => {
     
     // Send email to support team
     const supportEmailResult = await resend.emails.send({
-      from: "BirdWatch Support <support@featheredfriendtracker.co.uk>",
+      from: `BirdWatch Support <${VERIFIED_DOMAIN_EMAIL}>`,
       to: supportEmail,
       subject: `New Support Chat Transcript - ${metadata.full_name}`,
       text: `
@@ -112,7 +120,7 @@ ${transcript}
     
     // Send confirmation to user
     const userEmailResult = await resend.emails.send({
-      from: "BirdWatch Support <support@featheredfriendtracker.co.uk>",
+      from: `BirdWatch Support <${VERIFIED_DOMAIN_EMAIL}>`,
       to: userEmail,
       subject: "BirdWatch Support - Chat Transcript",
       text: `
@@ -140,7 +148,7 @@ The BirdWatch Support Team
         
         <p>Best regards,<br>The BirdWatch Support Team</p>
       `,
-      reply_to: "support@featheredfriendtracker.co.uk"
+      reply_to: VERIFIED_DOMAIN_EMAIL
     })
     
     console.log('User confirmation email result:', userEmailResult)
