@@ -32,16 +32,8 @@ serve(async (req) => {
     const { conversationId, userEmail }: ChatRequest = await req.json()
     console.log(`Processing conversation ${conversationId} for user ${userEmail}`)
 
-    // Get support team email
-    const { data: supportConfig, error: supportConfigError } = await supabaseClient
-      .from('support_team_config')
-      .select('support_email')
-      .single()
-
-    if (supportConfigError) {
-      console.error('Error fetching support team config:', supportConfigError)
-      throw new Error('Could not fetch support team configuration')
-    }
+    // Fixed support email instead of fetching from config
+    const supportEmail = 'accounts@thewrightsupport.com'
 
     // Get chat messages and metadata
     const { data: chatData, error: chatError } = await supabaseClient
@@ -89,7 +81,7 @@ serve(async (req) => {
     // Send email to support team
     const supportEmailResult = await resend.emails.send({
       from: "BirdWatch Support <support@featheredfriendtracker.co.uk>",
-      to: supportConfig.support_email,
+      to: supportEmail,
       subject: `New Support Chat Transcript - ${metadata.full_name}`,
       text: `
 Support Chat Transcript

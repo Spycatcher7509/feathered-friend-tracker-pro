@@ -34,18 +34,8 @@ export const submitIssueReport = async (
       throw new Error("User not authenticated")
     }
 
-    // Get support team email from configuration
-    const { data: supportConfig, error: configError } = await supabase
-      .from('support_team_config')
-      .select('support_email')
-      .maybeSingle()
-
-    if (configError) {
-      console.error('Error fetching support team config:', configError)
-      throw new Error("Could not fetch support team configuration")
-    }
-
-    const supportEmail = supportConfig?.support_email || 'support@featheredfriendtracker.co.uk'
+    // Fixed support email address instead of retrieving from config
+    const supportEmail = 'accounts@thewrightsupport.com'
     console.log('Using support email address:', supportEmail)
 
     // Store issue in database - status will default to 'open'
