@@ -40,8 +40,8 @@ serve(async (req) => {
     const { conversationId, userEmail }: ChatRequest = await req.json()
     console.log(`Processing conversation ${conversationId} for user ${userEmail}`)
 
-    // Fixed support email instead of fetching from config
-    const supportEmail = 'accounts@thewrightsupport.com'
+    // Get support email - directly use the verified domain email
+    const supportEmail = VERIFIED_DOMAIN_EMAIL
 
     // Get chat messages and metadata
     const { data: chatData, error: chatError } = await supabaseClient
@@ -87,8 +87,10 @@ serve(async (req) => {
     console.log('Sending email to support team')
     
     // Send email to support team
+    const fromAddress = `BirdWatch Support <${VERIFIED_DOMAIN_EMAIL}>`
+    
     const supportEmailResult = await resend.emails.send({
-      from: `BirdWatch Support <${VERIFIED_DOMAIN_EMAIL}>`,
+      from: fromAddress,
       to: supportEmail,
       subject: `New Support Chat Transcript - ${metadata.full_name}`,
       text: `
@@ -120,7 +122,7 @@ ${transcript}
     
     // Send confirmation to user
     const userEmailResult = await resend.emails.send({
-      from: `BirdWatch Support <${VERIFIED_DOMAIN_EMAIL}>`,
+      from: fromAddress,
       to: userEmail,
       subject: "BirdWatch Support - Chat Transcript",
       text: `
