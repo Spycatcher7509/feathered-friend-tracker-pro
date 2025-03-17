@@ -58,3 +58,39 @@ The BirdWatch Support Team
     `
   }
 })
+
+// Test email function to verify email sending functionality
+export const generateTestEmailContent = (userEmail: string) => ({
+  supportEmail: {
+    subject: `BirdWatch Email Test`,
+    text: `This is a test email to verify the support email functionality is working correctly.\n\nSent from: ${userEmail}`,
+    html: `
+      <h2>BirdWatch Email Test</h2>
+      <p>This is a test email to verify the support email functionality is working correctly.</p>
+      <p><strong>Sent from:</strong> ${userEmail}</p>
+      <p>If you received this email, the email sending functionality is working correctly!</p>
+    `
+  },
+  userEmail: {
+    to: userEmail,
+    subject: `BirdWatch Email System Test`,
+    text: `
+Dear BirdWatch User,
+
+This is a confirmation that a test email has been sent to our support team.
+
+If you requested this test, everything is working correctly!
+If you did not request this test, you can safely ignore this message.
+
+The BirdWatch Support Team
+    `,
+    html: `
+      <h2>BirdWatch Email System Test</h2>
+      <p>Dear BirdWatch User,</p>
+      <p>This is a confirmation that a test email has been sent to our support team.</p>
+      <p>If you requested this test, everything is working correctly!</p>
+      <p>If you did not request this test, you can safely ignore this message.</p>
+      <p><strong>The BirdWatch Support Team</strong></p>
+    `
+  }
+})
