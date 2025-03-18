@@ -156,7 +156,7 @@ const SupportButtons = () => {
         className="bg-[#223534] text-white hover:bg-[#2a4241]"
       >
         <Mail className="mr-2" />
-        Test Support Email
+        Support Email
       </Button>
     </div>
   )
