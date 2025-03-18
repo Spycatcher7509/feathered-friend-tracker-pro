@@ -76,17 +76,19 @@ const SupportButtons = () => {
 
     toast({
       title: "Sending Test Email",
-      description: "Attempting to send a test email to support@featheredfriendtracker.co.uk...",
+      description: "Attempting to send test emails...",
     })
 
     try {
-      // Fixed support email instead of retrieving from config
+      // Use fixed support email address
       const supportEmail = 'support@featheredfriendtracker.co.uk'
+      console.log('Using support email address:', supportEmail)
       
       // Create test email content
       const emailContent = generateTestEmailContent(userEmail)
       
       // Send test email to support team
+      console.log('Sending test email to support team:', supportEmail)
       const { data: supportEmailData, error: supportEmailError } = await supabase.functions.invoke('send-email', {
         body: {
           to: supportEmail,
@@ -98,12 +100,13 @@ const SupportButtons = () => {
 
       if (supportEmailError) {
         console.error('Error sending test email to support:', supportEmailError)
-        throw supportEmailError
+        throw new Error(`Support email error: ${supportEmailError.message}`)
       }
       
       console.log('Support test email response:', supportEmailData)
       
       // Send confirmation to user
+      console.log('Sending test confirmation to user:', userEmail)
       const { data: userEmailData, error: userEmailError } = await supabase.functions.invoke('send-email', {
         body: {
           to: userEmail,
@@ -115,14 +118,14 @@ const SupportButtons = () => {
 
       if (userEmailError) {
         console.error('Error sending test confirmation to user:', userEmailError)
-        throw userEmailError
+        throw new Error(`User email error: ${userEmailError.message}`)
       }
       
       console.log('User test email response:', userEmailData)
 
       toast({
         title: "Test Successful",
-        description: "Test emails have been sent to both support and your email address.",
+        description: `Test emails have been sent to support team (${supportEmail}) and your email address (${userEmail}).`,
       })
     } catch (error) {
       console.error('Error in test email process:', error)

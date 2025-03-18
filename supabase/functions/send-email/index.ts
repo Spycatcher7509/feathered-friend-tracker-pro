@@ -89,27 +89,30 @@ serve(async (req) => {
       throw queueError
     }
 
+    // Prepare sender information
     const fromAddress = `BirdWatch Support <${VERIFIED_DOMAIN_EMAIL}>`
     
-    // Important: Check if this is a support email and make sure we're sending to the correct address
+    // Important: Check if this is a support email
     const isToSupportTeam = to === 'accounts@thewrightsupport.com' || 
                            to === 'support@featheredfriendtracker.co.uk';
     
     // Always use the verified domain email for support team emails
+    // For regular users, send to their actual email address
     const correctedTo = isToSupportTeam ? VERIFIED_DOMAIN_EMAIL : to;
     
     console.log('Attempting to send email with the following configuration:', {
       from: fromAddress,
-      to: correctedTo, // Use the corrected recipient
+      to: correctedTo,
       subject,
       text: text?.substring(0, 100) + '...',
       html: html ? 'HTML content provided' : 'No HTML content'
     })
 
     try {
+      // Send email via Resend API
       const response = await resend.emails.send({
         from: fromAddress,
-        to: [correctedTo], // Use the corrected recipient
+        to: [correctedTo],
         subject,
         text,
         html: html || undefined,
@@ -128,7 +131,7 @@ serve(async (req) => {
         throw new Error('Invalid response from Resend API: ' + JSON.stringify(response))
       }
 
-      // Update email status in queue
+      // Update email status in queue to indicate successful delivery
       const { error: updateError } = await supabaseClient
         .from('email_queue')
         .update({ 
@@ -144,6 +147,8 @@ serve(async (req) => {
         throw updateError
       }
 
+      console.log('Email sent successfully with message ID:', response.data.id)
+      
       return new Response(JSON.stringify({ 
         message: 'Email sent successfully',
         messageId: response.data.id 
