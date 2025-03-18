@@ -29,7 +29,7 @@ if (!resendApiKey) {
 }
 const resend = new Resend(resendApiKey)
 
-// Use verified domain email from featheredfriendtracker.co.uk
+// Production verified domain email
 const VERIFIED_DOMAIN_EMAIL = "support@featheredfriendtracker.co.uk"
 
 serve(async (req) => {
@@ -40,7 +40,7 @@ serve(async (req) => {
 
   try {
     const requestData = await req.json()
-    console.log('Received request data:', JSON.stringify(requestData))
+    console.log('Received email request:', JSON.stringify(requestData))
 
     const { to, subject, text, html } = requestData as EmailRequest
     
@@ -89,44 +89,44 @@ serve(async (req) => {
       throw queueError
     }
 
-    // Prepare sender information
+    // Prepare sender information for production
     const fromAddress = `BirdWatch Support <${VERIFIED_DOMAIN_EMAIL}>`
     
-    // Important: Check if this is a support email
-    const isToSupportTeam = to === 'accounts@thewrightsupport.com' || 
-                           to === 'support@featheredfriendtracker.co.uk';
+    // Determine if this is a support team email
+    const isToSupportTeam = to.toLowerCase() === 'support@featheredfriendtracker.co.uk' || 
+                           to.toLowerCase() === 'accounts@thewrightsupport.com';
     
-    // Always use the verified domain email for support team emails
+    // For support team emails, always use the verified domain
     // For regular users, send to their actual email address
-    const correctedTo = isToSupportTeam ? VERIFIED_DOMAIN_EMAIL : to;
+    const finalRecipient = isToSupportTeam ? VERIFIED_DOMAIN_EMAIL : to;
     
-    console.log('Attempting to send email with the following configuration:', {
+    console.log('Production email configuration:', {
       from: fromAddress,
-      to: correctedTo,
+      to: finalRecipient,
       subject,
       text: text?.substring(0, 100) + '...',
       html: html ? 'HTML content provided' : 'No HTML content'
     })
 
     try {
-      // Send email via Resend API
+      // Send email via Resend API with production settings
       const response = await resend.emails.send({
         from: fromAddress,
-        to: [correctedTo],
+        to: [finalRecipient],
         subject,
         text,
         html: html || undefined,
         reply_to: VERIFIED_DOMAIN_EMAIL
       });
 
-      console.log('Raw Resend API Response:', JSON.stringify(response))
+      console.log('Resend API Production Response:', JSON.stringify(response))
 
       // Check for errors in the response
       if (response.error) {
         throw new Error(`Resend API Error: ${response.error.message || JSON.stringify(response.error)}`)
       }
 
-      // Updated validation to check response.data.id instead of response.id
+      // Validate response has message ID
       if (!response?.data?.id) {
         throw new Error('Invalid response from Resend API: ' + JSON.stringify(response))
       }
@@ -147,7 +147,7 @@ serve(async (req) => {
         throw updateError
       }
 
-      console.log('Email sent successfully with message ID:', response.data.id)
+      console.log('Production email sent successfully with ID:', response.data.id)
       
       return new Response(JSON.stringify({ 
         message: 'Email sent successfully',
@@ -158,7 +158,7 @@ serve(async (req) => {
       })
 
     } catch (sendError) {
-      console.error('Resend API Error:', sendError)
+      console.error('Resend API Production Error:', sendError)
       
       // Update email status to failed
       await supabaseClient
@@ -173,11 +173,11 @@ serve(async (req) => {
         })
         .eq('id', queuedEmail.id)
 
-      throw new Error(`Resend API Error: ${sendError.message}`)
+      throw new Error(`Production email error: ${sendError.message}`)
     }
 
   } catch (error) {
-    console.error('Detailed error in send-email function:', {
+    console.error('Detailed error in production send-email function:', {
       message: error.message,
       stack: error.stack,
       cause: error.cause

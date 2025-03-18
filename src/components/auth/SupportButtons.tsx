@@ -40,7 +40,7 @@ const SupportButtons = () => {
         })
 
         if (error) {
-          console.error('Error sending test email:', error)
+          console.error('Error sending confirmation email:', error)
           throw error
         }
 
@@ -76,13 +76,13 @@ const SupportButtons = () => {
 
     toast({
       title: "Sending Test Email",
-      description: "Attempting to send test emails...",
+      description: "Sending production test emails...",
     })
 
     try {
-      // Use fixed support email address
+      // Production support email address
       const supportEmail = 'support@featheredfriendtracker.co.uk'
-      console.log('Using support email address:', supportEmail)
+      console.log('Using production support email address:', supportEmail)
       
       // Create test email content
       const emailContent = generateTestEmailContent(userEmail)
@@ -125,10 +125,10 @@ const SupportButtons = () => {
 
       toast({
         title: "Test Successful",
-        description: `Test emails have been sent to support team (${supportEmail}) and your email address (${userEmail}).`,
+        description: `Production emails successfully sent to support (${supportEmail}) and your address (${userEmail}).`,
       })
     } catch (error) {
-      console.error('Error in test email process:', error)
+      console.error('Error in production email test:', error)
       toast({
         variant: "destructive",
         title: "Test Failed",
