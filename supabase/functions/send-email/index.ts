@@ -89,11 +89,18 @@ serve(async (req) => {
       throw queueError
     }
 
-    const fromAddress = `BirdWatch <${VERIFIED_DOMAIN_EMAIL}>`
+    const fromAddress = `BirdWatch Support <${VERIFIED_DOMAIN_EMAIL}>`
+    
+    // Important: Check if this is a support email and make sure we're sending to the correct address
+    const isToSupportTeam = to === 'accounts@thewrightsupport.com' || 
+                           to === 'support@featheredfriendtracker.co.uk';
+    
+    // Always use the verified domain email for support team emails
+    const correctedTo = isToSupportTeam ? VERIFIED_DOMAIN_EMAIL : to;
     
     console.log('Attempting to send email with the following configuration:', {
       from: fromAddress,
-      to,
+      to: correctedTo, // Use the corrected recipient
       subject,
       text: text?.substring(0, 100) + '...',
       html: html ? 'HTML content provided' : 'No HTML content'
@@ -102,7 +109,7 @@ serve(async (req) => {
     try {
       const response = await resend.emails.send({
         from: fromAddress,
-        to: [to],
+        to: [correctedTo], // Use the corrected recipient
         subject,
         text,
         html: html || undefined,
