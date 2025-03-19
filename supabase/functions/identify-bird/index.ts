@@ -1,6 +1,5 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { HfInference } from 'https://esm.sh/@huggingface/inference@2.3.2'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -13,27 +12,13 @@ serve(async (req) => {
   }
 
   try {
-    const formData = await req.formData()
-    const image = formData.get('image')
-
-    if (!image || !(image instanceof File)) {
-      throw new Error('No image provided')
-    }
-
-    // Initialize Hugging Face
-    const hf = new HfInference(Deno.env.get('HUGGING_FACE_ACCESS_TOKEN'))
-
-    // Use a bird species classification model
-    const result = await hf.imageClassification({
-      model: 'google/vit-base-patch16-224',
-      data: await image.arrayBuffer(),
-    })
-
-    console.log('Classification result:', result)
+    console.log('Received bird identification request but API keys have been removed')
 
     return new Response(
-      JSON.stringify({ result }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({ 
+        error: "API keys have been removed. Bird identification functionality is disabled."
+      }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
     )
   } catch (error) {
     console.error('Error:', error)

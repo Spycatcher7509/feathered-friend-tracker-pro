@@ -14,61 +14,11 @@ serve(async (req) => {
   }
 
   try {
-    const { audio } = await req.json()
+    console.log('Received audio transcription request but API keys have been removed')
     
-    if (!audio) {
-      throw new Error('No audio data provided')
-    }
-
-    // Process audio data
-    const base64Data = audio.split(',')[1];
-    const binaryAudio = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
-    
-    // Prepare form data
-    const formData = new FormData()
-    const blob = new Blob([binaryAudio], { type: 'audio/webm' })
-    formData.append('file', blob, 'audio.webm')
-    formData.append('model', 'whisper-1')
-    formData.append('language', 'en')  // Specify English language
-    formData.append('response_format', 'json')
-
-    // Send to OpenAI
-    const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
-      },
-      body: formData,
-    })
-
-    if (!response.ok) {
-      throw new Error(`OpenAI API error: ${await response.text()}`)
-    }
-
-    const result = await response.json()
-    
-    // Create Supabase client to log API usage
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    )
-
-    // Calculate approximate cost (based on Whisper API pricing)
-    const minutes = Math.ceil(binaryAudio.length / (16000 * 60)) // Assuming 16kHz sample rate
-    const cost = minutes * 0.006 // $0.006 per minute
-
-    // Log API usage
-    await supabase
-      .from('api_usage')
-      .insert({
-        endpoint: 'whisper-1',
-        tokens_used: result.text.split(' ').length * 4, // Rough estimate of tokens
-        cost: cost
-      })
-
     return new Response(
-      JSON.stringify({ text: result.text }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({ error: "API keys have been removed. Audio transcription functionality is disabled." }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
     )
 
   } catch (error) {
