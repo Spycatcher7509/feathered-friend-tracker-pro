@@ -32,7 +32,7 @@ serve(async (req) => {
     }
 
     const { data, error } = await resend.emails.send({
-      from: "Support <support@featheredfriendtracker.co.uk>",
+      from: "Support <tickets@featheredfriendtracker.co.uk>",
       to: [to],
       subject: subject,
       text: text,
