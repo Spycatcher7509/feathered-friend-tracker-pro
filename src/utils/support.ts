@@ -21,12 +21,9 @@ export const generateSupportEmailContent = (caseNumber: string, userEmail: strin
     `
   },
   userEmail: {
-    to: userEmail,
-    subject: `Welcome to BirdWatch – Your Ultimate Bird-Watching Companion!`,
+    subject: `BirdWatch Support - Issue Received (Case ${caseNumber})`,
     text: `
-Dear Bird Enthusiast,
-
-Welcome to BirdWatch! We're thrilled to have you on board. Get ready to explore, track, and enjoy the beauty of birdwatching like never before. Stay tuned for exciting updates, features, and community insights.
+Dear BirdWatch User,
 
 Thank you for contacting BirdWatch Support. This email confirms that we have received your issue report.
 
@@ -37,15 +34,12 @@ ${issueDescription}
 
 We will review your case and respond as soon as possible. Please keep this case number for future reference.
 
-Happy birdwatching!
-
+Best regards,
 The BirdWatch Support Team
     `,
     html: `
-      <h2>Welcome to BirdWatch – Your Ultimate Bird-Watching Companion!</h2>
-      <p>Dear Bird Enthusiast,</p>
-      <p><strong>Welcome to BirdWatch!</strong> We're thrilled to have you on board. Get ready to explore, track, and enjoy the beauty of birdwatching like never before. Stay tuned for exciting updates, features, and community insights.</p>
-      
+      <h2>BirdWatch Support - Issue Received</h2>
+      <p>Dear BirdWatch User,</p>
       <p>Thank you for contacting BirdWatch Support. This email confirms that we have received your issue report.</p>
       <p><strong>Case Number:</strong> ${caseNumber}</p>
       <p><strong>Your reported issue:</strong></p>
@@ -53,8 +47,7 @@ The BirdWatch Support Team
         ${issueDescription}
       </blockquote>
       <p>We will review your case and respond as soon as possible. Please keep this case number for future reference.</p>
-      <p>Happy birdwatching!</p>
-      <p><strong>The BirdWatch Support Team</strong></p>
+      <p>Best regards,<br>The BirdWatch Support Team</p>
     `
   }
 })
@@ -72,7 +65,6 @@ export const generateTestEmailContent = (userEmail: string) => ({
     `
   },
   userEmail: {
-    to: userEmail,
     subject: `BirdWatch Email System Test`,
     text: `
 Dear BirdWatch User,
@@ -82,6 +74,7 @@ This is a confirmation that a test email has been sent to our support team.
 If you requested this test, everything is working correctly!
 If you did not request this test, you can safely ignore this message.
 
+Best regards,
 The BirdWatch Support Team
     `,
     html: `
@@ -90,7 +83,7 @@ The BirdWatch Support Team
       <p>This is a confirmation that a test email has been sent to our support team.</p>
       <p>If you requested this test, everything is working correctly!</p>
       <p>If you did not request this test, you can safely ignore this message.</p>
-      <p><strong>The BirdWatch Support Team</strong></p>
+      <p>Best regards,<br>The BirdWatch Support Team</p>
     `
   }
 })

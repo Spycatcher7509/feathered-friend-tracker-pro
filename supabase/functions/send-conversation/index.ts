@@ -40,9 +40,6 @@ serve(async (req) => {
     const { conversationId, userEmail }: ChatRequest = await req.json()
     console.log(`Processing conversation ${conversationId} for user ${userEmail}`)
 
-    // Get support email - directly use the verified domain email
-    const supportEmail = VERIFIED_DOMAIN_EMAIL
-
     // Get chat messages and metadata
     const { data: chatData, error: chatError } = await supabaseClient
       .from('messages')
@@ -91,7 +88,7 @@ serve(async (req) => {
     
     const supportEmailResult = await resend.emails.send({
       from: fromAddress,
-      to: supportEmail,
+      to: VERIFIED_DOMAIN_EMAIL,
       subject: `New Support Chat Transcript - ${metadata.full_name}`,
       text: `
 Support Chat Transcript
