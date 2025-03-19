@@ -13,7 +13,7 @@ interface ChatRequest {
   userEmail: string
 }
 
-// Initialize Resend with the API key
+// Initialize Resend with the API key from environment variables
 const resendApiKey = Deno.env.get('RESEND_API_KEY')
 if (!resendApiKey) {
   console.error('RESEND_API_KEY is not set')
