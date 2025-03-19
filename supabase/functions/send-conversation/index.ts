@@ -79,7 +79,7 @@ serve(async (req) => {
     
     // Send email with conversation summary
     const { data, error } = await resend.emails.send({
-      from: "Support <tickets@featheredfriendtracker.co.uk>",
+      from: "Support <support@featheredfriendtracker.co.uk>",
       to: [userEmail],
       subject: "Your BirdWatch Support Conversation Summary",
       html: `

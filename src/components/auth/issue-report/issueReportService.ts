@@ -35,7 +35,7 @@ export const submitIssueReport = async (
     }
 
     // Use the autoresponse email with full access
-    const supportEmail = 'autoresponse@featheredfriendtracker.co.uk'
+    const supportEmail = 'support@featheredfriendtracker.co.uk'
     console.log('Using support email address:', supportEmail)
 
     // Store issue in database - status will default to 'open'
