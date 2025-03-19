@@ -1,12 +1,14 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1"
+import { Resend } from "npm:resend@2.0.0"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Content-Type': 'application/json'
 }
+
+const resend = new Resend(Deno.env.get("RESEND_API_KEY"))
 
 interface EmailRequest {
   to: string
@@ -22,16 +24,33 @@ serve(async (req) => {
   }
 
   try {
-    console.log('Received email request but API keys have been removed')
+    const { to, subject, text, html }: EmailRequest = await req.json()
+    console.log(`Sending email to ${to} with subject: ${subject}`)
 
+    if (!to || !subject || !text) {
+      throw new Error("Missing required fields: to, subject, text")
+    }
+
+    const { data, error } = await resend.emails.send({
+      from: "Support <support@featheredfriendtracker.co.uk>",
+      to: [to],
+      subject: subject,
+      text: text,
+      html: html || text
+    })
+
+    if (error) {
+      console.error('Resend API Error:', error)
+      return new Response(
+        JSON.stringify({ error: error.message }),
+        { headers: corsHeaders, status: 400 }
+      )
+    }
+
+    console.log('Resend API Success Response:', data)
     return new Response(
-      JSON.stringify({ 
-        error: "API keys have been removed. Email functionality is disabled."
-      }),
-      { 
-        headers: corsHeaders,
-        status: 400,
-      }
+      JSON.stringify({ data }),
+      { headers: corsHeaders, status: 200 }
     )
 
   } catch (error) {
