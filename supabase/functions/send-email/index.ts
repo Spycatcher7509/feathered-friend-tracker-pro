@@ -29,8 +29,8 @@ if (!resendApiKey) {
 }
 const resend = new Resend(resendApiKey)
 
-// Production verified domain email
-const VERIFIED_DOMAIN_EMAIL = "support@featheredfriendtracker.co.uk"
+// Production verified domain email - use autoresponse which has Full access
+const VERIFIED_DOMAIN_EMAIL = "autoresponse@featheredfriendtracker.co.uk"
 
 serve(async (req) => {
   // Handle CORS preflight requests

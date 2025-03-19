@@ -34,8 +34,8 @@ export const submitIssueReport = async (
       throw new Error("User not authenticated")
     }
 
-    // Use the verified domain email
-    const supportEmail = 'support@featheredfriendtracker.co.uk'
+    // Use the autoresponse email with full access
+    const supportEmail = 'autoresponse@featheredfriendtracker.co.uk'
     console.log('Using support email address:', supportEmail)
 
     // Store issue in database - status will default to 'open'

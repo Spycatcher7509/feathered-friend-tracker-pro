@@ -20,8 +20,8 @@ if (!resendApiKey) {
 }
 const resend = new Resend(resendApiKey)
 
-// Use verified domain email
-const VERIFIED_DOMAIN_EMAIL = "support@featheredfriendtracker.co.uk"
+// Use verified domain email with full access
+const VERIFIED_DOMAIN_EMAIL = "autoresponse@featheredfriendtracker.co.uk"
 
 serve(async (req) => {
   // Handle CORS preflight requests
