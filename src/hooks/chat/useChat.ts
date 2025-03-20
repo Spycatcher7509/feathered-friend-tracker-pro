@@ -40,12 +40,9 @@ export const useChat = (): ChatHookReturn => {
 
     const handleEndConversation = useCallback(async () => {
       try {
-        const success = await endConversation()
-        if (success) {
-          cleanupMessageSubscription()
-          resetFormData()
-        }
-        // Remove the return success to match void return type
+        await endConversation()
+        cleanupMessageSubscription()
+        resetFormData()
       } catch (error) {
         console.error("Error ending conversation:", error);
       }
