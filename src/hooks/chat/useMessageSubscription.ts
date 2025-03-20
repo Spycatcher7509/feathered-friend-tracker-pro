@@ -19,8 +19,11 @@ export const useMessageSubscription = (conversationId: string | null) => {
       supabase.removeChannel(messageSubscription.current)
     }
     
+    const channelName = `chat_messages_${convId}`
+    console.log('Creating channel:', channelName)
+    
     const channel = supabase
-      .channel(`chat_${convId}`)
+      .channel(channelName)
       .on(
         'postgres_changes',
         {
@@ -32,7 +35,14 @@ export const useMessageSubscription = (conversationId: string | null) => {
         (payload) => {
           console.log('Received new message in subscription:', payload)
           if (payload.new) {
-            setMessages(prev => [...prev, payload.new as Message])
+            setMessages(prev => {
+              // Check if message already exists to prevent duplicates
+              const exists = prev.some(msg => msg.id === (payload.new as Message).id)
+              if (exists) {
+                return prev
+              }
+              return [...prev, payload.new as Message]
+            })
           }
         }
       )

@@ -1,5 +1,5 @@
 
-import React from "react"
+import React, { KeyboardEvent } from "react"
 import { Send } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -17,18 +17,28 @@ export const MessageInput = ({
   onSend,
   disabled
 }: MessageInputProps) => {
+  const handleKeyPress = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey && value.trim()) {
+      e.preventDefault()
+      onSend()
+    }
+  }
+
   return (
     <div className="flex gap-2">
       <Input
         value={value}
         onChange={onChange}
-        onKeyPress={(e) => e.key === 'Enter' && onSend()}
+        onKeyPress={handleKeyPress}
         placeholder="Type your message..."
         disabled={disabled}
+        className="flex-1"
+        autoFocus
       />
       <Button 
         onClick={onSend}
-        disabled={disabled}
+        disabled={disabled || !value.trim()}
+        className="shrink-0"
       >
         <Send className="h-4 w-4" />
       </Button>

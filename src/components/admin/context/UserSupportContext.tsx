@@ -3,6 +3,7 @@ import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { sendDiscordWebhookMessage } from "@/utils/discord";
+import { useRouter } from "react-router-dom";
 
 type UserSupportContextType = {
   hasPendingSupport: boolean;
@@ -24,10 +25,34 @@ export const UserSupportProvider = ({ children }: { children: React.ReactNode })
   const [hasPendingSupport, setHasPendingSupport] = useState(false);
   const { toast } = useToast();
   const notificationSound = useRef<HTMLAudioElement | null>(null);
+  const router = useRouter();
+  const isAdmin = useRef(false);
 
   // Initialize notification sound
   useEffect(() => {
     notificationSound.current = new Audio('/notification.mp3');
+    
+    // Check if user is admin
+    const checkAdminStatus = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data } = await supabase
+            .from('profiles')
+            .select('is_admin')
+            .eq('id', user.id)
+            .single();
+          
+          isAdmin.current = data?.is_admin || false;
+          console.log('User admin status:', isAdmin.current);
+        }
+      } catch (error) {
+        console.error('Error checking admin status:', error);
+      }
+    };
+    
+    checkAdminStatus();
+    
     return () => {
       if (notificationSound.current) {
         notificationSound.current.pause();
@@ -84,11 +109,16 @@ export const UserSupportProvider = ({ children }: { children: React.ReactNode })
 
   // Subscribe to real-time support notifications
   useEffect(() => {
-    console.log('Setting up support request subscriptions');
+    if (!isAdmin.current) {
+      console.log('Non-admin user, not setting up support subscriptions');
+      return;
+    }
+    
+    console.log('Setting up support request subscriptions for admin');
     
     // Listen for new conversations
     const conversationsChannel = supabase
-      .channel('new_support_conversations')
+      .channel('admin_new_support_conversations')
       .on(
         'postgres_changes',
         {
@@ -116,11 +146,13 @@ export const UserSupportProvider = ({ children }: { children: React.ReactNode })
           }
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Admin conversations subscription status:', status);
+      });
     
     // Listen for new messages
     const messagesChannel = supabase
-      .channel('new_support_messages')
+      .channel('admin_new_support_messages')
       .on(
         'postgres_changes',
         {
@@ -141,11 +173,13 @@ export const UserSupportProvider = ({ children }: { children: React.ReactNode })
           }
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Admin messages subscription status:', status);
+      });
 
     // Listen for new issues
     const issuesChannel = supabase
-      .channel('new_issues')
+      .channel('admin_new_issues')
       .on(
         'postgres_changes',
         {

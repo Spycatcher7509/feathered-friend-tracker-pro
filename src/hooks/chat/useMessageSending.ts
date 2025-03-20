@@ -14,8 +14,26 @@ export const useMessageSending = (conversationId: string | null) => {
     setIsSending(true)
     try {
       console.log('Sending message to conversation:', conversationId)
+      
+      // Get current user
       const { data: { user } } = await supabase.auth.getUser()
-      const userId = user?.id || 'anonymous'
+      
+      // Check if user is admin
+      let isAdmin = false
+      if (user) {
+        const { data } = await supabase
+          .from('profiles')
+          .select('is_admin')
+          .eq('id', user.id)
+          .single()
+        
+        isAdmin = data?.is_admin || false
+      }
+      
+      // Use special user_id for admin messages so they can be styled differently
+      const userId = isAdmin ? 'admin' : (user?.id || 'anonymous')
+      
+      console.log('Sending message as user:', userId, isAdmin ? '(admin)' : '')
 
       const { data: message, error } = await supabase
         .from('messages')
