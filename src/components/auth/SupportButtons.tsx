@@ -20,42 +20,12 @@ const SupportButtons = () => {
       link.click()
       document.body.removeChild(link)
       
-      // Only send confirmation email if user is logged in
-      if (userEmail) {
-        const testEmailData = {
-          to: userEmail,
-          subject: "BirdWatch Guide Download Confirmation",
-          text: "Thank you for downloading the BirdWatch User Guide. If you have any questions, please don't hesitate to contact our support team.",
-          html: `
-            <h2>BirdWatch Guide Download Confirmation</h2>
-            <p>Thank you for downloading the BirdWatch User Guide.</p>
-            <p>If you have any questions, please don't hesitate to contact our support team.</p>
-            <br>
-            <p>Best regards,<br>The BirdWatch Team</p>
-          `
-        }
-
-        const { error } = await supabase.functions.invoke('send-email', {
-          body: testEmailData
-        })
-
-        if (error) {
-          console.error('Error sending confirmation email:', error)
-          throw error
-        }
-
-        toast({
-          title: "Success",
-          description: "User guide downloaded successfully and confirmation email sent",
-        })
-      } else {
-        toast({
-          title: "Success",
-          description: "User guide downloaded successfully",
-        })
-      }
+      toast({
+        title: "Success",
+        description: "User guide downloaded successfully",
+      })
     } catch (error) {
-      console.error('Error downloading user guide or sending email:', error)
+      console.error('Error downloading user guide:', error)
       toast({
         variant: "destructive",
         title: "Download Failed",
@@ -75,8 +45,8 @@ const SupportButtons = () => {
     }
 
     toast({
-      title: "Sending Test Email",
-      description: "Sending production test emails...",
+      title: "Testing Email Service",
+      description: "Checking email functionality...",
     })
 
     try {
@@ -97,6 +67,16 @@ const SupportButtons = () => {
           html: emailContent.supportEmail.html
         }
       })
+
+      // Check if email functionality is disabled
+      if (supportEmailError && supportEmailData && supportEmailData.emailDisabled) {
+        toast({
+          variant: "destructive",
+          title: "Email Service Unavailable",
+          description: "The email service is currently disabled. Please contact your administrator to configure the email service.",
+        })
+        return
+      }
 
       if (supportEmailError) {
         console.error('Error sending test email to support:', supportEmailError)

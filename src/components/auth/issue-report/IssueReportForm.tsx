@@ -36,14 +36,24 @@ export const IssueReportForm = ({ userEmail, setIsDialogOpen }: IssueReportFormP
     setIsSending(false)
 
     if (result.success && result.caseNumber && result.formattedDate) {
-      toast({
-        title: "Issue Report Sent",
-        description: `Case #${result.caseNumber} - ${result.formattedDate}
+      let toastDescription = `Case #${result.caseNumber} - ${result.formattedDate}
 
 Your reported issue:
-"${issueDescription}"
+"${issueDescription}"`
 
-Our support team will get back to you within 48 hours.`,
+      if (result.emailDisabled) {
+        toastDescription += `
+
+Note: Email notifications are currently disabled, but your issue has been logged in our system.`
+      } else {
+        toastDescription += `
+
+Our support team will get back to you within 48 hours.`
+      }
+
+      toast({
+        title: "Issue Report Sent",
+        description: toastDescription,
       })
 
       // Close dialog first, then reset description

@@ -1,7 +1,6 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1"
-import { Resend } from "npm:resend@2.0.0"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -20,6 +19,19 @@ serve(async (req) => {
   }
 
   try {
+    const resendApiKey = Deno.env.get("RESEND_API_KEY")
+    
+    if (!resendApiKey) {
+      console.log('No Resend API key found. Email functionality is disabled.')
+      return new Response(
+        JSON.stringify({ 
+          error: "Email functionality is currently disabled. Please contact the administrator to configure the email service.",
+          emailDisabled: true
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 503 }
+      )
+    }
+
     const { conversationId, userEmail }: ChatRequest = await req.json()
     console.log(`Preparing to send conversation summary for ${conversationId} to ${userEmail}`)
     
@@ -74,8 +86,9 @@ serve(async (req) => {
       `
     })
 
-    // Initialize Resend
-    const resend = new Resend(Deno.env.get("RESEND_API_KEY"))
+    // Only import and initialize Resend if we have an API key
+    const { Resend } = await import("npm:resend@2.0.0")
+    const resend = new Resend(resendApiKey)
     
     // Send email with conversation summary
     const { data, error } = await resend.emails.send({

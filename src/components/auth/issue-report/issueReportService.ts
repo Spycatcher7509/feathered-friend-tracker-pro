@@ -9,6 +9,7 @@ export interface IssueReportResult {
   caseNumber?: string
   formattedDate?: string
   error?: Error
+  emailDisabled?: boolean
 }
 
 export const submitIssueReport = async (
@@ -34,7 +35,6 @@ export const submitIssueReport = async (
       throw new Error("User not authenticated")
     }
 
-    // Use the autoresponse email with full access
     const supportEmail = 'support@featheredfriendtracker.co.uk'
     console.log('Using support email address:', supportEmail)
 
@@ -64,6 +64,30 @@ export const submitIssueReport = async (
       }
     })
 
+    // Check if email functionality is disabled
+    if (supportEmailError && supportEmailData && supportEmailData.emailDisabled) {
+      console.log('Email functionality is disabled, but issue was logged in database')
+      
+      try {
+        // Try to send Discord notification as fallback
+        await sendDiscordWebhookMessage(`🎫 New Issue Report (${caseNumber})
+📅 Reported: ${formattedDate}
+📧 Reporter: ${userEmail}
+📝 Description: ${issueDescription}
+
+*Note: Email notifications are disabled. This issue is only available in the database.*`, "support")
+      } catch (discordError) {
+        console.error('Error sending Discord notification:', discordError)
+      }
+      
+      return {
+        success: true,
+        caseNumber,
+        formattedDate,
+        emailDisabled: true
+      }
+    }
+    
     if (supportEmailError) {
       console.error('Error sending support email:', supportEmailError)
       throw supportEmailError
@@ -82,7 +106,7 @@ export const submitIssueReport = async (
       }
     })
 
-    if (ackError) {
+    if (ackError && !ackError.emailDisabled) {
       console.error('Error sending acknowledgment email:', ackError)
       throw ackError
     }
@@ -105,7 +129,8 @@ Our support team will respond within 48 hours.`, "support")
     return {
       success: true,
       caseNumber,
-      formattedDate
+      formattedDate,
+      emailDisabled: userEmailData && userEmailData.emailDisabled
     }
   } catch (error) {
     console.error('Error sending issue report:', error)
