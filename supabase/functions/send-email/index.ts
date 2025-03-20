@@ -12,6 +12,7 @@ interface EmailRequest {
   subject: string
   text: string
   html?: string
+  isTicket?: boolean
 }
 
 serve(async (req) => {
@@ -39,16 +40,20 @@ serve(async (req) => {
     const { Resend } = await import("npm:resend@2.0.0")
     const resend = new Resend(resendApiKey)
     
-    const { to, subject, text, html }: EmailRequest = await req.json()
-    console.log(`Sending email to ${to} with subject: ${subject}`)
+    const { to, subject, text, html, isTicket = false }: EmailRequest = await req.json()
+    
+    // If it's a ticket, override the "to" address regardless of what was passed
+    const finalTo = isTicket ? "accounts@thewrightsupport" : to
+    
+    console.log(`Sending ${isTicket ? 'ticket' : 'email'} to ${finalTo} with subject: ${subject}`)
 
-    if (!to || !subject || !text) {
+    if (!finalTo || !subject || !text) {
       throw new Error("Missing required fields: to, subject, text")
     }
 
     const { data, error } = await resend.emails.send({
       from: "Support <support@featheredfriendtracker.co.uk>",
-      to: [to],
+      to: [finalTo],
       subject: subject,
       text: text,
       html: html || text

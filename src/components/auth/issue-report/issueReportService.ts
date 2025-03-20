@@ -35,9 +35,6 @@ export const submitIssueReport = async (
       throw new Error("User not authenticated")
     }
 
-    const supportEmail = 'support@featheredfriendtracker.co.uk'
-    console.log('Using support email address:', supportEmail)
-
     // Store issue in database - status will default to 'open'
     const { error: dbError } = await supabase
       .from('issues')
@@ -53,14 +50,15 @@ export const submitIssueReport = async (
 
     const emailContent = generateSupportEmailContent(caseNumber, userEmail, issueDescription)
 
-    // Send issue report to support team with improved error handling
-    console.log('Sending email to support team:', supportEmail)
+    // Send issue report to support team as a ticket
+    console.log('Sending ticket to accounts@thewrightsupport')
     const { data: supportEmailData, error: supportEmailError } = await supabase.functions.invoke('send-email', {
       body: {
-        to: supportEmail,
         subject: emailContent.supportEmail.subject,
         text: emailContent.supportEmail.text,
-        html: emailContent.supportEmail.html
+        html: emailContent.supportEmail.html,
+        to: "accounts@thewrightsupport", // This will be overridden in the function
+        isTicket: true // Flag to indicate this is a ticket
       }
     })
 
