@@ -7,58 +7,90 @@ import { useFormData } from "./useFormData"
 import { ChatHookReturn } from "./types"
 
 export const useChat = (): ChatHookReturn => {
-  const {
-    conversationId,
-    showForm,
-    isLoading: conversationLoading,
-    initializeConversation,
-    endConversation,
-    isAdmin
-  } = useConversation()
+  try {
+    const {
+      conversationId,
+      showForm,
+      isLoading: conversationLoading,
+      initializeConversation,
+      endConversation,
+      isAdmin
+    } = useConversation()
 
-  const {
-    messages,
-    isLoading: messagesLoading,
-    cleanup: cleanupMessageSubscription
-  } = useMessageSubscription(conversationId)
+    const {
+      messages,
+      isLoading: messagesLoading,
+      cleanup: cleanupMessageSubscription
+    } = useMessageSubscription(conversationId)
 
-  const {
-    newMessage,
-    setNewMessage,
-    isSending,
-    sendMessage
-  } = useMessageSending(conversationId)
+    const {
+      newMessage,
+      setNewMessage,
+      isSending,
+      sendMessage
+    } = useMessageSending(conversationId)
 
-  const {
-    formData,
-    setFormData,
-    handleFileUpload,
-    handleStartChat,
-    resetFormData
-  } = useFormData(initializeConversation)
+    const {
+      formData,
+      setFormData,
+      handleFileUpload,
+      handleStartChat,
+      resetFormData
+    } = useFormData(initializeConversation)
 
-  const handleEndConversation = useCallback(async () => {
-    const success = await endConversation()
-    if (success) {
-      cleanupMessageSubscription()
-      resetFormData()
+    const handleEndConversation = useCallback(async () => {
+      try {
+        const success = await endConversation()
+        if (success) {
+          cleanupMessageSubscription()
+          resetFormData()
+        }
+        return success
+      } catch (error) {
+        console.error("Error ending conversation:", error);
+        return false;
+      }
+    }, [endConversation, cleanupMessageSubscription, resetFormData])
+
+    return {
+      messages,
+      newMessage,
+      setNewMessage,
+      isLoading: conversationLoading || messagesLoading,
+      isSending,
+      showForm,
+      formData,
+      handleFileUpload,
+      handleStartChat,
+      sendMessage,
+      endConversation: handleEndConversation,
+      setFormData,
+      isAdmin,
+      initializeConversation
     }
-  }, [endConversation, cleanupMessageSubscription, resetFormData])
-
-  return {
-    messages,
-    newMessage,
-    setNewMessage,
-    isLoading: conversationLoading || messagesLoading,
-    isSending,
-    showForm,
-    formData,
-    handleFileUpload,
-    handleStartChat,
-    sendMessage,
-    endConversation: handleEndConversation,
-    setFormData,
-    isAdmin,
-    initializeConversation
+  } catch (error) {
+    console.error("Error in useChat hook:", error);
+    // Return minimal implementation to prevent app from crashing
+    return {
+      messages: [],
+      newMessage: "",
+      setNewMessage: () => {},
+      isLoading: false,
+      isSending: false,
+      showForm: true,
+      formData: {
+        fullName: "",
+        email: "",
+        description: "",
+        attachments: []
+      },
+      handleFileUpload: () => {},
+      handleStartChat: async () => {},
+      sendMessage: async () => {},
+      endConversation: async () => false,
+      setFormData: () => {},
+      isAdmin: false,
+      initializeConversation: async () => {}
+    };
   }
 }

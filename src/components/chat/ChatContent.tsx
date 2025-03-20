@@ -16,6 +16,15 @@ export const ChatContent = ({ chat }: ChatContentProps) => {
     console.log("ChatContent - showForm:", chat?.showForm);
   }, [chat?.isAdmin, chat?.showForm]);
 
+  // If no chat object, show loading
+  if (!chat) {
+    return (
+      <div className="flex-1 flex items-center justify-center p-4">
+        Loading chat functionality...
+      </div>
+    );
+  }
+
   return (
     <>
       <div className="flex-1 overflow-y-auto p-4 space-y-4">

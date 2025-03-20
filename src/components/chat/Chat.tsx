@@ -11,32 +11,42 @@ export const Chat = () => {
   const chat = useChat()
   const [isOpen, setIsOpen] = useState(false)
 
-  // Auto-start chat for admin users when they open the chat panel
+  // Only initialize chat for admin users when they open the chat panel if chat is available
   const handleSheetOpen = (open: boolean) => {
     setIsOpen(open);
     
-    // Only try to initialize if the chat panel is opening
-    if (open && chat?.isAdmin && chat?.showForm) {
+    // Safely check if chat is available and admin user is detected
+    if (open && chat && chat.isAdmin && chat.showForm && typeof chat.initializeConversation === 'function') {
       console.log("Admin detected, auto-initializing conversation");
       // Use a short timeout to ensure all state is properly loaded
       setTimeout(() => {
-        if (chat.initializeConversation) {
-          chat.initializeConversation();
+        if (chat && chat.initializeConversation) {
+          try {
+            chat.initializeConversation();
+          } catch (error) {
+            console.error("Failed to initialize conversation:", error);
+          }
         }
-      }, 100);
+      }, 300);
     }
   }
 
   // Add an effect to initialize conversation for admins when component mounts
   useEffect(() => {
-    if (isOpen && chat?.isAdmin && chat?.showForm && chat?.initializeConversation) {
+    if (chat && isOpen && chat.isAdmin && chat.showForm && typeof chat.initializeConversation === 'function') {
       console.log("Admin user detected on mount, initializing conversation");
-      // Use a short timeout to ensure all state is properly loaded
+      // Use a longer timeout to ensure all state is properly loaded
       setTimeout(() => {
-        chat.initializeConversation();
-      }, 100);
+        if (chat && chat.initializeConversation) {
+          try {
+            chat.initializeConversation();
+          } catch (error) {
+            console.error("Failed to initialize conversation:", error);
+          }
+        }
+      }, 500);
     }
-  }, [chat?.isAdmin, chat?.showForm, isOpen, chat?.initializeConversation]);
+  }, [chat, isOpen]);
 
   return (
     <Sheet onOpenChange={handleSheetOpen}>
@@ -56,10 +66,16 @@ export const Chat = () => {
       <SheetContent className="w-[400px] sm:w-[540px] p-0">
         <div className="flex flex-col h-full">
           <ChatHeader 
-            showForm={chat.showForm} 
-            onEndChat={chat.endConversation} 
+            showForm={chat?.showForm || true} 
+            onEndChat={() => chat?.endConversation?.() || Promise.resolve()} 
           />
-          <ChatContent chat={chat} />
+          {chat ? (
+            <ChatContent chat={chat} />
+          ) : (
+            <div className="flex-1 flex items-center justify-center p-4">
+              Loading chat functionality...
+            </div>
+          )}
         </div>
       </SheetContent>
     </Sheet>

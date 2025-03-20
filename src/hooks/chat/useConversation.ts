@@ -20,13 +20,26 @@ export const useConversation = () => {
   }, [isAdmin]);
 
   const initializeConversation = async (metadata?: ChatFormData) => {
+    if (isLoading) return; // Prevent multiple initializations
+    
     setIsLoading(true)
     try {
       console.log('Initializing conversation with metadata:', metadata)
       console.log('Is admin when initializing:', isAdmin.current)
       
-      // Get user information
-      const { data: { user } } = await supabase.auth.getUser()
+      // Get user information - handle error if not authenticated
+      const { data: { user }, error: userError } = await supabase.auth.getUser()
+      
+      if (userError) {
+        console.error('Error getting user:', userError);
+        toast({
+          variant: "destructive",
+          title: "Authentication Error",
+          description: "Please sign in to start a conversation."
+        });
+        setIsLoading(false);
+        return;
+      }
       
       const userId = user?.id || 'anonymous'
       console.log('User ID for conversation:', userId)
@@ -41,7 +54,10 @@ export const useConversation = () => {
         .select()
         .single()
 
-      if (convError) throw convError
+      if (convError) {
+        console.error('Error creating conversation:', convError);
+        throw convError;
+      }
 
       if (newConv) {
         console.log('Created new conversation:', newConv.id)
@@ -60,10 +76,13 @@ export const useConversation = () => {
               attachments: []
             })
 
-          if (metadataError) throw metadataError
+          if (metadataError) {
+            console.error('Error storing metadata:', metadataError);
+            throw metadataError;
+          }
 
           // Handle file attachments if any
-          if (metadata.attachments.length > 0) {
+          if (metadata.attachments && metadata.attachments.length > 0) {
             console.log('Uploading attachments:', metadata.attachments.length)
             const uploadPromises = metadata.attachments.map(async (file) => {
               const filename = `${newConv.id}/${file.name}`
@@ -71,17 +90,25 @@ export const useConversation = () => {
                 .from('chat-attachments')
                 .upload(filename, file)
               
-              if (uploadError) throw uploadError
+              if (uploadError) {
+                console.error('Error uploading file:', uploadError);
+                throw uploadError;
+              }
               return filename
             })
 
-            const uploadedFiles = await Promise.all(uploadPromises)
-            
-            // Update metadata with file paths
-            await supabase
-              .from('chat_metadata')
-              .update({ attachments: uploadedFiles })
-              .eq('conversation_id', newConv.id)
+            try {
+              const uploadedFiles = await Promise.all(uploadPromises)
+              
+              // Update metadata with file paths
+              await supabase
+                .from('chat_metadata')
+                .update({ attachments: uploadedFiles })
+                .eq('conversation_id', newConv.id)
+            } catch (uploadError) {
+              console.error('Error processing uploads:', uploadError);
+              // Continue with the conversation even if uploads fail
+            }
           }
         }
 
@@ -91,14 +118,19 @@ export const useConversation = () => {
           : `Welcome ${metadata?.fullName || 'User'}! Our support team will respond as soon as possible.`;
 
         // Send system welcome message
-        await supabase
-          .from('messages')
-          .insert({
-            content: welcomeMessage,
-            conversation_id: newConv.id,
-            is_system_message: true,
-            user_id: userId
-          })
+        try {
+          await supabase
+            .from('messages')
+            .insert({
+              content: welcomeMessage,
+              conversation_id: newConv.id,
+              is_system_message: true,
+              user_id: userId
+            })
+        } catch (messageError) {
+          console.error('Error sending welcome message:', messageError);
+          // Continue even if welcome message fails
+        }
 
         setShowForm(false)
         toast({
@@ -133,19 +165,27 @@ export const useConversation = () => {
 
       if (userEmail) {
         console.log('Sending conversation summary to email:', userEmail)
-        const { error } = await supabase.functions.invoke('send-conversation', {
-          body: {
-            conversationId,
-            userEmail
-          }
-        })
+        try {
+          const { error } = await supabase.functions.invoke('send-conversation', {
+            body: {
+              conversationId,
+              userEmail
+            }
+          })
 
-        if (error) throw error
+          if (error) throw error
 
-        toast({
-          title: "Conversation Ended",
-          description: "A summary has been sent to your email"
-        })
+          toast({
+            title: "Conversation Ended",
+            description: "A summary has been sent to your email"
+          })
+        } catch (emailError) {
+          console.error('Error sending email summary:', emailError);
+          toast({
+            title: "Conversation Ended",
+            description: "Thank you for contacting us"
+          })
+        }
       } else {
         toast({
           title: "Conversation Ended",
