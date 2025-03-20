@@ -1,10 +1,27 @@
 
 import { supabase } from "@/integrations/supabase/client";
 
+/**
+ * Custom hook to check for existing support requests
+ * 
+ * This hook:
+ * 1. Provides a function to check for active conversations and open issues
+ * 2. Returns true if there are pending support matters that require attention
+ * 3. Logs detailed information about found requests for debugging
+ * 
+ * @returns {Object} Object containing the checkExistingRequests function
+ */
 export const useSupportRequests = () => {
+  /**
+   * Checks for existing active support conversations or open issues
+   * 
+   * @returns {Promise<boolean>} Promise resolving to true if there are existing requests, false otherwise
+   */
   const checkExistingRequests = async () => {
     try {
       console.log('Checking for existing support conversations');
+      
+      // First, check for active conversations
       const { data, error } = await supabase
         .from('conversations')
         .select('id')
@@ -20,7 +37,7 @@ export const useSupportRequests = () => {
         console.log('Found existing support conversations:', data.length);
         return true;
       } else {
-        // Check for unresolved issues
+        // If no active conversations, check for unresolved issues
         const { data: issues, error: issuesError } = await supabase
           .from('issues')
           .select('id')

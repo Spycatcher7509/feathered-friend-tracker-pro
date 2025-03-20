@@ -11,6 +11,26 @@ type UseSupportSubscriptionsProps = {
   playNotificationSound: () => void;
 };
 
+/**
+ * Custom hook for setting up real-time subscriptions to support-related database changes
+ * 
+ * This hook:
+ * 1. Sets up Supabase real-time channels for conversations, messages, and issues
+ * 2. Only initializes subscriptions for admin users
+ * 3. Plays notification sounds and shows toasts when new support items arrive
+ * 4. Optionally sends Discord notifications for new support requests
+ * 5. Properly cleans up subscriptions when the component unmounts
+ * 
+ * The integration flow:
+ * - When a user submits a support request, it gets added to the database
+ * - This triggers the real-time subscription for admins
+ * - Admins receive notifications and the UI updates to show pending support
+ * 
+ * @param {Object} props - Configuration for the subscriptions
+ * @param {RefObject<boolean>} props.isAdmin - Reference to whether the current user is an admin
+ * @param {Function} props.setHasPendingSupport - Function to update the pending support state
+ * @param {Function} props.playNotificationSound - Function to play a notification sound
+ */
 export const useSupportSubscriptions = ({
   isAdmin,
   setHasPendingSupport,
@@ -19,6 +39,7 @@ export const useSupportSubscriptions = ({
   const { toast } = useToast();
 
   useEffect(() => {
+    // Only set up subscriptions for admin users
     if (!isAdmin.current) {
       console.log('Non-admin user, not setting up support subscriptions');
       return;
@@ -26,7 +47,7 @@ export const useSupportSubscriptions = ({
     
     console.log('Setting up support request subscriptions for admin');
     
-    // Listen for new conversations
+    // Listen for new conversations - channel 1
     const conversationsChannel = supabase
       .channel('admin_new_support_conversations')
       .on(
@@ -39,8 +60,13 @@ export const useSupportSubscriptions = ({
         (payload) => {
           console.log('New conversation detected:', payload);
           if (payload.new) {
+            // Update UI state to show pending support
             setHasPendingSupport(true);
+            
+            // Play sound notification
             playNotificationSound();
+            
+            // Show toast notification
             toast({
               title: "New Support Request",
               description: "A user is requesting technical support",
@@ -60,7 +86,7 @@ export const useSupportSubscriptions = ({
         console.log('Admin conversations subscription status:', status);
       });
     
-    // Listen for new messages
+    // Listen for new messages - channel 2
     const messagesChannel = supabase
       .channel('admin_new_support_messages')
       .on(
@@ -73,8 +99,13 @@ export const useSupportSubscriptions = ({
         (payload) => {
           console.log('New message detected:', payload);
           if (payload.new && !payload.new.is_system_message) {
+            // Update UI state to show pending support
             setHasPendingSupport(true);
+            
+            // Play sound notification
             playNotificationSound();
+            
+            // Show toast notification
             toast({
               title: "New Support Message",
               description: "A user has sent a new message in support chat",
@@ -87,7 +118,7 @@ export const useSupportSubscriptions = ({
         console.log('Admin messages subscription status:', status);
       });
 
-    // Listen for new issues
+    // Listen for new issues - channel 3
     const issuesChannel = supabase
       .channel('admin_new_issues')
       .on(
@@ -100,8 +131,13 @@ export const useSupportSubscriptions = ({
         (payload) => {
           console.log('New issue detected:', payload);
           if (payload.new) {
+            // Update UI state to show pending support
             setHasPendingSupport(true);
+            
+            // Play sound notification
             playNotificationSound();
+            
+            // Show toast notification
             toast({
               title: "New Issue Report",
               description: "A user has reported a new issue",
@@ -112,6 +148,7 @@ export const useSupportSubscriptions = ({
       )
       .subscribe();
 
+    // Clean up all subscriptions when component unmounts
     return () => {
       console.log('Cleaning up support request subscriptions');
       supabase.removeChannel(conversationsChannel);
