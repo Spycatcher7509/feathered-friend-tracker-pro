@@ -22,6 +22,7 @@ const Index = () => {
     const checkAdmin = async () => {
       const adminStatus = await checkAdminStatus()
       actions.setAdminStatus(adminStatus)
+      console.log("Admin status in Index:", adminStatus)
     }
     checkAdmin()
   }, [checkAdminStatus])

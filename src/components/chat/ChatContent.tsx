@@ -14,7 +14,8 @@ export const ChatContent = ({ chat }: ChatContentProps) => {
   useEffect(() => {
     console.log("ChatContent - isAdmin:", chat?.isAdmin);
     console.log("ChatContent - showForm:", chat?.showForm);
-  }, [chat?.isAdmin, chat?.showForm]);
+    console.log("ChatContent - messages:", chat?.messages?.length);
+  }, [chat?.isAdmin, chat?.showForm, chat?.messages]);
 
   // If no chat object, show loading
   if (!chat) {

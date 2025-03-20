@@ -48,6 +48,8 @@ export const Chat = () => {
     }
   }, [chat, isOpen]);
 
+  console.log("Chat component rendered, chat object:", chat ? "available" : "not available", "isAdmin:", chat?.isAdmin);
+
   return (
     <Sheet onOpenChange={handleSheetOpen}>
       <SheetTrigger asChild>
