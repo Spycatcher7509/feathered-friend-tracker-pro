@@ -5,12 +5,21 @@ import { Button } from "@/components/ui/button"
 import { ChatHeader } from "./ChatHeader"
 import { ChatContent } from "./ChatContent"
 import { useChat } from "@/hooks/useChat"
+import { useEffect } from "react"
 
 export const Chat = () => {
   const chat = useChat()
 
+  // Auto-start chat for admin users when they open the chat panel
+  const handleSheetOpen = (open: boolean) => {
+    if (open && chat.isAdmin && chat.showForm) {
+      // For admin users, we auto-initialize the conversation without form data
+      chat.initializeConversation();
+    }
+  }
+
   return (
-    <Sheet>
+    <Sheet onOpenChange={handleSheetOpen}>
       <SheetTrigger asChild>
         <div className="fixed bottom-4 right-4 flex items-center gap-2">
           <span className="bg-white px-3 py-1 rounded-full shadow text-sm">

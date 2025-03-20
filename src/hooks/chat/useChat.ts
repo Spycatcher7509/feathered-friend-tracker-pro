@@ -13,6 +13,7 @@ export const useChat = (): ChatHookReturn => {
     isLoading: conversationLoading,
     initializeConversation,
     endConversation,
+    isAdmin
   } = useConversation()
 
   const {
@@ -56,6 +57,8 @@ export const useChat = (): ChatHookReturn => {
     handleStartChat,
     sendMessage,
     endConversation: handleEndConversation,
-    setFormData
+    setFormData,
+    isAdmin,
+    initializeConversation
   }
 }

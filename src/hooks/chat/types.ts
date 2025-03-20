@@ -46,4 +46,6 @@ export interface ChatHookReturn {
   sendMessage: () => Promise<void>
   endConversation: () => Promise<void>
   setFormData: React.Dispatch<React.SetStateAction<ChatFormData>>
+  isAdmin?: boolean
+  initializeConversation: (metadata?: ChatFormData) => Promise<void>
 }
