@@ -3,7 +3,7 @@ import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { sendDiscordWebhookMessage } from "@/utils/discord";
-import { useRouter } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 type UserSupportContextType = {
   hasPendingSupport: boolean;
@@ -25,7 +25,7 @@ export const UserSupportProvider = ({ children }: { children: React.ReactNode })
   const [hasPendingSupport, setHasPendingSupport] = useState(false);
   const { toast } = useToast();
   const notificationSound = useRef<HTMLAudioElement | null>(null);
-  const router = useRouter();
+  const navigate = useNavigate();
   const isAdmin = useRef(false);
 
   // Initialize notification sound
