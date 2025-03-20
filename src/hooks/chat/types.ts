@@ -44,7 +44,7 @@ export interface ChatHookReturn {
   handleFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => void
   handleStartChat: (e: React.FormEvent) => Promise<void>
   sendMessage: () => Promise<void>
-  endConversation: () => Promise<void>
+  endConversation: () => Promise<void> // This expects a void return
   setFormData: React.Dispatch<React.SetStateAction<ChatFormData>>
   isAdmin?: boolean
   initializeConversation: (metadata?: ChatFormData) => Promise<void>

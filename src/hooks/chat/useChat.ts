@@ -45,10 +45,9 @@ export const useChat = (): ChatHookReturn => {
           cleanupMessageSubscription()
           resetFormData()
         }
-        return success
+        // Remove the return success to match void return type
       } catch (error) {
         console.error("Error ending conversation:", error);
-        return false;
       }
     }, [endConversation, cleanupMessageSubscription, resetFormData])
 
@@ -87,7 +86,7 @@ export const useChat = (): ChatHookReturn => {
       handleFileUpload: () => {},
       handleStartChat: async () => {},
       sendMessage: async () => {},
-      endConversation: async () => false,
+      endConversation: async () => {}, // Modified to return void instead of boolean
       setFormData: () => {},
       isAdmin: false,
       initializeConversation: async () => {}
