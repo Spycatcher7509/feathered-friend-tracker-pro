@@ -1,4 +1,5 @@
-import { useState, useCallback } from "react"
+
+import { useState, useCallback, useEffect } from "react"
 import { supabase } from "@/integrations/supabase/client"
 import { useToast } from "@/hooks/use-toast"
 import { ChatFormData } from "./types"
@@ -13,10 +14,17 @@ export const useConversation = () => {
   const userEmail = useUserEmail()
   const isAdmin = useAdminStatus()
 
+  // Effect to check for admin status on component mount
+  useEffect(() => {
+    console.log("Admin status in useConversation:", isAdmin.current);
+  }, [isAdmin]);
+
   const initializeConversation = async (metadata?: ChatFormData) => {
     setIsLoading(true)
     try {
       console.log('Initializing conversation with metadata:', metadata)
+      console.log('Is admin when initializing:', isAdmin.current)
+      
       // Get user information
       const { data: { user } } = await supabase.auth.getUser()
       
@@ -111,7 +119,7 @@ export const useConversation = () => {
   }
 
   const endConversation = async () => {
-    if (!conversationId) return
+    if (!conversationId) return false
 
     try {
       console.log('Ending conversation:', conversationId)

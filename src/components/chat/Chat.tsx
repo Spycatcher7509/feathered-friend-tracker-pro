@@ -4,19 +4,30 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
 import { ChatHeader } from "./ChatHeader"
 import { ChatContent } from "./ChatContent"
-import { useChat } from "@/hooks/useChat"
-import { useEffect } from "react"
+import { useChat } from "@/hooks/chat"
+import { useEffect, useState } from "react"
 
 export const Chat = () => {
   const chat = useChat()
+  const [isOpen, setIsOpen] = useState(false)
 
   // Auto-start chat for admin users when they open the chat panel
   const handleSheetOpen = (open: boolean) => {
+    setIsOpen(open);
     if (open && chat.isAdmin && chat.showForm) {
       // For admin users, we auto-initialize the conversation without form data
+      console.log("Admin detected, auto-initializing conversation");
       chat.initializeConversation();
     }
   }
+
+  // Add an effect to initialize conversation for admins when component mounts
+  useEffect(() => {
+    if (isOpen && chat.isAdmin && chat.showForm) {
+      console.log("Admin user detected on mount, initializing conversation");
+      chat.initializeConversation();
+    }
+  }, [chat.isAdmin, chat.showForm, isOpen]);
 
   return (
     <Sheet onOpenChange={handleSheetOpen}>

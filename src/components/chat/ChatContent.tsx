@@ -3,12 +3,19 @@ import { ChatForm } from "./ChatForm"
 import { MessagesList } from "./MessagesList"
 import { MessageInput } from "./MessageInput"
 import { useChat } from "@/hooks/chat"
+import { useEffect } from "react"
 
 interface ChatContentProps {
   chat: ReturnType<typeof useChat>
 }
 
 export const ChatContent = ({ chat }: ChatContentProps) => {
+  // Log admin status for debugging
+  useEffect(() => {
+    console.log("ChatContent - isAdmin:", chat.isAdmin);
+    console.log("ChatContent - showForm:", chat.showForm);
+  }, [chat.isAdmin, chat.showForm]);
+
   return (
     <>
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
