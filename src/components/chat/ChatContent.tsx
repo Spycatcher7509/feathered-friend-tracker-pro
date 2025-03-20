@@ -12,9 +12,9 @@ interface ChatContentProps {
 export const ChatContent = ({ chat }: ChatContentProps) => {
   // Log admin status for debugging
   useEffect(() => {
-    console.log("ChatContent - isAdmin:", chat.isAdmin);
-    console.log("ChatContent - showForm:", chat.showForm);
-  }, [chat.isAdmin, chat.showForm]);
+    console.log("ChatContent - isAdmin:", chat?.isAdmin);
+    console.log("ChatContent - showForm:", chat?.showForm);
+  }, [chat?.isAdmin, chat?.showForm]);
 
   return (
     <>

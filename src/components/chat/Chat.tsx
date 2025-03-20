@@ -14,20 +14,29 @@ export const Chat = () => {
   // Auto-start chat for admin users when they open the chat panel
   const handleSheetOpen = (open: boolean) => {
     setIsOpen(open);
-    if (open && chat.isAdmin && chat.showForm) {
-      // For admin users, we auto-initialize the conversation without form data
+    
+    // Only try to initialize if the chat panel is opening
+    if (open && chat?.isAdmin && chat?.showForm) {
       console.log("Admin detected, auto-initializing conversation");
-      chat.initializeConversation();
+      // Use a short timeout to ensure all state is properly loaded
+      setTimeout(() => {
+        if (chat.initializeConversation) {
+          chat.initializeConversation();
+        }
+      }, 100);
     }
   }
 
   // Add an effect to initialize conversation for admins when component mounts
   useEffect(() => {
-    if (isOpen && chat.isAdmin && chat.showForm) {
+    if (isOpen && chat?.isAdmin && chat?.showForm && chat?.initializeConversation) {
       console.log("Admin user detected on mount, initializing conversation");
-      chat.initializeConversation();
+      // Use a short timeout to ensure all state is properly loaded
+      setTimeout(() => {
+        chat.initializeConversation();
+      }, 100);
     }
-  }, [chat.isAdmin, chat.showForm, isOpen]);
+  }, [chat?.isAdmin, chat?.showForm, isOpen, chat?.initializeConversation]);
 
   return (
     <Sheet onOpenChange={handleSheetOpen}>
